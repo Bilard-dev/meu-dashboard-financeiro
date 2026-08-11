@@ -193,9 +193,15 @@
     </div>
 
     <script>
-        // Link CSV específico da planilha do amigo
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQfFAUPVcTrRdRrhBwGj-7JNpgpxvg3dsxRDVCe5XeY_IHfDkjcYsvbWwwA--Zhygo5rwPSLGy_bB2h/pub?output=csv'; 
-        
+        // --- CONFIGURAÇÃO DINÂMICA DE PLANILHAS ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const user = urlParams.get('user');
+
+        const SHEET_CSV_URL = (user === 'vic') 
+            ? 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTB5BRPtP4D0s6gxD1sanL-cTeSCJabC9WfcFp6AdZY9NsJOcIeNIzg-ErkDICSbvgb9tlZzKitbJZV/pub?output=csv'
+            : 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQW59bVd59QQw26XlvwaPGb9Oyx-WuPSJSfUUFRp2S_ZFaHirdCS0pAbzhZZQnpsceVxgvwbpcKSUIY/pub?output=csv';
+        // ------------------------------------------
+
         let globalData = [];
         let charts = {};
         let isPrivacyMode = false;
@@ -553,7 +559,7 @@
 
         function showCategoryDetails(catName, selectedYm) {
             document.getElementById('categoryDetailsSection').style.display = 'block';
-            document.getElementById('catDetailTitle').innerText = `Análise de Categoria: ${catName}`;
+            document.getElementById('catDetailTitle', selectedYm).innerText = `Análise de Categoria: ${catName}`;
             
             const catDataAtual = selectedYm === 'all' 
                 ? globalData.filter(d => d.type === 'DESPESA' && d.category === catName)
@@ -683,7 +689,15 @@
             });
         }
 
-        window.onload = loadDashboardData;
+        // PROTEÇÃO CONTRA EXECUÇÃO DUPLA
+        let isLoaded = false;
+        function init() {
+            if (isLoaded) return;
+            isLoaded = true;
+            loadDashboardData();
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>

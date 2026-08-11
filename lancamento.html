@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo Lançamento</title>
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8; --border: #334155; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 1rem; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .form-container { background: var(--card); width: 100%; max-width: 480px; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+    h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.25rem; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+    .dash-link { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 0.35rem; }
+    input, select { width: 100%; padding: 0.7rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background-color: var(--bg); color: var(--text); outline: none; transition: border 0.2s; }
+    input:focus, select:focus { border-color: var(--primary); }
+    .row { display: flex; gap: 0.75rem; }
+    .row .form-group { flex: 1; }
+    .submit-btn { width: 100%; background-color: var(--primary); color: #ffffff; border: none; padding: 0.85rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s; }
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:disabled { background-color: var(--border); cursor: not-allowed; }
+    .msg { padding: 0.75rem; border-radius: 8px; font-size: 0.9rem; text-align: center; margin-bottom: 1rem; display: none; }
+    .msg.success { background-color: #064e3b; color: #a7f3d0; border: 1px solid #047857; }
+    .msg.error { background-color: #7f1d1d; color: #fecaca; border: 1px solid #b91c1c; }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>
+      <span>📝 Novo Lançamento</span>
+      <a href="index.html" class="dash-link">Ver Painel 📊</a>
+    </h2>
+    
+    <div id="statusMsg" class="msg"></div>
+
+    <form id="financeForm" onsubmit="enviarFormulario(event)">
+      <div class="form-group">
+        <label>Tipo de Movimentação</label>
+        <select id="tipo" required>
+          <option value="DESPESA">DESPESA</option>
+          <option value="RECEITA">RECEITA</option>
+          <option value="INVESTIMENTO">INVESTIMENTO</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="data" required>
+        </div>
+        <div class="form-group">
+          <label>Valor (R$)</label>
+          <input type="number" step="0.01" id="valor" placeholder="0,00" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Descrição</label>
+        <input type="text" id="descricao" placeholder="Ex: Mercado, Salário..." required>
+      </div>
+
+      <div class="form-group">
+        <label>Custo / Natureza</label>
+        <select id="custo">
+          <option value="Variável">Variável</option>
+          <option value="Fixo">Fixo</option>
+          <option value="Pontual">Pontual</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Categoria</label>
+        <input type="text" id="categoria" list="list-categorias" placeholder="Ex: Alimentação, Moradia..." required>
+        <datalist id="list-categorias"></datalist>
+      </div>
+
+      <div class="form-group">
+        <label>Subcategoria</label>
+        <input type="text" id="subcategoria" list="list-subcategorias" placeholder="Ex: Próprio, Casal...">
+        <datalist id="list-subcategorias"></datalist>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Forma de Pagamento</label>
+          <input type="text" id="pagamento" list="list-pagamentos" placeholder="Ex: Pix, Crédito...">
+          <datalist id="list-pagamentos"></datalist>
+        </div>
+        <div class="form-group">
+          <label>Cartão / Meio</label>
+          <input type="text" id="cartao" list="list-cartoes" placeholder="Ex: Nubank, BTG...">
+          <datalist id="list-cartoes"></datalist>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Parcela (Ex: 1/3, 2/12)</label>
+        <input type="text" id="parcela" placeholder="Deixe em branco se à vista">
+      </div>
+
+      <button type="submit" id="btnSalvar" class="submit-btn">Salvar Lançamento</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const user = urlParams.get('user');
+
+    const WEBAPP_URL_BILARD = 'https://script.google.com/macros/s/AKfycbykPfsSAHMhiuFyWKOzzbKd8qRYryla9lhI5M3X6w5uQwlx7-ADL_yuzHE5lQAXsHA/exec';
+    const WEBAPP_URL_VIC = 'https://script.google.com/macros/s/AKfycbwf-qiC7qxBrSC6fV3GQfcS7dqfJQwwwbHGvgId6-8KQjwT6aDAX6XRwlN0kSrl-hVQpw/exec';
+
+    const SCRIPT_URL = (user === 'vic') ? WEBAPP_URL_VIC : WEBAPP_URL_BILARD;
+
+    document.querySelector('.dash-link').href = user === 'vic' ? 'index.html?user=vic' : 'index.html';
+    document.getElementById('data').valueAsDate = new Date();
+
+    window.onload = async function() {
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        preencherList('list-categorias', data.categorias || []);
+        preencherList('list-subcategorias', data.subcategorias || []);
+        preencherList('list-pagamentos', data.pagamentos || []);
+        preencherList('list-cartoes', data.cartoes || []);
+      } catch (e) { console.error('Erro datalists:', e); }
+    };
+
+    function preencherList(id, itens) {
+      const datalist = document.getElementById(id);
+      datalist.innerHTML = '';
+      itens.forEach(i => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        datalist.appendChild(opt);
+      });
+    }
+
+    async function enviarFormulario(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvar');
+      const msg = document.getElementById('statusMsg');
+      
+      btn.disabled = true;
+      btn.innerText = 'Salvando...';
+      msg.style.display = 'none';
+
+      const payload = {
+        tipo: document.getElementById('tipo').value,
+        data: document.getElementById('data').value,
+        descricao: document.getElementById('descricao').value,
+        custo: document.getElementById('custo').value,
+        categoria: document.getElementById('categoria').value,
+        subcategoria: document.getElementById('subcategoria').value,
+        valor: document.getElementById('valor').value,
+        pagamento: document.getElementById('pagamento').value,
+        cartao: document.getElementById('cartao').value,
+        parcela: document.getElementById('parcela').value
+      };
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        msg.className = 'msg success';
+        msg.innerText = '✅ Lançamento registrado com sucesso!';
+        msg.style.display = 'block';
+
+        document.getElementById('descricao').value = '';
+        document.getElementById('valor').value = '';
+        document.getElementById('parcela').value = '';
+
+      } catch (err) {
+        msg.className = 'msg error';
+        msg.innerText = '❌ Erro ao enviar lançamento.';
+        msg.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Salvar Lançamento';
+      }
+    }
+  </script>
+</body>
+</html>

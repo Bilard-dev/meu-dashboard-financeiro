@@ -10,6 +10,8 @@
       navigator.serviceWorker.register('sw.js');
     }
   </script>
+  <!-- LIB OFICIAL DO SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --muted: #94a3b8; --border: #334155; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; }
@@ -112,85 +114,15 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const user = urlParams.get('user');
+    // CREDENCIAIS SUPABASE
+    const SUPABASE_URL = 'https://gzjzvswfwjoqrcfvlowi.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3Anotado! As credenciais do Supabase foram recebidas:
 
-    const WEBAPP_URL_BILARD = 'https://script.google.com/macros/s/AKfycbykPfsSAHMhiuFyWKOzzbKd8qRYryla9lhI5M3X6w5uQwlx7-ADL_yuzHE5lQAXsHA/exec';
-    const WEBAPP_URL_VIC = 'https://script.google.com/macros/s/AKfycbwf-qiC7qxBrSC6fV3GQfcS7dqfJQwwwbHGvgId6-8KQjwT6aDAX6XRwlN0kSrl-hVQpw/exec';
+* **URL do Projeto:** `https://gzjzvswfwjoqrcfvlowi.supabase.co`
+* **API Version / Base Path:** `/rest/v1/`
+* **Chave Pública (`anon` key):** Armazenada.
 
-    const SCRIPT_URL = (user === 'vic') ? WEBAPP_URL_VIC : WEBAPP_URL_BILARD;
-
-    document.querySelector('.dash-link').href = user === 'vic' ? 'index.html?user=vic' : 'index.html';
-    document.getElementById('data').valueAsDate = new Date();
-
-    window.onload = async function() {
-      try {
-        const res = await fetch(SCRIPT_URL);
-        const data = await res.json();
-        preencherList('list-categorias', data.categorias || []);
-        preencherList('list-subcategorias', data.subcategorias || []);
-        preencherList('list-pagamentos', data.pagamentos || []);
-        preencherList('list-cartoes', data.cartoes || []);
-      } catch (e) { console.error('Erro datalists:', e); }
-    };
-
-    function preencherList(id, itens) {
-      const datalist = document.getElementById(id);
-      datalist.innerHTML = '';
-      itens.forEach(i => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        datalist.appendChild(opt);
-      });
-    }
-
-    async function enviarFormulario(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnSalvar');
-      const msg = document.getElementById('statusMsg');
-      
-      btn.disabled = true;
-      btn.innerText = 'Salvando...';
-      msg.style.display = 'none';
-
-      const payload = {
-        tipo: document.getElementById('tipo').value,
-        data: document.getElementById('data').value,
-        descricao: document.getElementById('descricao').value,
-        custo: document.getElementById('custo').value,
-        categoria: document.getElementById('categoria').value,
-        subcategoria: document.getElementById('subcategoria').value,
-        valor: document.getElementById('valor').value,
-        pagamento: document.getElementById('pagamento').value,
-        cartao: document.getElementById('cartao').value,
-        parcela: document.getElementById('parcela').value
-      };
-
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        msg.className = 'msg success';
-        msg.innerText = '✅ Lançamento registrado com sucesso!';
-        msg.style.display = 'block';
-
-        document.getElementById('descricao').value = '';
-        document.getElementById('valor').value = '';
-        document.getElementById('parcela').value = '';
-
-      } catch (err) {
-        msg.className = 'msg error';
-        msg.innerText = '❌ Erro ao enviar lançamento.';
-        msg.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Salvar Lançamento';
-      }
-    }
-  </script>
-</body>
-</html>
+Como posso ajudar com essa integração? Se precisar, podemos:
+1. Montar as requisições REST para consultar ou inserir dados nas tabelas.
+2. Configurar requisições no Postman/Insomnia.
+3. Escrever scripts de automação em Python, JavaScript/TypeScript ou Google Apps Script.

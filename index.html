@@ -93,10 +93,12 @@
         .btn-primary:hover { opacity: 0.9; }
         .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+        .btn-success { background: var(--success); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
         .action-icon-btn:hover { background: var(--border); }
         .checkbox-container { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+        .admin-badge { background: var(--invest); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; margin-left: 0.5rem; }
     </style>
 </head>
 <body>
@@ -125,10 +127,17 @@
     <div id="appView" style="display: none;">
         <header>
             <div>
-                <h1>Painel Financeiro</h1>
+                <h1 style="display: flex; align-items: center;">Painel Financeiro <span id="adminBadge" class="admin-badge" style="display: none;">ADMIN</span></h1>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
             </div>
             <div class="header-controls">
+                <div class="select-container" id="adminProfileContainer" style="display: none;">
+                    <select id="profileSelector" style="background-color: #fef3c7; color: #b45309; border-color: #f59e0b;" onchange="onProfileChange()">
+                        <option value="MY_PROFILE">👤 Meu Perfil</option>
+                        <option value="ALL">👥 Casal (Consolidado)</option>
+                    </select>
+                </div>
+
                 <button class="action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 <span id="themeBtnText">Modo Escuro</span></button>
                 <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
                 <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn">👁️ <span id="privacyBtnText">Privacidade Off</span></button>
@@ -143,6 +152,7 @@
             <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Crédito</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
+            <button class="tab-btn" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
             <button class="tab-btn" id="tabNovoBtn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
         </div>
 
@@ -163,7 +173,6 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
                         
-                        <!-- FILTROS DE BUSCA E TIPO DE EXTRATO -->
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
                             <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar lançamento..." style="width: 200px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
                             <select id="typeFilterSelector" class="reset-btn" style="padding: 0.45rem 0.8rem;" onchange="applyExtratoFilters()">
@@ -224,14 +233,13 @@
                 </div>
             </div>
 
-            <!-- ABA 3: INVESTIMENTOS (ENRIQUECIDA) -->
+            <!-- ABA 3: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
                  <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
                      <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria (Titular):</label>
                      <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
                  </div>
                  
-                 <!-- CARDS AVANÇADOS DE INVESTIMENTO -->
                  <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Total Investido (Filtro)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">Maior Aporte Único</div><div class="kpi-value" id="kpi-maior-aporte" style="color: var(--primary);">R$ 0,00</div></div></div>
@@ -248,10 +256,77 @@
                 </div>
             </div>
 
-            <!-- ABA 4: NOVO REGISTRO / EDIÇÃO -->
+            <!-- ABA 4: GASTOS COMPARTILHADOS (NOVA ABA SPLIT) -->
+            <div id="tab-divisao" class="tab-content">
+                <div class="chart-card">
+                    <h2 class="chart-title" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
+                    <form id="sharedForm" onsubmit="addSharedTransaction(event)">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Data *</label>
+                                <input type="date" id="s_data" class="input-field" required>
+                            </div>
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>Descrição da Conta *</label>
+                                <input type="text" id="s_descricao" class="input-field" placeholder="Ex: Jantar de Aniversário, Aluguel, Mercado" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Valor Total (R$) *</label>
+                                <input type="number" id="s_valor_total" step="0.01" class="input-field" placeholder="Ex: 200.00" oninput="calculateSplit()" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Regra de Divisão</label>
+                                <select id="s_regra" class="input-field" onchange="calculateSplit()">
+                                    <option value="50_50">50% / 50% (Divisão Igual)</option>
+                                    <option value="CUSTOM">Valores Personalizados</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Minha Parte (R$)</label>
+                                <input type="number" id="s_valor_meu" step="0.01" class="input-field" placeholder="R$ 0,00" oninput="onCustomSplitChange('meu')">
+                            </div>
+                            <div class="input-group">
+                                <label>Parte Dela/Dele (R$)</label>
+                                <input type="number" id="s_valor_parceiro" step="0.01" class="input-field" placeholder="R$ 0,00" oninput="onCustomSplitChange('parceiro')">
+                            </div>
+                            <div class="input-group">
+                                <label>Categoria</label>
+                                <input type="text" id="s_categoria" class="input-field" placeholder="Ex: Lazer Casal, Casa">
+                            </div>
+                            <div class="input-group">
+                                <label>Forma de Pagamento</label>
+                                <input type="text" id="s_pagamento" class="input-field" placeholder="Ex: Cartão de Crédito, PIX">
+                            </div>
+                        </div>
+                        <div style="margin-top: 1.5rem;">
+                            <button type="submit" class="btn-primary" id="btnSalvarShared">Salvar Gastos Divididos</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Contas Compartilhadas Cadastradas</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Total</th>
+                                <th>Sua Parte</th>
+                                <th>Parte Parcela</th>
+                                <th>Status</th>
+                                <th style="text-align:center;">Ação de Lançamento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sharedTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ABA 5: NOVO REGISTRO -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
-                    <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação</h2>
+                    <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
                     <form id="insertForm" onsubmit="addOrUpdateTransaction(event)">
                         <input type="hidden" id="edit_id">
                         <div class="form-grid">
@@ -313,7 +388,6 @@
                             </div>
                         </div>
 
-                        <!-- OPÇÕES DE RECORRÊNCIA -->
                         <div style="margin-top:1.5rem; padding-top:1rem; border-top: 1px dashed var(--border);">
                             <div class="checkbox-container">
                                 <input type="checkbox" id="i_recorrente" onchange="toggleRecurrenceFields()">
@@ -348,17 +422,21 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
         const SUPABASE_URL = 'https://zrlkexqogahoeryqkeyr.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
+        const ADMIN_EMAIL = 'tbilard@hotmail.com';
+        
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
+        let currentUser = null;
+        let isAdmin = false;
+        let rawSupabaseData = [];
         let globalData = [];
+        let sharedData = [];
         let currentFilteredExtratoData = [];
         let charts = {};
         let isPrivacyMode = false;
 
-        // MODO ESCURO
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
@@ -376,7 +454,6 @@
                 : '🌙 <span id="themeBtnText">Modo Escuro</span>';
         }
 
-        // SISTEMA DE AUTENTICAÇÃO
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
             checkSession();
@@ -385,9 +462,18 @@
         async function checkSession() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
+                currentUser = session.user;
+                isAdmin = currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+                if (isAdmin) {
+                    document.getElementById('adminBadge').style.display = 'inline-block';
+                    document.getElementById('adminProfileContainer').style.display = 'block';
+                }
+
                 document.getElementById('loginView').style.display = 'none';
                 document.getElementById('appView').style.display = 'block';
                 loadDashboardData();
+                loadSharedData();
             } else {
                 document.getElementById('loginView').style.display = 'block';
                 document.getElementById('appView').style.display = 'none';
@@ -420,15 +506,261 @@
             window.location.reload();
         }
 
-        // DADOS DINÂMICOS E FILTRADOS POR TIPO NOS SELECTS
+        async function loadDashboardData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+
+            try {
+                const { data, error } = await _supabase
+                    .from('transacoes')
+                    .select('*')
+                    .order('data', { ascending: false });
+
+                if (error) throw error;
+
+                rawSupabaseData = data;
+
+                if (isAdmin) {
+                    populateAdminProfileSelector();
+                }
+
+                filterDataByActiveProfile();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+
+                setupMonthSelector();
+                setupInvestSelector();
+                populateFormDropdowns();
+                updateDashboard(document.getElementById('monthSelector').value);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerText = "Erro ao buscar dados: " + error.message;
+            }
+        }
+
+        async function loadSharedData() {
+            try {
+                const { data, error } = await _supabase
+                    .from('gastos_compartilhados')
+                    .select('*')
+                    .order('data', { ascending: false });
+
+                if (!error && data) {
+                    sharedData = data;
+                    renderSharedTable();
+                }
+            } catch (e) {
+                console.error("Tabela compartilhada não carregada ou ainda não criada.", e);
+            }
+        }
+
+        function populateAdminProfileSelector() {
+            const selector = document.getElementById('profileSelector');
+            const currentSelected = selector.value;
+            
+            const uniqueUsers = [...new Set(rawSupabaseData.map(d => d.user_id).filter(u => u && u !== currentUser.id))];
+
+            selector.innerHTML = `
+                <option value="MY_PROFILE">👤 Meu Perfil (${currentUser.email})</option>
+                <option value="ALL">👥 Casal (Consolidado)</option>
+            `;
+
+            uniqueUsers.forEach((uid, index) => {
+                const opt = document.createElement('option');
+                opt.value = uid;
+                opt.textContent = `👩 Esposa / Perfil ${index + 1} (${uid.substring(0, 8)}...)`;
+                selector.appendChild(opt);
+            });
+
+            if (currentSelected) selector.value = currentSelected;
+        }
+
+        function onProfileChange() {
+            filterDataByActiveProfile();
+            setupMonthSelector();
+            setupInvestSelector();
+            populateFormDropdowns();
+            updateDashboard(document.getElementById('monthSelector').value);
+        }
+
+        function filterDataByActiveProfile() {
+            const selectedProfile = isAdmin ? document.getElementById('profileSelector').value : 'MY_PROFILE';
+            
+            let filteredRows = rawSupabaseData;
+
+            if (selectedProfile === 'MY_PROFILE') {
+                filteredRows = rawSupabaseData.filter(d => d.user_id === currentUser.id);
+            } else if (selectedProfile !== 'ALL') {
+                filteredRows = rawSupabaseData.filter(d => d.user_id === selectedProfile);
+            }
+
+            globalData = filteredRows.map(row => {
+                const d = new Date(row.data + 'T12:00:00');
+                return {
+                    id: row.id,
+                    user_id: row.user_id,
+                    type: row.tipo ? row.tipo.toUpperCase() : 'DESPESA',
+                    rawTipo: row.tipo || 'Despesa',
+                    date: d,
+                    rawDate: row.data,
+                    desc: row.descricao || '',
+                    custo: row.custo || '',
+                    category: row.categoria || 'Outros',
+                    subCat: row.subcategoria || '',
+                    value: parseFloat(row.valor) || 0,
+                    pagamento: row.pagamento || '',
+                    cartao: row.cartao || '',
+                    parcela: row.parcela || '',
+                    month: d.getMonth(),
+                    year: d.getFullYear()
+                };
+            });
+        }
+
+        // CÁLCULOS E AÇÕES DA ABA COMPARTILHADA
+        function calculateSplit() {
+            const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
+            const regra = document.getElementById('s_regra').value;
+
+            if (regra === '50_50') {
+                const metade = total / 2;
+                document.getElementById('s_valor_meu').value = metade.toFixed(2);
+                document.getElementById('s_valor_parceiro').value = metade.toFixed(2);
+            }
+        }
+
+        function onCustomSplitChange(changedField) {
+            document.getElementById('s_regra').value = 'CUSTOM';
+            const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
+            
+            if (changedField === 'meu') {
+                const meuVal = parseFloat(document.getElementById('s_valor_meu').value) || 0;
+                document.getElementById('s_valor_parceiro').value = Math.max(0, total - meuVal).toFixed(2);
+            } else {
+                const parceiroVal = parseFloat(document.getElementById('s_valor_parceiro').value) || 0;
+                document.getElementById('s_valor_meu').value = Math.max(0, total - parceiroVal).toFixed(2);
+            }
+        }
+
+        async function addSharedTransaction(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarShared');
+            btn.innerText = 'Salvando...';
+
+            const novaConta = {
+                created_by: currentUser.id,
+                data: document.getElementById('s_data').value,
+                descricao: document.getElementById('s_descricao').value,
+                valor_total: parseFloat(document.getElementById('s_valor_total').value),
+                valor_meu: parseFloat(document.getElementById('s_valor_meu').value),
+                valor_parceiro: parseFloat(document.getElementById('s_valor_parceiro').value),
+                categoria: document.getElementById('s_categoria').value || 'Gastos Compartilhados',
+                pagamento: document.getElementById('s_pagamento').value || 'PIX / Cartão',
+                status: 'PENDENTE'
+            };
+
+            const { error } = await _supabase.from('gastos_compartilhados').insert([novaConta]);
+
+            if (error) {
+                alert("Erro ao salvar conta compartilhada: " + error.message);
+            } else {
+                document.getElementById('sharedForm').reset();
+                alert("Conta compartilhada registrada com sucesso!");
+                loadSharedData();
+            }
+            btn.innerText = 'Salvar Gastos Divididos';
+        }
+
+        async function pushSharedToDashboards(id) {
+            const conta = sharedData.find(s => s.id === id);
+            if (!conta) return;
+
+            // Descobre o ID do parceiro no banco
+            const partnerUid = rawSupabaseData.find(d => d.user_id !== currentUser.id)?.user_id;
+
+            if (!partnerUid) {
+                alert("Para lançar no dashboard do parceiro, ele/ela precisa ter feito pelo menos 1 login ou lançamento no sistema!");
+                return;
+            }
+
+            if (confirm(`Confirmar lançamento de R$ ${conta.valor_meu.toFixed(2)} no seu painel e R$ ${conta.valor_parceiro.toFixed(2)} no painel parceiro?`)) {
+                
+                const lancamentoMeu = {
+                    user_id: currentUser.id,
+                    tipo: 'Despesa',
+                    data: conta.data,
+                    descricao: `${conta.descricao} (50% Split)`,
+                    valor: conta.valor_meu,
+                    categoria: conta.categoria,
+                    pagamento: conta.pagamento
+                };
+
+                const lancamentoParceiro = {
+                    user_id: partnerUid,
+                    tipo: 'Despesa',
+                    data: conta.data,
+                    descricao: `${conta.descricao} (50% Split)`,
+                    valor: conta.valor_parceiro,
+                    categoria: conta.categoria,
+                    pagamento: conta.pagamento
+                };
+
+                // Insere nos dashboards
+                const { error: err1 } = await _supabase.from('transacoes').insert([lancamentoMeu, lancamentoParceiro]);
+                
+                if (err1) {
+                    alert("Erro ao lançar nos dashboards: " + err1.message);
+                    return;
+                }
+
+                // Atualiza status para LANÇADO
+                await _supabase.from('gastos_compartilhados').update({ status: 'LANCADO' }).eq('id', id);
+
+                alert("Conta compartilhada dividida e lançada nos 2 dashboards com sucesso!");
+                loadSharedData();
+                manualSync();
+            }
+        }
+
+        function renderSharedTable() {
+            const tbody = document.getElementById('sharedTableBody');
+            tbody.innerHTML = '';
+
+            if (sharedData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
+                return;
+            }
+
+            sharedData.forEach(item => {
+                const tr = document.createElement('tr');
+                const isLancado = item.status === 'LANCADO';
+                const d = new Date(item.data + 'T12:00:00');
+
+                tr.innerHTML = `
+                    <td>${d.toLocaleDateString('pt-BR')}</td>
+                    <td style="font-weight:600;">${item.descricao}</td>
+                    <td style="font-weight:700;">${fmt(parseFloat(item.valor_total))}</td>
+                    <td style="color:var(--danger); font-weight:600;">${fmt(parseFloat(item.valor_meu))}</td>
+                    <td style="color:var(--danger); font-weight:600;">${fmt(parseFloat(item.valor_parceiro))}</td>
+                    <td><span class="tag-status ${isLancado ? 'tag-done' : 'tag-open'}">${isLancado ? 'Lançado no Dashboard' : 'Pendente'}</span></td>
+                    <td style="text-align:center;">
+                        ${!isLancado 
+                            ? `<button class="btn-success" onclick="pushSharedToDashboards('${item.id}')">🚀 Lançar nos Dashboards</button>` 
+                            : `<span style="font-size:0.8rem; color:var(--text-muted);">✅ Concluído</span>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         function onTypeChange() {
             populateFormDropdowns();
         }
 
         function populateFormDropdowns() {
             const selectedType = (document.getElementById('i_tipo').value || 'Despesa').toUpperCase();
-            
-            // Filtra o histórico para conter apenas lançamentos do tipo selecionado
             const typeFilteredData = globalData.filter(d => d.type === selectedType);
 
             populateSelect('i_categoria', typeFilteredData.map(d => d.category));
@@ -440,7 +772,6 @@
         function populateSelect(elementId, valuesArray) {
             const select = document.getElementById(elementId);
             const currentValue = select.value;
-            
             const uniqueValues = [...new Set(valuesArray.filter(v => v && v.trim() !== ''))].sort();
             
             select.innerHTML = '<option value="">-- Selecione --</option>';
@@ -483,7 +814,6 @@
             document.getElementById('recurrenceFields').style.display = isRec ? 'grid' : 'none';
         }
 
-        // FUNÇÕES DO DASHBOARD
         function normalizeText(str) {
             if (!str) return '';
             return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
@@ -514,6 +844,10 @@
             
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
+            if(tabId === 'divisao') {
+                document.getElementById('s_data').valueAsDate = new Date();
+                loadSharedData();
+            }
             if(tabId === 'novo') {
                 if(!document.getElementById('edit_id').value) {
                     document.getElementById('i_data').valueAsDate = new Date();
@@ -525,58 +859,11 @@
         async function manualSync() {
             document.getElementById('syncBtnText').innerText = 'Buscando...';
             await loadDashboardData();
+            await loadSharedData();
             document.getElementById('syncBtnText').innerText = 'Atualizado!';
             setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
         }
 
-        async function loadDashboardData() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-
-            try {
-                const { data, error } = await _supabase
-                    .from('transacoes')
-                    .select('*')
-                    .order('data', { ascending: false });
-
-                if (error) throw error;
-
-                globalData = data.map(row => {
-                    const d = new Date(row.data + 'T12:00:00');
-                    return {
-                        id: row.id,
-                        type: row.tipo ? row.tipo.toUpperCase() : 'DESPESA',
-                        rawTipo: row.tipo || 'Despesa',
-                        date: d,
-                        rawDate: row.data,
-                        desc: row.descricao || '',
-                        custo: row.custo || '',
-                        category: row.categoria || 'Outros',
-                        subCat: row.subcategoria || '',
-                        value: parseFloat(row.valor) || 0,
-                        pagamento: row.pagamento || '',
-                        cartao: row.cartao || '',
-                        parcela: row.parcela || '',
-                        month: d.getMonth(),
-                        year: d.getFullYear()
-                    };
-                });
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-
-                setupMonthSelector();
-                setupInvestSelector();
-                populateFormDropdowns();
-                updateDashboard(document.getElementById('monthSelector').value);
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading').innerText = "Erro ao buscar dados: " + error.message;
-            }
-        }
-
-        // SALVAR OU EDITAR TRANSAÇÃO (COM RECORRÊNCIA)
         async function addOrUpdateTransaction(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
@@ -604,6 +891,7 @@
                     : document.getElementById('i_descricao').value;
 
                 listaTransacoes.push({
+                    user_id: currentUser.id,
                     tipo: document.getElementById('i_tipo').value,
                     data: dataFormatada,
                     descricao: descFinal,
@@ -635,7 +923,6 @@
             }
         }
 
-        // EDITAR E EXCLUIR
         function editTransaction(id) {
             const item = globalData.find(d => d.id === id);
             if (!item) return;
@@ -667,7 +954,7 @@
             document.getElementById('insertForm').reset();
             document.getElementById('i_recorrente').checked = false;
             toggleRecurrenceFields();
-            document.getElementById('formTitle').innerText = "Cadastrar Nova Transação";
+            document.getElementById('formTitle').innerText = "Cadastrar Nova Transação Individual";
             document.getElementById('btnSalvar').innerText = "Salvar Registro";
             document.getElementById('btnCancelarEdicao').style.display = "none";
             document.getElementById('tabNovoBtn').innerText = "➕ Novo Registro";
@@ -687,7 +974,6 @@
             }
         }
 
-        // FILTROS E BUSCA DO EXTRATO
         function applyExtratoFilters() {
             const selectedYm = document.getElementById('monthSelector').value;
             const typeFilter = document.getElementById('typeFilterSelector').value;
@@ -713,7 +999,6 @@
             renderResumoExtrato(currentFilteredExtratoData);
         }
 
-        // RENDERS E ATUALIZAÇÕES
         function setupMonthSelector() {
             const select = document.getElementById('monthSelector');
             select.innerHTML = '<option value="all">Todo o Histórico</option>';

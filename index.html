@@ -273,7 +273,7 @@
                     .from('lancamentos')
                     .select('*')
                     .eq('user_id', currentUser)
-                    .order('created_at', { ascending: false });
+                    .order('data', { ascending: false });
 
                 if (error) throw error;
 

@@ -1,1 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro Pessoal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SUPABASE CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root { --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --invest: #8b5cf6; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; }
+        
+        /* HEADER E TABS (Seu CSS Original) */
+        header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        header h1 { font-size: 1.75rem; font-weight: 700; }
+        .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
+        .action-btn:hover { background-color: #e2e8f0; }
+        .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .tab-btn:hover { background-color: #e2e8f0; color: var(--text-main); }
+        .tab-btn.active { background-color: var(--primary); color: #ffffff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
+        
+        /* CARDS E KPI (Seu CSS Original) */
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
+        .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
+        .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+        .kpi-value { font-size: 1.5rem; font-weight: 700; }
+        .kpi-details { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--border); font-size: 0.8rem; }
+        .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; color: var(--text-main); }
+        .kpi-detail-item:last-child { margin-bottom: 0; }
+        .kpi-detail-label { font-weight: 500; color: var(--text-muted); }
+        .kpi-detail-val { font-weight: 600; }
 
+        .chart-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .data-table th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; }
+        .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .tag-open { background-color: #fef3c7; color: #b45309; }
+        .tag-done { background-color: #d1fae5; color: #047857; }
+        .progress-bar-bg { background-color: #e2e8f0; border-radius: 6px; height: 8px; width: 80px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+        .progress-bar-fill { background-color: var(--primary); height: 100%; }
+        .reset-btn { background-color: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
+        #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
+
+        /* ESTILOS NOVOS: LOGIN E FORMULÁRIO */
+        .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-muted); }
+        .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--bg-color); }
+        .input-field:focus { border-color: var(--primary); }
+        .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="loginView">
+        <div class="auth-container">
+            <h2 style="margin-bottom: 0.5rem; text-align: center;">Acesso Restrito</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Faça login para ver seu dashboard</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>E-mail</label>
+                    <input type="email" id="email" class="input-field" required>
+                </div>
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input type="password" id="senha" class="input-field" required>
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
+            </form>
+            <p id="loginError" style="color: var(--danger); margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none;"></p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PRINCIPAL (Oculto até o login) -->
+    <div id="appView" style="display: none;">
+        <header>
+            <div>
+                <h1>Painel Financeiro</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
+            </div>
+            <div class="header-controls">
+                <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
+                <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn">👁️ <span id="privacyBtnText">Privacidade Off</span></button>
+                <div class="select-container" id="filterContainer">
+                    <select id="monthSelector"><option value="all">Ano Inteiro</option></select>
+                </div>
+                <button class="btn-danger" onclick="logout()">Sair</button>
+            </div>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
+            <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Crédito</button>
+            <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
+            <button class="tab-btn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">Conectando ao Supabase...</div>
+
+        <div id="dashboard">
+            
+            <!-- ABA 1: RESUMO GERAL -->
+            <div id="tab-resumo" class="tab-content active">
+                <div class="kpi-container">
+                    <div class="kpi-card"><div><div class="kpi-title">Receitas</div><div class="kpi-value" id="kpi-receitas" style="color: var(--success);">R$ 0,00</div></div><div class="kpi-details" id="kpi-receitas-detalhes"></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Despesas (Total)</div><div class="kpi-value" id="kpi-despesas" style="color: var(--danger);">R$ 0,00</div></div><div class="kpi-details" id="kpi-despesas-detalhes"></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Aportes</div><div class="kpi-value" id="kpi-investimentos" style="color: var(--invest);">R$ 0,00</div></div><div class="kpi-details" id="kpi-investimentos-detalhes"></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Sobra (Caixa)</div><div class="kpi-value" id="kpi-saldo">R$ 0,00</div></div><div class="kpi-details" id="kpi-saldo-detalhes"></div></div>
+                </div>
+
+                <div class="chart-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
+                    </div>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <table class="data-table">
+                            <thead><tr><th>Data</th><th>Tipo / Detalhes</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th></tr></thead>
+                            <tbody id="resumoExtratoTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Composição de Gastos (Clique em uma fatia para destrinchar)</div>
+                    <div style="width:100%; max-width:400px; margin: 0 auto;"><canvas id="categoryChart" height="220"></canvas></div>
+                    
+                    <div id="categoryDetailsSection">
+                        <h3 id="catDetailTitle" style="margin-bottom: 1rem; color: var(--primary);">Análise: Categoria</h3>
+                        <div class="kpi-container">
+                            <div class="kpi-card"><div><div class="kpi-title">Gasto Atual (Período)</div><div class="kpi-value" id="kpi-cat-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Média Mensal Histórica</div><div class="kpi-value" id="kpi-cat-media">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Variação (Atual vs Média)</div><div class="kpi-value" id="kpi-cat-var">0%</div></div></div>
+                        </div>
+                        <table class="data-table">
+                            <thead><tr><th>Data</th><th>Subcategoria</th><th>Descrição</th><th>Valor</th></tr></thead>
+                            <tbody id="catDetailTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 2: PARCELAS -->
+            <div id="tab-parcelas" class="tab-content">
+                <div class="kpi-container">
+                    <div class="kpi-card"><div><div class="kpi-title">Total a Pagar (Restante)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Comprometimento Próximo Mês</div><div class="kpi-value" id="kpi-parcela-proxima-fatura" style="color: var(--primary);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Compras Ativas em Aberto</div><div class="kpi-value" id="kpi-parcela-qtd-ativas" style="color: var(--text-main);">0</div></div></div>
+                </div>
+                <div class="chart-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="chart-title" style="margin-bottom:0;">Compras Parceladas</div>
+                        <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
+                            <option value="open">Em Aberto</option>
+                            <option value="done">Liquidado</option>
+                            <option value="all">Todos</option>
+                        </select>
+                    </div>
+                    <table class="data-table">
+                        <thead><tr><th>Data Última</th><th>Descrição</th><th>Cartão/Meio</th><th>Progresso</th><th>Status</th><th>Parc. Mês</th><th>Valor Restante</th></tr></thead>
+                        <tbody id="parcelasTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ABA 3: INVESTIMENTOS -->
+            <div id="tab-investimentos" class="tab-content">
+                 <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                     <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria (Titular):</label>
+                     <select id="investTypeSelector" class="reset-btn" style="background:#fff; border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
+                 </div>
+                 <div class="kpi-container">
+                    <div class="kpi-card"><div><div class="kpi-title">Total Investido (Filtro Selecionado)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Histórico de Aportes</div>
+                    <table class="data-table">
+                        <thead><tr><th>Data</th><th>Descrição</th><th>Subcategoria</th><th>Destino (Categoria)</th><th>Valor</th></tr></thead>
+                        <tbody id="investTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ABA 4: NOVO REGISTRO (INSERIR DADOS) -->
+            <div id="tab-novo" class="tab-content">
+                <div class="chart-card">
+                    <h2 class="chart-title" style="font-size: 1.3rem;">Cadastrar Nova Transação</h2>
+                    <form id="insertForm" onsubmit="addTransaction(event)">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Tipo *</label>
+                                <select id="i_tipo" class="input-field" required>
+                                    <option value="Despesa">Despesa</option>
+                                    <option value="Receita">Receita</option>
+                                    <option value="Investimento">Investimento</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Data *</label>
+                                <input type="date" id="i_data" class="input-field" required>
+                            </div>
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>Descrição *</label>
+                                <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Valor (R$) *</label>
+                                <input type="number" id="i_valor" step="0.01" class="input-field" placeholder="Ex: 150.50" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Custo (Opcional)</label>
+                                <select id="i_custo" class="input-field">
+                                    <option value="">-- Selecione --</option>
+                                    <option value="Fixo">Fixo</option>
+                                    <option value="Variável">Variável</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Categoria</label>
+                                <input type="text" id="i_categoria" class="input-field" placeholder="Ex: Alimentação">
+                            </div>
+                            <div class="input-group">
+                                <label>Subcategoria</label>
+                                <input type="text" id="i_subcategoria" class="input-field" placeholder="Ex: Compras de Mês">
+                            </div>
+                            <div class="input-group">
+                                <label>Forma de Pagamento</label>
+                                <input type="text" id="i_pagamento" class="input-field" placeholder="Ex: Cartão de Crédito, PIX">
+                            </div>
+                            <div class="input-group">
+                                <label>Cartão Utilizado</label>
+                                <input type="text" id="i_cartao" class="input-field" placeholder="Ex: Nubank, Itaú">
+                            </div>
+                            <div class="input-group">
+                                <label>Parcela</label>
+                                <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
+                            </div>
+                        </div>
+                        <div style="margin-top: 1.5rem;">
+                            <button type="submit" class="btn-primary" id="btnSalvar">Salvar Registro</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO SUPABASE
+        const SUPABASE_URL = 'https://zrlkexqogahoeryqkeyr.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let globalData = [];
+        let charts = {};
+        let isPrivacyMode = false;
+
+        // SISTEMA DE AUTENTICAÇÃO
+        document.addEventListener('DOMContentLoaded', checkSession);
+
+        async function checkSession() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                document.getElementById('loginView').style.display = 'none';
+                document.getElementById('appView').style.display = 'block';
+                loadDashboardData();
+            } else {
+                document.getElementById('loginView').style.display = 'block';
+                document.getElementById('appView').style.display = 'none';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('senha').value;
+            const btn = document.getElementById('loginBtnText');
+            const errorMsg = document.getElementById('loginError');
+            
+            btn.innerText = 'Entrando...';
+            errorMsg.style.display = 'none';
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                errorMsg.innerText = error.message;
+                errorMsg.style.display = 'block';
+                btn.innerText = 'Entrar';
+            } else {
+                checkSession();
+            }
+        });
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        // FUNÇÕES DO DASHBOARD (MANTIDAS DO SEU CÓDIGO)
+        function normalizeText(str) {
+            if (!str) return '';
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+        }
+
+        function togglePrivacy() {
+            isPrivacyMode = !isPrivacyMode;
+            document.getElementById('privacyBtnText').innerText = isPrivacyMode ? 'Privacidade On' : 'Privacidade Off';
+            document.getElementById('privacyToggleBtn').style.backgroundColor = isPrivacyMode ? '#dbeafe' : 'var(--card-bg)';
+            updateDashboard(document.getElementById('monthSelector').value);
+        }
+
+        function fmt(val) {
+            if (isPrivacyMode) return 'R$ ****,**';
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            if (tabId === 'resumo') { document.getElementById('filterContainer').style.visibility = 'visible'; } 
+            else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
+            
+            if(tabId === 'parcelas') renderParcelasTab();
+            if(tabId === 'investimentos') renderInvestmentsTab();
+            if(tabId === 'novo') document.getElementById('i_data').valueAsDate = new Date();
+        }
+
+        async function manualSync() {
+            document.getElementById('syncBtnText').innerText = 'Buscando...';
+            await loadDashboardData();
+            document.getElementById('syncBtnText').innerText = 'Atualizado!';
+            setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
+        }
+
+        // NOVA FUNÇÃO DE BUSCA DO SUPABASE (Substitui o Google Sheets)
+        async function loadDashboardData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+
+            try {
+                const { data, error } = await _supabase
+                    .from('transacoes')
+                    .select('*')
+                    .order('data', { ascending: false });
+
+                if (error) throw error;
+
+                globalData = data.map(row => {
+                    // Adicionado T12:00:00 para evitar erro de fuso horário que altera o dia
+                    const d = new Date(row.data + 'T12:00:00');
+                    return {
+                        id: row.id,
+                        type: row.tipo.toUpperCase(), // Padroniza para RECEITA, DESPESA, INVESTIMENTO
+                        date: d,
+                        desc: row.descricao || '',
+                        custo: row.custo || '',
+                        category: row.categoria || 'Outros',
+                        subCat: row.subcategoria || '',
+                        value: parseFloat(row.valor) || 0,
+                        pagamento: row.pagamento || '',
+                        cartao: row.cartao || '',
+                        parcela: row.parcela || '',
+                        month: d.getMonth(),
+                        year: d.getFullYear()
+                    };
+                });
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+
+                setupMonthSelector();
+                setupInvestSelector();
+                updateDashboard(document.getElementById('monthSelector').value);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading').innerText = "Erro ao buscar dados: " + error.message;
+            }
+        }
+
+        // INSERÇÃO DE NOVOS DADOS
+        async function addTransaction(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvar');
+            btn.innerText = 'Salvando...';
+
+            const novaTransacao = {
+                tipo: document.getElementById('i_tipo').value,
+                data: document.getElementById('i_data').value,
+                descricao: document.getElementById('i_descricao').value,
+                valor: parseFloat(document.getElementById('i_valor').value),
+                custo: document.getElementById('i_custo').value,
+                categoria: document.getElementById('i_categoria').value,
+                subcategoria: document.getElementById('i_subcategoria').value,
+                pagamento: document.getElementById('i_pagamento').value,
+                cartao: document.getElementById('i_cartao').value,
+                parcela: document.getElementById('i_parcela').value
+            };
+
+            const { error } = await _supabase.from('transacoes').insert([novaTransacao]);
+
+            if (error) {
+                alert('Erro ao salvar: ' + error.message);
+                btn.innerText = 'Salvar Registro';
+            } else {
+                document.getElementById('insertForm').reset();
+                alert('Registro adicionado com sucesso!');
+                btn.innerText = 'Salvar Registro';
+                // Volta pra tela inicial e recarrega
+                switchTab('resumo');
+                document.querySelector('.tab-btn').classList.add('active');
+                manualSync();
+            }
+        }
+
+        // RENDERS E ATUALIZAÇÕES (Intactos do seu código)
+        function setupMonthSelector() {
+            const select = document.getElementById('monthSelector');
+            select.innerHTML = '<option value="all">Todo o Histórico</option>';
+            const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            
+            const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
+            activeMonths.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const opt = document.createElement('option');
+                opt.value = ym; opt.textContent = `${months[m]} ${y}`;
+                select.appendChild(opt);
+            });
+            
+            const currYm = `${new Date().getFullYear()}-${new Date().getMonth()}`;
+            if (activeMonths.includes(currYm)) select.value = currYm;
+            
+            select.addEventListener('change', (e) => updateDashboard(e.target.value));
+        }
+
+        function setupInvestSelector() {
+            const select = document.getElementById('investTypeSelector');
+            select.innerHTML = '<option value="todos">Todas as Subcategorias (Consolidado)</option>';
+            
+            const investData = globalData.filter(d => d.type === 'INVESTIMENTO');
+            const subcats = [...new Set(investData.map(d => d.subCat).filter(s => s && s.trim() !== ''))];
+            
+            subcats.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateDashboard(selectedYm) {
+            document.getElementById('categoryDetailsSection').style.display = 'none'; 
+
+            const filtered = selectedYm === 'all' ? globalData : globalData.filter(d => `${d.year}-${d.month}` === selectedYm);
+
+            const receitasArr = filtered.filter(d => d.type === 'RECEITA');
+            const receitas = receitasArr.reduce((a, b) => a + b.value, 0);
+            
+            const despesasArr = filtered.filter(d => d.type === 'DESPESA');
+            const despesas = despesasArr.reduce((a, b) => a + b.value, 0);
+            
+            const investArr = filtered.filter(d => d.type === 'INVESTIMENTO');
+            const invest = investArr.reduce((a, b) => a + b.value, 0);
+            
+            const saldo = receitas - despesas - invest;
+            
+            document.getElementById('kpi-receitas').innerText = fmt(receitas);
+            document.getElementById('kpi-despesas').innerText = fmt(despesas);
+            document.getElementById('kpi-investimentos').innerText = fmt(invest);
+            
+            const saldoEl = document.getElementById('kpi-saldo');
+            saldoEl.innerText = fmt(saldo);
+            saldoEl.style.color = saldo >= 0 ? 'var(--text-main)' : 'var(--danger)';
+
+            renderReceitasDetalhes(receitasArr);
+            renderDespesasDetalhes(despesasArr, despesas);
+            renderInvestimentosDetalhes(investArr, invest, receitas);
+            renderSaldoDetalhes(saldo, receitas);
+
+            renderResumoExtrato(filtered);
+            renderPieChart(filtered, selectedYm);
+        }
+
+        function renderReceitasDetalhes(receitasArr) {
+            const container = document.getElementById('kpi-receitas-detalhes');
+            const qtd = receitasArr.length;
+            const total = receitasArr.reduce((a, b) => a + b.value, 0);
+            const media = qtd > 0 ? total / qtd : 0;
+
+            container.innerHTML = `
+                <div class="kpi-detail-item">
+                    <span class="kpi-detail-label">Lançamentos</span>
+                    <span class="kpi-detail-val">${qtd} entrada(s)</span>
+                </div>
+                <div class="kpi-detail-item">
+                    <span class="kpi-detail-label">Média p/ Entrada</span>
+                    <span class="kpi-detail-val" style="color:var(--success);">${fmt(media)}</span>
+                </div>
+            `;
+        }
+
+        function renderDespesasDetalhes(despesasArr, totalDespesas) {
+            const container = document.getElementById('kpi-despesas-detalhes');
+            container.innerHTML = '';
+            if (totalDespesas === 0 || despesasArr.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted); font-size:0.75rem;">Sem despesas no período</div>';
+                return;
+            }
+            const pagMap = {};
+            despesasArr.forEach(d => {
+                const meio = d.pagamento && d.pagamento.trim() !== '' ? d.pagamento : 'Não Informado';
+                pagMap[meio] = (pagMap[meio] || 0) + d.value;
+            });
+            const sortedMeios = Object.keys(pagMap).sort((a, b) => pagMap[b] - pagMap[a]);
+            sortedMeios.forEach(meio => {
+                const val = pagMap[meio];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'kpi-detail-item';
+                itemDiv.innerHTML = `<span class="kpi-detail-label">${meio}</span><span class="kpi-detail-val">${fmt(val)}</span>`;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function renderInvestimentosDetalhes(investArr, totalInvest, totalReceitas) {
+            const container = document.getElementById('kpi-investimentos-detalhes');
+            const qtd = investArr.length;
+            const taxaAporte = totalReceitas > 0 ? ((totalInvest / totalReceitas) * 100).toFixed(1) : '0.0';
+            container.innerHTML = `
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Taxa de Aporte</span><span class="kpi-detail-val" style="color:var(--invest);">${taxaAporte}%</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Aportes Realizados</span><span class="kpi-detail-val">${qtd} operação(ões)</span></div>
+            `;
+        }
+
+        function renderSaldoDetalhes(saldo, totalReceitas) {
+            const container = document.getElementById('kpi-saldo-detalhes');
+            const taxaPoupanca = totalReceitas > 0 ? ((saldo / totalReceitas) * 100).toFixed(1) : '0.0';
+            container.innerHTML = `
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Taxa de Sobra</span><span class="kpi-detail-val">${taxaPoupanca}%</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Status do Caixa</span><span class="kpi-detail-val" style="color:${saldo >= 0 ? 'var(--success)' : 'var(--danger)'};">${saldo >= 0 ? 'Superávit' : 'Déficit'}</span></div>
+            `;
+        }
+
+        function renderResumoExtrato(dataArr) {
+            const tbody = document.getElementById('resumoExtratoTableBody');
+            tbody.innerHTML = '';
+            let list = [...dataArr].sort((a, b) => b.date - a.date);
+            
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : 'var(--invest)';
+                let tags = `<span style="font-size:0.7rem; background:#f1f5f9; padding:2px 4px; border-radius:4px; color:${color}; font-weight:700;">${item.type}</span>`;
+                if(item.custo) tags += `<br><span style="font-size:0.65rem; color:#64748b;">${item.custo}</span>`;
+                if(item.pagamento) tags += `<br><span style="font-size:0.65rem; background:#e2e8f0; color:#334155; padding:2px 4px; border-radius:4px; display:inline-block; margin-top:2px;">${item.pagamento}</span>`;
+                
+                tr.innerHTML = `
+                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td>${tags}</td>
+                    <td style="font-weight:500;">${item.desc || '-'}</td>
+                    <td>${item.category} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+item.subCat+')</small>' : ''}</td>
+                    <td style="font-weight:700; color:${color};">${fmt(item.value)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPieChart(filteredData, selectedYm) {
+            if (charts.category) charts.category.destroy();
+            const despesas = filteredData.filter(d => d.type === 'DESPESA');
+            const catMap = {};
+            despesas.forEach(d => { catMap[d.category] = (catMap[d.category] || 0) + d.value; });
+
+            charts.category = new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(catMap),
+                    datasets: [{ data: Object.values(catMap), backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#14b8a6', '#f43f5e'] }]
+                },
+                options: { 
+                    responsive: true,
+                    onClick: (e, active) => {
+                        if (active.length > 0) {
+                            const catName = charts.category.data.labels[active[0].index];
+                            showCategoryDetails(catName, selectedYm);
+                        }
+                    }
+                }
+            });
+        }
+
+        function showCategoryDetails(catName, selectedYm) {
+            document.getElementById('categoryDetailsSection').style.display = 'block';
+            document.getElementById('catDetailTitle').innerText = `Análise de Categoria: ${catName}`;
+            
+            const catDataAtual = selectedYm === 'all' 
+                ? globalData.filter(d => d.type === 'DESPESA' && d.category === catName)
+                : globalData.filter(d => d.type === 'DESPESA' && d.category === catName && `${d.year}-${d.month}` === selectedYm);
+                
+            const catDataTotal = globalData.filter(d => d.type === 'DESPESA' && d.category === catName);
+            
+            const gastoAtual = catDataAtual.reduce((a,b)=>a+b.value, 0);
+            const activeMonths = [...new Set(catDataTotal.map(d => `${d.year}-${d.month}`))].length || 1;
+            const mediaMensal = catDataTotal.reduce((a,b)=>a+b.value, 0) / activeMonths;
+            
+            let percentual = mediaMensal > 0 ? ((gastoAtual / mediaMensal) - 1) * 100 : 0;
+
+            document.getElementById('kpi-cat-atual').innerText = fmt(gastoAtual);
+            document.getElementById('kpi-cat-media').innerText = fmt(mediaMensal);
+            
+            const varEl = document.getElementById('kpi-cat-var');
+            varEl.innerText = percentual > 0 ? `+${percentual.toFixed(1)}%` : `${percentual.toFixed(1)}%`;
+            varEl.style.color = percentual > 0 ? 'var(--danger)' : 'var(--success)';
+
+            const tbody = document.getElementById('catDetailTableBody');
+            tbody.innerHTML = '';
+            catDataAtual.sort((a,b) => b.date - a.date).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td>${item.subCat || '-'}</td>
+                    <td>${item.desc}</td>
+                    <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderParcelasTab() {
+            const aPrazoData = globalData.filter(d => d.type === 'DESPESA' && d.parcela && d.parcela.includes('/'));
+            const contratosMap = {};
+            
+            aPrazoData.forEach(item => {
+                let atual = 1, total = 1;
+                const p = item.parcela.split('/');
+                atual = parseInt(p[0], 10) || 1; 
+                total = parseInt(p[1], 10) || 1;
+
+                const key = `${normalizeText(item.desc)}_${normalizeText(item.cartao || item.pagamento)}_${total}`;
+                
+                if (!contratosMap[key] || atual > contratosMap[key].atual || (atual === contratosMap[key].atual && item.date > contratosMap[key].date)) {
+                    contratosMap[key] = { date: item.date, desc: item.desc || 'Compra Parcelada', cartao: item.cartao || item.pagamento || 'Geral', atual: atual, total: total, value: item.value };
+                }
+            });
+
+            const contratosList = Object.values(contratosMap).sort((a,b) => b.date - a.date);
+            let totalRestante = 0, proximaFatura = 0, ativas = 0;
+            const tbody = document.getElementById('parcelasTableBody');
+            tbody.innerHTML = '';
+            const statusFiltro = document.getElementById('statusParcelaSelector').value;
+
+            contratosList.forEach(item => {
+                const isFinalizado = item.atual >= item.total;
+                const parcelasRestantes = isFinalizado ? 0 : Math.max(0, item.total - item.atual);
+                const valorRestante = item.value * parcelasRestantes;
+
+                if (!isFinalizado) {
+                    totalRestante += valorRestante;
+                    proximaFatura += item.value; 
+                    ativas++;
+                }
+
+                if (statusFiltro === 'open' && isFinalizado) return;
+                if (statusFiltro === 'done' && !isFinalizado) return;
+
+                const pctPago = item.total > 0 ? Math.round((item.atual / item.total) * 100) : 100;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td style="font-weight:600;">${item.desc}</td>
+                    <td><span style="background:#f1f5f9; padding:2px 8px; border-radius:4px;">${item.cartao}</span></td>
+                    <td><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pctPago}%;"></div></div> <span style="font-size:0.8rem; font-weight:600;">${item.atual}/${item.total}</span></td>
+                    <td><span class="tag-status ${isFinalizado ? 'tag-done' : 'tag-open'}">${isFinalizado ? 'Liquidado' : 'Em Aberto'}</span></td>
+                    <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
+                    <td style="font-weight:700; color:${isFinalizado ? 'var(--text-muted)' : 'var(--danger)'}">${fmt(valorRestante)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (tbody.children.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para o filtro selecionado.</td></tr>`;
+            }
+
+            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestante);
+            document.getElementById('kpi-parcela-proxima-fatura').innerText = fmt(proximaFatura);
+            document.getElementById('kpi-parcela-qtd-ativas').innerText = ativas;
+        }
+
+        function renderInvestmentsTab() {
+            const perfil = document.getElementById('investTypeSelector').value;
+            let dataInvest = globalData.filter(d => d.type === 'INVESTIMENTO');
+            
+            if (perfil !== 'todos') {
+                dataInvest = dataInvest.filter(d => d.subCat === perfil);
+            }
+
+            document.getElementById('kpi-patrimonio-total').innerText = fmt(dataInvest.reduce((a,b)=>a+b.value, 0));
+            
+            const tbody = document.getElementById('investTableBody');
+            tbody.innerHTML = '';
+            
+            dataInvest.sort((a,b) => b.date - a.date).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td style="font-weight:500;">${item.desc}</td>
+                    <td><span style="background:#f1f5f9; padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
+                    <td>${item.category}</td>
+                    <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>

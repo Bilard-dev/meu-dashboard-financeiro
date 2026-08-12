@@ -91,8 +91,11 @@
         .input-field:focus { border-color: var(--primary); }
         .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; }
+        .action-icon-btn:hover { background: var(--border); }
     </style>
 </head>
 <body>
@@ -139,7 +142,7 @@
             <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Crédito</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
-            <button class="tab-btn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
+            <button class="tab-btn" id="tabNovoBtn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
         </div>
 
         <div id="loading" class="loading" style="display: none;">Conectando ao Supabase...</div>
@@ -156,12 +159,23 @@
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
+                        
+                        <!-- FILTROS DE BUSCA E TIPO DE EXTRATO -->
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar lançamento..." style="width: 200px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
+                            <select id="typeFilterSelector" class="reset-btn" style="padding: 0.45rem 0.8rem;" onchange="applyExtratoFilters()">
+                                <option value="ALL">Todos os Tipos</option>
+                                <option value="RECEITA">Receitas</option>
+                                <option value="DESPESA">Despesas</option>
+                                <option value="INVESTIMENTO">Investimentos</option>
+                            </select>
+                        </div>
                     </div>
                     <div style="max-height: 400px; overflow-y: auto;">
                         <table class="data-table">
-                            <thead><tr><th>Data</th><th>Tipo / Detalhes</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th></tr></thead>
+                            <thead><tr><th>Data</th><th>Tipo / Detalhes</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th><th style="text-align: center;">Ações</th></tr></thead>
                             <tbody id="resumoExtratoTableBody"></tbody>
                         </table>
                     </div>
@@ -227,11 +241,12 @@
                 </div>
             </div>
 
-            <!-- ABA 4: NOVO REGISTRO (INSERIR DADOS DInÂMICOS) -->
+            <!-- ABA 4: NOVO REGISTRO / EDIÇÃO -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
-                    <h2 class="chart-title" style="font-size: 1.3rem;">Cadastrar Nova Transação</h2>
-                    <form id="insertForm" onsubmit="addTransaction(event)">
+                    <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação</h2>
+                    <form id="insertForm" onsubmit="addOrUpdateTransaction(event)">
+                        <input type="hidden" id="edit_id">
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>Tipo *</label>
@@ -290,8 +305,9 @@
                                 <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
                             </div>
                         </div>
-                        <div style="margin-top: 1.5rem;">
+                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                             <button type="submit" class="btn-primary" id="btnSalvar">Salvar Registro</button>
+                            <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
                         </div>
                     </form>
                 </div>
@@ -307,6 +323,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let globalData = [];
+        let currentFilteredExtratoData = [];
         let charts = {};
         let isPrivacyMode = false;
 
@@ -315,7 +332,6 @@
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-theme');
-                document.getElementById('themeBtnText').innerText = 'Modo Claro';
                 document.getElementById('themeToggleBtn').innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
             }
         }
@@ -385,7 +401,6 @@
             const select = document.getElementById(elementId);
             const currentValue = select.value;
             
-            // Pega valores únicos e não vazios
             const uniqueValues = [...new Set(valuesArray.filter(v => v && v.trim() !== ''))].sort();
             
             select.innerHTML = '<option value="">-- Selecione --</option>';
@@ -396,7 +411,6 @@
                 select.appendChild(opt);
             });
 
-            // Opção para adicionar nova entrada
             const newOpt = document.createElement('option');
             newOpt.value = "__NEW__";
             newOpt.textContent = "➕ Adicionar Novo(a)...";
@@ -416,7 +430,6 @@
                     const opt = document.createElement('option');
                     opt.value = cleanValue;
                     opt.textContent = cleanValue;
-                    // Insere antes do último elemento ("Adicionar Novo")
                     selectElement.insertBefore(opt, selectElement.lastElementChild);
                     selectElement.value = cleanValue;
                 } else {
@@ -446,7 +459,10 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
+            if (activeBtn) activeBtn.classList.add('active');
+            
             document.getElementById(`tab-${tabId}`).classList.add('active');
             if (tabId === 'resumo') { document.getElementById('filterContainer').style.visibility = 'visible'; } 
             else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
@@ -454,7 +470,9 @@
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
             if(tabId === 'novo') {
-                document.getElementById('i_data').valueAsDate = new Date();
+                if(!document.getElementById('edit_id').value) {
+                    document.getElementById('i_data').valueAsDate = new Date();
+                }
                 populateFormDropdowns();
             }
         }
@@ -482,8 +500,10 @@
                     const d = new Date(row.data + 'T12:00:00');
                     return {
                         id: row.id,
-                        type: row.tipo.toUpperCase(),
+                        type: row.tipo ? row.tipo.toUpperCase() : 'DESPESA',
+                        rawTipo: row.tipo || 'Despesa',
                         date: d,
+                        rawDate: row.data,
                         desc: row.descricao || '',
                         custo: row.custo || '',
                         category: row.categoria || 'Outros',
@@ -511,10 +531,11 @@
             }
         }
 
-        // INSERÇÃO DE NOVOS DADOS
-        async function addTransaction(e) {
+        // SALVAR OU EDITAR TRANSAÇÃO
+        async function addOrUpdateTransaction(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
+            const editId = document.getElementById('edit_id').value;
             btn.innerText = 'Salvando...';
 
             const novaTransacao = {
@@ -530,19 +551,98 @@
                 parcela: document.getElementById('i_parcela').value
             };
 
-            const { error } = await _supabase.from('transacoes').insert([novaTransacao]);
-
-            if (error) {
-                alert('Erro ao salvar: ' + error.message);
-                btn.innerText = 'Salvar Registro';
+            let res;
+            if (editId) {
+                res = await _supabase.from('transacoes').update(novaTransacao).eq('id', editId);
             } else {
-                document.getElementById('insertForm').reset();
-                alert('Registro adicionado com sucesso!');
-                btn.innerText = 'Salvar Registro';
+                res = await _supabase.from('transacoes').insert([novaTransacao]);
+            }
+
+            if (res.error) {
+                alert('Erro ao salvar: ' + res.error.message);
+                btn.innerText = editId ? 'Atualizar Registro' : 'Salvar Registro';
+            } else {
+                cancelEdit();
+                alert(editId ? 'Registro atualizado com sucesso!' : 'Registro adicionado com sucesso!');
                 switchTab('resumo');
-                document.querySelector('.tab-btn').classList.add('active');
                 manualSync();
             }
+        }
+
+        // EDITAR E EXCLUIR
+        function editTransaction(id) {
+            const item = globalData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('edit_id').value = item.id;
+            document.getElementById('i_tipo').value = item.rawTipo;
+            document.getElementById('i_data').value = item.rawDate;
+            document.getElementById('i_descricao').value = item.desc;
+            document.getElementById('i_valor').value = item.value;
+            document.getElementById('i_custo').value = item.custo;
+            document.getElementById('i_parcela').value = item.parcela;
+
+            populateFormDropdowns();
+            document.getElementById('i_categoria').value = item.category;
+            document.getElementById('i_subcategoria').value = item.subCat;
+            document.getElementById('i_pagamento').value = item.pagamento;
+            document.getElementById('i_cartao').value = item.cartao;
+
+            document.getElementById('formTitle').innerText = "Editar Transação";
+            document.getElementById('btnSalvar').innerText = "Atualizar Registro";
+            document.getElementById('btnCancelarEdicao').style.display = "inline-block";
+            document.getElementById('tabNovoBtn').innerText = "✏️ Editando...";
+
+            switchTab('novo');
+        }
+
+        function cancelEdit() {
+            document.getElementById('edit_id').value = "";
+            document.getElementById('insertForm').reset();
+            document.getElementById('formTitle').innerText = "Cadastrar Nova Transação";
+            document.getElementById('btnSalvar').innerText = "Salvar Registro";
+            document.getElementById('btnCancelarEdicao').style.display = "none";
+            document.getElementById('tabNovoBtn').innerText = "➕ Novo Registro";
+        }
+
+        async function deleteTransaction(id) {
+            const item = globalData.find(d => d.id === id);
+            if (!item) return;
+
+            if (confirm(`Tem certeza que deseja excluir o lançamento "${item.desc}" de R$ ${item.value.toFixed(2)}?`)) {
+                const { error } = await _supabase.from('transacoes').delete().eq('id', id);
+                if (error) {
+                    alert('Erro ao excluir: ' + error.message);
+                } else {
+                    manualSync();
+                }
+            }
+        }
+
+        // FILTROS E BUSCA DO EXTRATO
+        function applyExtratoFilters() {
+            const selectedYm = document.getElementById('monthSelector').value;
+            const typeFilter = document.getElementById('typeFilterSelector').value;
+            const searchText = normalizeText(document.getElementById('searchInput').value);
+
+            let filtered = selectedYm === 'all' ? globalData : globalData.filter(d => `${d.year}-${d.month}` === selectedYm);
+
+            if (typeFilter !== 'ALL') {
+                filtered = filtered.filter(d => d.type === typeFilter);
+            }
+
+            if (searchText) {
+                filtered = filtered.filter(d => 
+                    normalizeText(d.desc).includes(searchText) ||
+                    normalizeText(d.category).includes(searchText) ||
+                    normalizeText(d.subCat).includes(searchText) ||
+                    normalizeText(d.pagamento).includes(searchText) ||
+                    normalizeText(d.cartao).includes(searchText)
+                );
+            }
+
+            currentFilteredExtratoData = filtered;
+            renderResumoExtrato(currentFilteredExtratoData);
         }
 
         // RENDERS E ATUALIZAÇÕES
@@ -609,7 +709,7 @@
             renderInvestimentosDetalhes(investArr, invest, receitas);
             renderSaldoDetalhes(saldo, receitas);
 
-            renderResumoExtrato(filtered);
+            applyExtratoFilters();
             renderPieChart(filtered, selectedYm);
         }
 
@@ -677,6 +777,11 @@
             tbody.innerHTML = '';
             let list = [...dataArr].sort((a, b) => b.date - a.date);
             
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
+                return;
+            }
+
             list.forEach(item => {
                 const tr = document.createElement('tr');
                 let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : 'var(--invest)';
@@ -690,6 +795,10 @@
                     <td style="font-weight:500;">${item.desc || '-'}</td>
                     <td>${item.category} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+item.subCat+')</small>' : ''}</td>
                     <td style="font-weight:700; color:${color};">${fmt(item.value)}</td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });

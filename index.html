@@ -10,6 +10,8 @@
         navigator.serviceWorker.register('sw.js');
       }
     </script>
+    <!-- LIB OFICIAL DO SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -104,7 +106,7 @@
         <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
     </div>
 
-    <div id="loading" class="loading">Sincronizando com a base de dados...</div>
+    <div id="loading" class="loading">Carregando dados do Supabase...</div>
 
     <div id="dashboard" style="display: none;">
         <div id="tab-resumo" class="tab-content active">
@@ -116,7 +118,15 @@
             </div>
 
             <div class="chart-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;"><div class="chart-title" id="resumoExtratoTitle" style="margin-bottom:0;">Histórico do Período Selecionado</div></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap: wrap; gap:0.5rem;">
+                    <div class="chart-title" id="resumoExtratoTitle" style="margin-bottom:0;">Histórico do Período Selecionado</div>
+                    <select id="typeFilterExtrato" class="reset-btn" onchange="updateDashboard(document.getElementById('monthSelector').value)">
+                        <option value="ALL">Todos os Tipos</option>
+                        <option value="DESPESA">Apenas Despesas</option>
+                        <option value="RECEITA">Apenas Receitas</option>
+                        <option value="INVESTIMENTO">Apenas Investimentos</option>
+                    </select>
+                </div>
                 <div style="max-height: 400px; overflow-y: auto;">
                     <table class="data-table">
                         <thead><tr><th>Data</th><th>Tipo / Detalhes</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th></tr></thead>
@@ -185,19 +195,20 @@
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const user = urlParams.get('user');
+        // CONFIGURAÇÃO CONEXÃO SUPABASE
+        const SUPABASE_URL = 'https://gzjzvswfwjoqrcfvlowi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6anp2c3dmd2pvcXJjZnZsb3dpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NzcwOTgsImV4cCI6MjEwMjA1MzA5OH0.vHzFz9_UzrSYGrPIqa1rOxTU0zpB1LUe_sqw8Y7Z23s';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const SHEET_CSV_URL = (user === 'vic') 
-            ? 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTB5BRPtP4D0s6gxD1sanL-cTeSCJabC9WfcFp6AdZY9NsJOcIeNIzg-ErkDICSbvgb9tlZzKitbJZV/pub?output=csv'
-            : 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQW59bVd59QQw26XlvwaPGb9Oyx-WuPSJSfUUFRp2S_ZFaHirdCS0pAbzhZZQnpsceVxgvwbpcKSUIY/pub?output=csv';
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUser = urlParams.get('user') === 'vic' ? 'vic' : 'bilard';
 
         let globalData = [];
         let charts = {};
         let isPrivacyMode = false;
 
         function goLancamento() {
-            window.location.href = user === 'vic' ? 'lancamento.html?user=vic' : 'lancamento.html';
+            window.location.href = currentUser === 'vic' ? 'lancamento.html?user=vic' : 'lancamento.html';
         }
 
         function initTheme() {
@@ -248,59 +259,6 @@
             if(tabId === 'investimentos') renderInvestmentsTab();
         }
 
-        function parseCSVLine(text) {
-            let p = '', c = '', ret = [], q = false;
-            for (let l = 0; l < text.length; l++) {
-                c = text[l];
-                if (c === '"') q = !q; 
-                else if (c === ',' && !q) { ret.push(p.trim()); p = ''; } 
-                else p += c;
-            }
-            ret.push(p.trim()); return ret;
-        }
-
-        function parseCurrency(val) {
-            if (!val) return 0;
-            let str = val.toString().replace(/R\$/gi, '').replace(/\s/g, '').trim();
-            let lastComma = str.lastIndexOf(',');
-            let lastDot = str.lastIndexOf('.');
-            
-            if (lastComma > lastDot) {
-                str = str.replace(/\./g, '').replace(',', '.');
-            } else if (lastDot > lastComma) {
-                str = str.replace(/,/g, '');
-            } else if (lastComma !== -1) {
-                str = str.replace(',', '.');
-            }
-            
-            let num = parseFloat(str);
-            return isNaN(num) ? 0 : num;
-        }
-
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
-            let cleanStr = dateStr.replace(/"/g, '').trim();
-            
-            if (cleanStr.includes('-')) {
-                let p = cleanStr.split('-');
-                if (p.length >= 3) return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
-            }
-            
-            if (cleanStr.includes('/')) {
-                let p = cleanStr.split('/');
-                if (p.length >= 3) {
-                    if (p[2].length === 4 || parseInt(p[2], 10) > 31) {
-                        let y = parseInt(p[2], 10);
-                        if (y < 100) y += 2000;
-                        return new Date(y, parseInt(p[1], 10)-1, parseInt(p[0], 10));
-                    } else if (p[0].length === 4) {
-                        return new Date(parseInt(p[0], 10), parseInt(p[1], 10)-1, parseInt(p[2], 10));
-                    }
-                }
-            }
-            return null;
-        }
-
         async function manualSync() {
             document.getElementById('syncBtnText').innerText = 'Sincronizando...';
             document.getElementById('loading').style.display = 'block';
@@ -311,53 +269,36 @@
 
         async function loadDashboardData() {
             try {
-                const response = await fetch(`${SHEET_CSV_URL}&cacheBust=${new Date().getTime()}`);
-                const csvText = await response.text();
-                const lines = csvText.split('\n');
-                
-                globalData = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    const row = parseCSVLine(lines[i]);
-                    if (row.length < 5) continue;
+                // BUSCA DIRETA NO SUPABASE FILTRANDO PELO USUÁRIO
+                const { data, error } = await _supabase
+                    .from('lancamentos')
+                    .select('*')
+                    .eq('user_id', currentUser)
+                    .order('data', { ascending: false });
 
-                    const tipoMov = row[0].toUpperCase().trim();
-                    const data = parseDate(row[1]);
-                    const descricao = row[2] || '';
-                    
-                    let custo = '', rawCategoria = '', rawSubCat = '', valor = 0, pagamento = '', cartao = '', parcela = '';
+                if (error) throw error;
 
-                    let testValE = parseCurrency(row[4]); 
-                    let testValG = parseCurrency(row[6]); 
-                    let isFormatoNovo = (testValG > 0 || (testValE === 0 && row.length >= 10));
+                globalData = data.map(item => {
+                    // CONVERSÃO CORRETA DA DATA SEM PROBLEMAS DE FUSO HORÁRIO
+                    const p = item.data.split('-');
+                    const dateObj = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
 
-                    if (isFormatoNovo) {
-                        custo = row[3] || '';
-                        rawCategoria = row[4] || 'Outros';
-                        rawSubCat = row[5] || '';
-                        valor = parseCurrency(row[6]);
-                        pagamento = (row[7] || '').trim();
-                        cartao = row[8] || '';
-                        parcela = row[9] || '';
-                    } else {
-                        custo = '';
-                        rawCategoria = row[3] || 'Outros';
-                        rawSubCat = '';
-                        valor = parseCurrency(row[4]);
-                        pagamento = (row[5] || '').trim();
-                        cartao = row[6] || '';
-                        parcela = row[7] || '';
-                    }
-
-                    if (!data || valor <= 0) continue;
-
-                    globalData.push({
-                        type: tipoMov, date: data, desc: descricao.trim(), custo: custo,
-                        category: rawCategoria, subCat: rawSubCat, value: valor,
-                        pagamento: pagamento, cartao: cartao, parcela: parcela,
-                        month: data.getMonth(), year: data.getFullYear()
-                    });
-                }
+                    return {
+                        id: item.id,
+                        type: item.tipo,
+                        date: dateObj,
+                        desc: item.descricao || '',
+                        custo: item.custo || '',
+                        category: item.categoria || 'Outros',
+                        subCat: item.subcategoria || '',
+                        value: parseFloat(item.valor) || 0,
+                        pagamento: item.pagamento || '',
+                        cartao: item.cartao || '',
+                        parcela: item.parcela || '',
+                        month: dateObj.getMonth(),
+                        year: dateObj.getFullYear()
+                    };
+                });
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
@@ -368,7 +309,7 @@
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('loading').innerText = "Erro ao carregar CSV. Verifique a publicação da planilha.";
+                document.getElementById('loading').innerText = "Erro ao carregar dados do Supabase: " + error.message;
             }
         }
 
@@ -435,7 +376,12 @@
             renderInvestimentosDetalhes(investArr, invest, receitas);
             renderSaldoDetalhes(saldo, receitas);
 
-            renderResumoExtrato(filtered);
+            const typeFilter = document.getElementById('typeFilterExtrato').value;
+            let extratoData = filtered;
+            if(typeFilter !== 'ALL') {
+                extratoData = filtered.filter(d => d.type === typeFilter);
+            }
+            renderResumoExtrato(extratoData);
             renderPieChart(filtered, selectedYm);
         }
 

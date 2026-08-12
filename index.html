@@ -10,25 +10,54 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        :root { --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --invest: #8b5cf6; --border: #e2e8f0; }
+        :root { 
+            --bg-color: #f8fafc; 
+            --card-bg: #ffffff; 
+            --text-main: #0f172a; 
+            --text-muted: #64748b; 
+            --primary: #2563eb; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b; 
+            --invest: #8b5cf6; 
+            --border: #e2e8f0; 
+            --input-bg: #f8fafc;
+            --table-hover: #f1f5f9;
+        }
+
+        body.dark-theme {
+            --bg-color: #0f172a; 
+            --card-bg: #1e293b; 
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8; 
+            --primary: #3b82f6; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b; 
+            --invest: #a78bfa; 
+            --border: #334155; 
+            --input-bg: #0f172a;
+            --table-hover: #334155;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
         
-        /* HEADER E TABS (Seu CSS Original) */
+        /* HEADER E TABS */
         header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         header h1 { font-size: 1.75rem; font-weight: 700; }
         .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
         .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
-        .action-btn:hover { background-color: #e2e8f0; }
+        .action-btn:hover { background-color: var(--border); }
         .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
         .tab-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .tab-btn:hover { background-color: #e2e8f0; color: var(--text-main); }
+        .tab-btn:hover { background-color: var(--border); color: var(--text-main); }
         .tab-btn.active { background-color: var(--primary); color: #ffffff; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
         
-        /* CARDS E KPI (Seu CSS Original) */
+        /* CARDS E KPI */
         .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
         .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
         .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
@@ -44,23 +73,24 @@
         .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
         .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .data-table th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; }
+        .data-table tbody tr:hover { background-color: var(--table-hover); }
         .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
         .tag-open { background-color: #fef3c7; color: #b45309; }
         .tag-done { background-color: #d1fae5; color: #047857; }
-        .progress-bar-bg { background-color: #e2e8f0; border-radius: 6px; height: 8px; width: 80px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+        .progress-bar-bg { background-color: var(--border); border-radius: 6px; height: 8px; width: 80px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
         .progress-bar-fill { background-color: var(--primary); height: 100%; }
-        .reset-btn { background-color: #f1f5f9; color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
         #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
 
-        /* ESTILOS NOVOS: LOGIN E FORMULÁRIO */
+        /* LOGIN E FORMULÁRIO */
         .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .input-group { margin-bottom: 1rem; }
         .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-muted); }
-        .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--bg-color); }
+        .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
         .input-field:focus { border-color: var(--primary); }
         .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:hover { opacity: 0.9; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
     </style>
@@ -87,7 +117,7 @@
         </div>
     </div>
 
-    <!-- DASHBOARD PRINCIPAL (Oculto até o login) -->
+    <!-- DASHBOARD PRINCIPAL -->
     <div id="appView" style="display: none;">
         <header>
             <div>
@@ -95,6 +125,7 @@
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
             </div>
             <div class="header-controls">
+                <button class="action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 <span id="themeBtnText">Modo Escuro</span></button>
                 <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
                 <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn">👁️ <span id="privacyBtnText">Privacidade Off</span></button>
                 <div class="select-container" id="filterContainer">
@@ -182,7 +213,7 @@
             <div id="tab-investimentos" class="tab-content">
                  <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
                      <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria (Titular):</label>
-                     <select id="investTypeSelector" class="reset-btn" style="background:#fff; border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
+                     <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
                  </div>
                  <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Total Investido (Filtro Selecionado)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
@@ -196,7 +227,7 @@
                 </div>
             </div>
 
-            <!-- ABA 4: NOVO REGISTRO (INSERIR DADOS) -->
+            <!-- ABA 4: NOVO REGISTRO (INSERIR DADOS DInÂMICOS) -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
                     <h2 class="chart-title" style="font-size: 1.3rem;">Cadastrar Nova Transação</h2>
@@ -232,19 +263,27 @@
                             </div>
                             <div class="input-group">
                                 <label>Categoria</label>
-                                <input type="text" id="i_categoria" class="input-field" placeholder="Ex: Alimentação">
+                                <select id="i_categoria" class="input-field" onchange="handleDynamicSelect(this, 'Categoria')">
+                                    <option value="">-- Selecione --</option>
+                                </select>
                             </div>
                             <div class="input-group">
                                 <label>Subcategoria</label>
-                                <input type="text" id="i_subcategoria" class="input-field" placeholder="Ex: Compras de Mês">
+                                <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
+                                    <option value="">-- Selecione --</option>
+                                </select>
                             </div>
                             <div class="input-group">
                                 <label>Forma de Pagamento</label>
-                                <input type="text" id="i_pagamento" class="input-field" placeholder="Ex: Cartão de Crédito, PIX">
+                                <select id="i_pagamento" class="input-field" onchange="handleDynamicSelect(this, 'Forma de Pagamento')">
+                                    <option value="">-- Selecione --</option>
+                                </select>
                             </div>
                             <div class="input-group">
                                 <label>Cartão Utilizado</label>
-                                <input type="text" id="i_cartao" class="input-field" placeholder="Ex: Nubank, Itaú">
+                                <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
+                                    <option value="">-- Selecione --</option>
+                                </select>
                             </div>
                             <div class="input-group">
                                 <label>Parcela</label>
@@ -271,8 +310,30 @@
         let charts = {};
         let isPrivacyMode = false;
 
+        // MODO ESCURO
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.getElementById('themeBtnText').innerText = 'Modo Claro';
+                document.getElementById('themeToggleBtn').innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeToggleBtn').innerHTML = isDark 
+                ? '☀️ <span id="themeBtnText">Modo Claro</span>' 
+                : '🌙 <span id="themeBtnText">Modo Escuro</span>';
+        }
+
         // SISTEMA DE AUTENTICAÇÃO
-        document.addEventListener('DOMContentLoaded', checkSession);
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            checkSession();
+        });
 
         async function checkSession() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -312,7 +373,59 @@
             window.location.reload();
         }
 
-        // FUNÇÕES DO DASHBOARD (MANTIDAS DO SEU CÓDIGO)
+        // DADOS DINÂMICOS NOS SELECTS
+        function populateFormDropdowns() {
+            populateSelect('i_categoria', globalData.map(d => d.category));
+            populateSelect('i_subcategoria', globalData.map(d => d.subCat));
+            populateSelect('i_pagamento', globalData.map(d => d.pagamento));
+            populateSelect('i_cartao', globalData.map(d => d.cartao));
+        }
+
+        function populateSelect(elementId, valuesArray) {
+            const select = document.getElementById(elementId);
+            const currentValue = select.value;
+            
+            // Pega valores únicos e não vazios
+            const uniqueValues = [...new Set(valuesArray.filter(v => v && v.trim() !== ''))].sort();
+            
+            select.innerHTML = '<option value="">-- Selecione --</option>';
+            uniqueValues.forEach(val => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = val;
+                select.appendChild(opt);
+            });
+
+            // Opção para adicionar nova entrada
+            const newOpt = document.createElement('option');
+            newOpt.value = "__NEW__";
+            newOpt.textContent = "➕ Adicionar Novo(a)...";
+            newOpt.style.fontWeight = "bold";
+            select.appendChild(newOpt);
+
+            if (currentValue && uniqueValues.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        function handleDynamicSelect(selectElement, label) {
+            if (selectElement.value === '__NEW__') {
+                const newValue = prompt(`Digite o nome do(a) novo(a) ${label}:`);
+                if (newValue && newValue.trim() !== '') {
+                    const cleanValue = newValue.trim();
+                    const opt = document.createElement('option');
+                    opt.value = cleanValue;
+                    opt.textContent = cleanValue;
+                    // Insere antes do último elemento ("Adicionar Novo")
+                    selectElement.insertBefore(opt, selectElement.lastElementChild);
+                    selectElement.value = cleanValue;
+                } else {
+                    selectElement.value = '';
+                }
+            }
+        }
+
+        // FUNÇÕES DO DASHBOARD
         function normalizeText(str) {
             if (!str) return '';
             return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
@@ -340,7 +453,10 @@
             
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
-            if(tabId === 'novo') document.getElementById('i_data').valueAsDate = new Date();
+            if(tabId === 'novo') {
+                document.getElementById('i_data').valueAsDate = new Date();
+                populateFormDropdowns();
+            }
         }
 
         async function manualSync() {
@@ -350,7 +466,6 @@
             setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
         }
 
-        // NOVA FUNÇÃO DE BUSCA DO SUPABASE (Substitui o Google Sheets)
         async function loadDashboardData() {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('dashboard').style.display = 'none';
@@ -364,11 +479,10 @@
                 if (error) throw error;
 
                 globalData = data.map(row => {
-                    // Adicionado T12:00:00 para evitar erro de fuso horário que altera o dia
                     const d = new Date(row.data + 'T12:00:00');
                     return {
                         id: row.id,
-                        type: row.tipo.toUpperCase(), // Padroniza para RECEITA, DESPESA, INVESTIMENTO
+                        type: row.tipo.toUpperCase(),
                         date: d,
                         desc: row.descricao || '',
                         custo: row.custo || '',
@@ -388,6 +502,7 @@
 
                 setupMonthSelector();
                 setupInvestSelector();
+                populateFormDropdowns();
                 updateDashboard(document.getElementById('monthSelector').value);
 
             } catch (error) {
@@ -424,14 +539,13 @@
                 document.getElementById('insertForm').reset();
                 alert('Registro adicionado com sucesso!');
                 btn.innerText = 'Salvar Registro';
-                // Volta pra tela inicial e recarrega
                 switchTab('resumo');
                 document.querySelector('.tab-btn').classList.add('active');
                 manualSync();
             }
         }
 
-        // RENDERS E ATUALIZAÇÕES (Intactos do seu código)
+        // RENDERS E ATUALIZAÇÕES
         function setupMonthSelector() {
             const select = document.getElementById('monthSelector');
             select.innerHTML = '<option value="all">Todo o Histórico</option>';
@@ -566,9 +680,9 @@
             list.forEach(item => {
                 const tr = document.createElement('tr');
                 let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : 'var(--invest)';
-                let tags = `<span style="font-size:0.7rem; background:#f1f5f9; padding:2px 4px; border-radius:4px; color:${color}; font-weight:700;">${item.type}</span>`;
-                if(item.custo) tags += `<br><span style="font-size:0.65rem; color:#64748b;">${item.custo}</span>`;
-                if(item.pagamento) tags += `<br><span style="font-size:0.65rem; background:#e2e8f0; color:#334155; padding:2px 4px; border-radius:4px; display:inline-block; margin-top:2px;">${item.pagamento}</span>`;
+                let tags = `<span style="font-size:0.7rem; background:var(--bg-color); padding:2px 4px; border-radius:4px; color:${color}; font-weight:700;">${item.type}</span>`;
+                if(item.custo) tags += `<br><span style="font-size:0.65rem; color:var(--text-muted);">${item.custo}</span>`;
+                if(item.pagamento) tags += `<br><span style="font-size:0.65rem; background:var(--border); color:var(--text-main); padding:2px 4px; border-radius:4px; display:inline-block; margin-top:2px;">${item.pagamento}</span>`;
                 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
@@ -685,7 +799,7 @@
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.desc}</td>
-                    <td><span style="background:#f1f5f9; padding:2px 8px; border-radius:4px;">${item.cartao}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.cartao}</span></td>
                     <td><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pctPago}%;"></div></div> <span style="font-size:0.8rem; font-weight:600;">${item.atual}/${item.total}</span></td>
                     <td><span class="tag-status ${isFinalizado ? 'tag-done' : 'tag-open'}">${isFinalizado ? 'Liquidado' : 'Em Aberto'}</span></td>
                     <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
@@ -721,7 +835,7 @@
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:500;">${item.desc}</td>
-                    <td><span style="background:#f1f5f9; padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
                     <td>${item.category}</td>
                     <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
                 `;

@@ -21,7 +21,7 @@
             --warning: #f59e0b; 
             --invest: #8b5cf6; 
             --border: #e2e8f0; 
-            --input-bg: #f8fafc;
+            --input-bg: #ffffff;
             --table-hover: #f1f5f9;
         }
 
@@ -36,7 +36,7 @@
             --warning: #f59e0b; 
             --invest: #a78bfa; 
             --border: #334155; 
-            --input-bg: #0f172a;
+            --input-bg: #1e293b;
             --table-hover: #334155;
         }
 
@@ -45,7 +45,7 @@
         
         /* HEADER E TABS */
         header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        header h1 { font-size: 1.75rem; font-weight: 700; }
+        header h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
         .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
         .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
         .action-btn:hover { background-color: var(--border); }
@@ -61,7 +61,7 @@
         .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
         .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
         .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
-        .kpi-value { font-size: 1.5rem; font-weight: 700; }
+        .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
         .kpi-details { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--border); font-size: 0.8rem; }
         .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; color: var(--text-main); }
         .kpi-detail-item:last-child { margin-bottom: 0; }
@@ -69,9 +69,9 @@
         .kpi-detail-val { font-weight: 600; }
 
         .chart-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main); }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-main); }
         .data-table th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; }
         .data-table tbody tr:hover { background-color: var(--table-hover); }
         .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
@@ -86,7 +86,7 @@
         /* LOGIN E FORMULÁRIO */
         .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .input-group { margin-bottom: 1rem; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-muted); }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
         .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
         .input-field:focus { border-color: var(--primary); }
         .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -94,8 +94,9 @@
         .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; }
+        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
         .action-icon-btn:hover { background: var(--border); }
+        .checkbox-container { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
     </style>
 </head>
 <body>
@@ -208,7 +209,7 @@
                     <div class="kpi-card"><div><div class="kpi-title">Compras Ativas em Aberto</div><div class="kpi-value" id="kpi-parcela-qtd-ativas" style="color: var(--text-main);">0</div></div></div>
                 </div>
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <div class="chart-title" style="margin-bottom:0;">Compras Parceladas</div>
                         <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
                             <option value="open">Em Aberto</option>
@@ -217,25 +218,31 @@
                         </select>
                     </div>
                     <table class="data-table">
-                        <thead><tr><th>Data Última</th><th>Descrição</th><th>Cartão/Meio</th><th>Progresso</th><th>Status</th><th>Parc. Mês</th><th>Valor Restante</th></tr></thead>
+                        <thead><tr><th>Data Última</th><th>Descrição</th><th>Cartão/Meio</th><th>Progresso</th><th>Status</th><th>Parc. Mês</th><th>Valor Restante</th><th style="text-align:center;">Ações</th></tr></thead>
                         <tbody id="parcelasTableBody"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- ABA 3: INVESTIMENTOS -->
+            <!-- ABA 3: INVESTIMENTOS (ENRIQUECIDA) -->
             <div id="tab-investimentos" class="tab-content">
                  <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
                      <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria (Titular):</label>
                      <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
                  </div>
+                 
+                 <!-- CARDS AVANÇADOS DE INVESTIMENTO -->
                  <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Total Investido (Filtro Selecionado)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Total Investido (Filtro)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Maior Aporte Único</div><div class="kpi-value" id="kpi-maior-aporte" style="color: var(--primary);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Média por Aporte</div><div class="kpi-value" id="kpi-media-aporte">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Total de Operações</div><div class="kpi-value" id="kpi-qtd-aportes">0</div></div></div>
                 </div>
+
                 <div class="chart-card">
                     <div class="chart-title">Histórico de Aportes</div>
                     <table class="data-table">
-                        <thead><tr><th>Data</th><th>Descrição</th><th>Subcategoria</th><th>Destino (Categoria)</th><th>Valor</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Descrição</th><th>Subcategoria</th><th>Destino (Categoria)</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
                         <tbody id="investTableBody"></tbody>
                     </table>
                 </div>
@@ -250,7 +257,7 @@
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>Tipo *</label>
-                                <select id="i_tipo" class="input-field" required>
+                                <select id="i_tipo" class="input-field" onchange="onTypeChange()" required>
                                     <option value="Despesa">Despesa</option>
                                     <option value="Receita">Receita</option>
                                     <option value="Investimento">Investimento</option>
@@ -305,6 +312,30 @@
                                 <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
                             </div>
                         </div>
+
+                        <!-- OPÇÕES DE RECORRÊNCIA -->
+                        <div style="margin-top:1.5rem; padding-top:1rem; border-top: 1px dashed var(--border);">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="i_recorrente" onchange="toggleRecurrenceFields()">
+                                <label for="i_recorrente" style="cursor:pointer; font-weight:600;">É uma movimentação recorrente?</label>
+                            </div>
+
+                            <div id="recurrenceFields" class="form-grid" style="display:none; margin-top:1rem;">
+                                <div class="input-group">
+                                    <label>Frequência</label>
+                                    <select id="i_frequencia" class="input-field">
+                                        <option value="monthly">Mensal</option>
+                                        <option value="weekly">Semanal</option>
+                                        <option value="yearly">Anual</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Repetir por quantos períodos?</label>
+                                    <input type="number" id="i_periodos" class="input-field" min="2" max="60" value="12" placeholder="Ex: 12 meses">
+                                </div>
+                            </div>
+                        </div>
+
                         <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                             <button type="submit" class="btn-primary" id="btnSalvar">Salvar Registro</button>
                             <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
@@ -389,12 +420,21 @@
             window.location.reload();
         }
 
-        // DADOS DINÂMICOS NOS SELECTS
+        // DADOS DINÂMICOS E FILTRADOS POR TIPO NOS SELECTS
+        function onTypeChange() {
+            populateFormDropdowns();
+        }
+
         function populateFormDropdowns() {
-            populateSelect('i_categoria', globalData.map(d => d.category));
-            populateSelect('i_subcategoria', globalData.map(d => d.subCat));
-            populateSelect('i_pagamento', globalData.map(d => d.pagamento));
-            populateSelect('i_cartao', globalData.map(d => d.cartao));
+            const selectedType = (document.getElementById('i_tipo').value || 'Despesa').toUpperCase();
+            
+            // Filtra o histórico para conter apenas lançamentos do tipo selecionado
+            const typeFilteredData = globalData.filter(d => d.type === selectedType);
+
+            populateSelect('i_categoria', typeFilteredData.map(d => d.category));
+            populateSelect('i_subcategoria', typeFilteredData.map(d => d.subCat));
+            populateSelect('i_pagamento', typeFilteredData.map(d => d.pagamento));
+            populateSelect('i_cartao', typeFilteredData.map(d => d.cartao));
         }
 
         function populateSelect(elementId, valuesArray) {
@@ -436,6 +476,11 @@
                     selectElement.value = '';
                 }
             }
+        }
+
+        function toggleRecurrenceFields() {
+            const isRec = document.getElementById('i_recorrente').checked;
+            document.getElementById('recurrenceFields').style.display = isRec ? 'grid' : 'none';
         }
 
         // FUNÇÕES DO DASHBOARD
@@ -531,31 +576,52 @@
             }
         }
 
-        // SALVAR OU EDITAR TRANSAÇÃO
+        // SALVAR OU EDITAR TRANSAÇÃO (COM RECORRÊNCIA)
         async function addOrUpdateTransaction(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
             const editId = document.getElementById('edit_id').value;
             btn.innerText = 'Salvando...';
 
-            const novaTransacao = {
-                tipo: document.getElementById('i_tipo').value,
-                data: document.getElementById('i_data').value,
-                descricao: document.getElementById('i_descricao').value,
-                valor: parseFloat(document.getElementById('i_valor').value),
-                custo: document.getElementById('i_custo').value,
-                categoria: document.getElementById('i_categoria').value,
-                subcategoria: document.getElementById('i_subcategoria').value,
-                pagamento: document.getElementById('i_pagamento').value,
-                cartao: document.getElementById('i_cartao').value,
-                parcela: document.getElementById('i_parcela').value
-            };
+            const baseDate = new Date(document.getElementById('i_data').value + 'T12:00:00');
+            const isRecorrente = document.getElementById('i_recorrente').checked;
+            const frequencia = document.getElementById('i_frequencia').value;
+            const numPeriodos = isRecorrente ? parseInt(document.getElementById('i_periodos').value) || 1 : 1;
+
+            const listaTransacoes = [];
+
+            for (let i = 0; i < numPeriodos; i++) {
+                let d = new Date(baseDate);
+                if (i > 0) {
+                    if (frequencia === 'monthly') d.setMonth(d.getMonth() + i);
+                    else if (frequencia === 'weekly') d.setDate(d.getDate() + (i * 7));
+                    else if (frequencia === 'yearly') d.setFullYear(d.getFullYear() + i);
+                }
+
+                const dataFormatada = d.toISOString().split('T')[0];
+                const descFinal = isRecorrente && numPeriodos > 1 
+                    ? `${document.getElementById('i_descricao').value} (${i + 1}/${numPeriodos})` 
+                    : document.getElementById('i_descricao').value;
+
+                listaTransacoes.push({
+                    tipo: document.getElementById('i_tipo').value,
+                    data: dataFormatada,
+                    descricao: descFinal,
+                    valor: parseFloat(document.getElementById('i_valor').value),
+                    custo: document.getElementById('i_custo').value,
+                    categoria: document.getElementById('i_categoria').value,
+                    subcategoria: document.getElementById('i_subcategoria').value,
+                    pagamento: document.getElementById('i_pagamento').value,
+                    cartao: document.getElementById('i_cartao').value,
+                    parcela: document.getElementById('i_parcela').value
+                });
+            }
 
             let res;
             if (editId) {
-                res = await _supabase.from('transacoes').update(novaTransacao).eq('id', editId);
+                res = await _supabase.from('transacoes').update(listaTransacoes[0]).eq('id', editId);
             } else {
-                res = await _supabase.from('transacoes').insert([novaTransacao]);
+                res = await _supabase.from('transacoes').insert(listaTransacoes);
             }
 
             if (res.error) {
@@ -563,7 +629,7 @@
                 btn.innerText = editId ? 'Atualizar Registro' : 'Salvar Registro';
             } else {
                 cancelEdit();
-                alert(editId ? 'Registro atualizado com sucesso!' : 'Registro adicionado com sucesso!');
+                alert(editId ? 'Registro atualizado!' : `${listaTransacoes.length} lançamento(s) criado(s) com sucesso!`);
                 switchTab('resumo');
                 manualSync();
             }
@@ -599,6 +665,8 @@
         function cancelEdit() {
             document.getElementById('edit_id').value = "";
             document.getElementById('insertForm').reset();
+            document.getElementById('i_recorrente').checked = false;
+            toggleRecurrenceFields();
             document.getElementById('formTitle').innerText = "Cadastrar Nova Transação";
             document.getElementById('btnSalvar').innerText = "Salvar Registro";
             document.getElementById('btnCancelarEdicao').style.display = "none";
@@ -720,14 +788,8 @@
             const media = qtd > 0 ? total / qtd : 0;
 
             container.innerHTML = `
-                <div class="kpi-detail-item">
-                    <span class="kpi-detail-label">Lançamentos</span>
-                    <span class="kpi-detail-val">${qtd} entrada(s)</span>
-                </div>
-                <div class="kpi-detail-item">
-                    <span class="kpi-detail-label">Média p/ Entrada</span>
-                    <span class="kpi-detail-val" style="color:var(--success);">${fmt(media)}</span>
-                </div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Lançamentos</span><span class="kpi-detail-val">${qtd} entrada(s)</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Média p/ Entrada</span><span class="kpi-detail-val" style="color:var(--success);">${fmt(media)}</span></div>
             `;
         }
 
@@ -878,7 +940,7 @@
                 const key = `${normalizeText(item.desc)}_${normalizeText(item.cartao || item.pagamento)}_${total}`;
                 
                 if (!contratosMap[key] || atual > contratosMap[key].atual || (atual === contratosMap[key].atual && item.date > contratosMap[key].date)) {
-                    contratosMap[key] = { date: item.date, desc: item.desc || 'Compra Parcelada', cartao: item.cartao || item.pagamento || 'Geral', atual: atual, total: total, value: item.value };
+                    contratosMap[key] = { id: item.id, date: item.date, desc: item.desc || 'Compra Parcelada', cartao: item.cartao || item.pagamento || 'Geral', atual: atual, total: total, value: item.value };
                 }
             });
 
@@ -913,12 +975,15 @@
                     <td><span class="tag-status ${isFinalizado ? 'tag-done' : 'tag-open'}">${isFinalizado ? 'Liquidado' : 'Em Aberto'}</span></td>
                     <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
                     <td style="font-weight:700; color:${isFinalizado ? 'var(--text-muted)' : 'var(--danger)'}">${fmt(valorRestante)}</td>
+                    <td style="text-align: center;">
+                        <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
 
             if (tbody.children.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para o filtro selecionado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para o filtro selecionado.</td></tr>`;
             }
 
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestante);
@@ -934,11 +999,24 @@
                 dataInvest = dataInvest.filter(d => d.subCat === perfil);
             }
 
-            document.getElementById('kpi-patrimonio-total').innerText = fmt(dataInvest.reduce((a,b)=>a+b.value, 0));
+            const totalInvestido = dataInvest.reduce((a,b)=>a+b.value, 0);
+            const qtdAportes = dataInvest.length;
+            const maiorAporte = qtdAportes > 0 ? Math.max(...dataInvest.map(d => d.value)) : 0;
+            const mediaAporte = qtdAportes > 0 ? totalInvestido / qtdAportes : 0;
+
+            document.getElementById('kpi-patrimonio-total').innerText = fmt(totalInvestido);
+            document.getElementById('kpi-maior-aporte').innerText = fmt(maiorAporte);
+            document.getElementById('kpi-media-aporte').innerText = fmt(mediaAporte);
+            document.getElementById('kpi-qtd-aportes').innerText = qtdAportes;
             
             const tbody = document.getElementById('investTableBody');
             tbody.innerHTML = '';
             
+            if (dataInvest.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum investimento registrado.</td></tr>`;
+                return;
+            }
+
             dataInvest.sort((a,b) => b.date - a.date).forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -947,6 +1025,10 @@
                     <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
                     <td>${item.category}</td>
                     <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
+                    <td style="text-align: center;">
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });

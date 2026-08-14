@@ -22,23 +22,6 @@
             --border: #e2e8f0; 
             --input-bg: #ffffff;
             --table-hover: #f1f5f9;
-            --card-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            --card-padding: 1.25rem 1.5rem;
-            --card-radius: 12px;
-        }
-
-        /* MODO MINIMALISTA (TESTE) */
-        body.minimalist-theme {
-            --bg-color: #fafafa;
-            --card-bg: #ffffff;
-            --border: #f1f5f9;
-            --card-shadow: none;
-            --card-padding: 0.85rem 1rem;
-            --card-radius: 6px;
-        }
-        body.minimalist-theme .kpi-card, 
-        body.minimalist-theme .chart-card {
-            border: 1px solid #e2e8f0;
         }
 
         body.dark-theme {
@@ -57,68 +40,74 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: all 0.2s; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
         
+        /* HEADER E TABS */
         header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-main); }
-        .header-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-        
-        .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: var(--card-shadow); transition: all 0.2s; }
+        header h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
+        .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
         .action-btn:hover { background-color: var(--border); }
-        
         .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
-        .tab-btn { padding: 0.5rem 1.1rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .tab-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .tab-btn:hover { background-color: var(--border); color: var(--text-main); }
         .tab-btn.active { background-color: var(--primary); color: #ffffff; }
-        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
         
-        .select-container select { padding: 0.5rem 0.8rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; }
-        
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; align-items: stretch; }
-        .kpi-card { background: var(--card-bg); padding: var(--card-padding); border-radius: var(--card-radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); display: flex; flex-direction: column; justify-content: space-between; }
-        .kpi-title { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
-        .kpi-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
-        .kpi-details { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); font-size: 0.78rem; }
-        .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; color: var(--text-main); }
+        /* CARDS E KPI */
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
+        .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
+        .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+        .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+        .kpi-details { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--border); font-size: 0.8rem; }
+        .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; color: var(--text-main); }
         .kpi-detail-item:last-child { margin-bottom: 0; }
         .kpi-detail-label { font-weight: 500; color: var(--text-muted); }
         .kpi-detail-val { font-weight: 600; }
 
-        .chart-card { background: var(--card-bg); padding: var(--card-padding); border-radius: var(--card-radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); margin-bottom: 1.25rem; }
-        .chart-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.8rem; color: var(--text-main); }
-        
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 0.4rem; }
-        .data-table th, .data-table td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text-main); }
+        .chart-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main); }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-main); }
         .data-table th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; }
         .data-table tbody tr:hover { background-color: var(--table-hover); }
-        
-        .tag-status { padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
+        .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
         .tag-open { background-color: #fef3c7; color: #b45309; }
         .tag-done { background-color: #d1fae5; color: #047857; }
-        .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
         #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
 
-        /* AVISOS MAIS DISCRETOS */
-        .alert-mini-box { padding: 0.5rem 0.8rem; border-radius: 6px; margin-bottom: 0.6rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid var(--warning); background: rgba(245, 158, 11, 0.08); color: var(--text-main); }
-        .alert-mini-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+        /* AVISOS DISCRETOS */
+        .alert-mini-box { padding: 0.6rem 0.9rem; border-radius: 8px; margin-bottom: 0.8rem; font-size: 0.85rem; display: flex; align-items: center; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); color: var(--text-main); }
+        .alert-mini-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
-        /* AUTH & FORM */
-        .auth-container { max-width: 380px; margin: 4rem auto; background: var(--card-bg); padding: 1.8rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        .input-group { margin-bottom: 0.8rem; }
-        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text-main); }
-        .input-field { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; outline: none; background: var(--input-bg); color: var(--text-main); }
+        /* LOGIN E FORMULÁRIO */
+        .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
+        .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
         .input-field:focus { border-color: var(--primary); }
-        .btn-primary { width: 100%; padding: 0.7rem; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.7rem 1.1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        .btn-danger { background: var(--danger); color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.8rem; }
-        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1rem; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
+        .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
         .action-icon-btn:hover { background: var(--border); }
         .admin-badge { background: var(--invest); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; margin-left: 0.5rem; }
+
+        /* CHIPS DE ATALHO RÁPIDO PARA CELULAR */
+        .quick-chips { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .quick-chips::-webkit-scrollbar { display: none; }
+        .chip-btn { background: var(--input-bg); border: 1px solid var(--border); border-radius: 20px; padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; color: var(--text-main); transition: 0.2s; }
+        .chip-btn:hover, .chip-btn:active { background: var(--primary); color: #ffffff; }
+
+        /* MODO MODAL CELULAR OTIMIZADO */
+        .mobile-quick-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 9999; padding: 1.2rem; overflow-y: auto; }
+        .mobile-quick-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -126,8 +115,8 @@
     <!-- TELA DE LOGIN -->
     <div id="loginView">
         <div class="auth-container">
-            <h2 style="margin-bottom: 0.4rem; text-align: center;">Acesso Restrito</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.2rem; font-size: 0.85rem;">Faça login para ver seu dashboard</p>
+            <h2 style="margin-bottom: 0.5rem; text-align: center;">Acesso Restrito</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Faça login para ver seu dashboard</p>
             <form id="loginForm">
                 <div class="input-group">
                     <label>E-mail</label>
@@ -139,7 +128,7 @@
                 </div>
                 <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
             </form>
-            <p id="loginError" style="color: var(--danger); margin-top: 1rem; font-size: 0.8rem; text-align: center; display: none;"></p>
+            <p id="loginError" style="color: var(--danger); margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none;"></p>
         </div>
     </div>
 
@@ -148,7 +137,7 @@
         <header>
             <div>
                 <h1 style="display: flex; align-items: center;">Painel Financeiro <span id="adminBadge" class="admin-badge" style="display: none;">ADMIN</span></h1>
-                <p style="color: var(--text-muted); font-size: 0.85rem;">Gestão Patrimonial & Controladoria Pessoal</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
             </div>
             <div class="header-controls">
                 <div class="select-container" id="adminProfileContainer" style="display: none;">
@@ -158,7 +147,7 @@
                     </select>
                 </div>
 
-                <button class="action-btn" onclick="toggleLayoutMode()" id="layoutToggleBtn">🎨 <span id="layoutBtnText">Modo Minimalista</span></button>
+                <button class="action-btn" style="background-color: var(--primary); color: white;" onclick="openMobileQuickView()">📱 Lançador Celular</button>
                 <button class="action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 <span id="themeBtnText">Modo Escuro</span></button>
                 <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
                 <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn">👁️ <span id="privacyBtnText">Privacidade Off</span></button>
@@ -183,8 +172,6 @@
             
             <!-- ABA 1: RESUMO GERAL -->
             <div id="tab-resumo" class="tab-content active">
-                
-                <!-- AVISOS FOCADOS E DISCRETOS -->
                 <div id="alertsContainer"></div>
 
                 <div class="kpi-container">
@@ -195,11 +182,11 @@
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar..." style="width: 170px; padding: 0.35rem 0.6rem; font-size: 0.8rem;" oninput="applyExtratoFilters()">
-                            <select id="typeFilterSelector" class="reset-btn" style="padding: 0.4rem 0.6rem;" onchange="applyExtratoFilters()">
+                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar..." style="width: 180px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
+                            <select id="typeFilterSelector" class="reset-btn" style="padding: 0.45rem 0.8rem;" onchange="applyExtratoFilters()">
                                 <option value="ALL">Todos os Tipos</option>
                                 <option value="RECEITA">Receitas</option>
                                 <option value="DESPESA">Despesas</option>
@@ -207,7 +194,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="max-height: 380px; overflow-y: auto;">
+                    <div style="max-height: 400px; overflow-y: auto;">
                         <table class="data-table">
                             <thead><tr><th>Data</th><th>Tipo / Meio</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th><th style="text-align: center;">Ações</th></tr></thead>
                             <tbody id="resumoExtratoTableBody"></tbody>
@@ -216,11 +203,11 @@
                 </div>
 
                 <div class="chart-card">
-                    <div class="chart-title">Composição de Gastos (Clique na fatia para detalhar)</div>
-                    <div style="width:100%; max-width:360px; margin: 0 auto;"><canvas id="categoryChart" height="200"></canvas></div>
+                    <div class="chart-title">Composição de Gastos (Clique em uma fatia para destrinchar)</div>
+                    <div style="width:100%; max-width:400px; margin: 0 auto;"><canvas id="categoryChart" height="220"></canvas></div>
                     
                     <div id="categoryDetailsSection">
-                        <h3 id="catDetailTitle" style="margin-bottom: 0.8rem; color: var(--primary); font-size:0.95rem;">Análise: Categoria</h3>
+                        <h3 id="catDetailTitle" style="margin-bottom: 1rem; color: var(--primary);">Análise: Categoria</h3>
                         <div class="kpi-container">
                             <div class="kpi-card"><div><div class="kpi-title">Gasto Atual (Período)</div><div class="kpi-value" id="kpi-cat-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
                             <div class="kpi-card"><div><div class="kpi-title">Média Mensal Histórica</div><div class="kpi-value" id="kpi-cat-media">R$ 0,00</div></div></div>
@@ -237,9 +224,9 @@
             <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Atual</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura Próximo Mês</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Saldo Restante A Pagar (Geral)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Total Fatura (Salário Atual)</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura (Salário Próximo Mês)</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Saldo Total a Pagar (Parcelados Restantes)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
 
                 <div class="chart-card">
@@ -248,7 +235,7 @@
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <div class="chart-title" style="margin-bottom:0;">Compras Parceladas e Lançamentos em Cartão</div>
                         <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
                             <option value="open">Em Aberto</option>
@@ -265,8 +252,8 @@
 
             <!-- ABA 3: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
-                 <div style="margin-bottom:1.25rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:0.8rem 1rem; border-radius:8px; border:1px solid var(--border);">
-                     <label style="font-weight:600; font-size:0.85rem;">Filtro por Subcategoria:</label>
+                 <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                     <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria:</label>
                      <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
                  </div>
                  
@@ -295,7 +282,7 @@
                 </div>
 
                 <div class="chart-card">
-                    <h2 class="chart-title" style="font-size: 1.1rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
+                    <h2 class="chart-title" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
                     <form id="sharedForm" onsubmit="addSharedTransaction(event)">
                         <div class="form-grid">
                             <div class="input-group">
@@ -313,8 +300,8 @@
                             <div class="input-group">
                                 <label>Regra de Divisão</label>
                                 <select id="s_regra" class="input-field" onchange="calculateSplit()">
-                                    <option value="50_50">50% / 50% (Igual)</option>
-                                    <option value="CUSTOM">Personalizada</option>
+                                    <option value="50_50">50% / 50% (Divisão Igual)</option>
+                                    <option value="CUSTOM">Valores Personalizados</option>
                                 </select>
                             </div>
                             <div class="input-group">
@@ -330,7 +317,7 @@
                                 <input type="text" id="s_categoria" class="input-field" placeholder="Ex: Casa, Lazer">
                             </div>
                         </div>
-                        <div style="margin-top: 1rem;">
+                        <div style="margin-top: 1.5rem;">
                             <button type="submit" class="btn-primary" id="btnSalvarShared">Salvar Gastos Divididos</button>
                         </div>
                     </form>
@@ -355,10 +342,10 @@
                 </div>
             </div>
 
-            <!-- ABA 5: NOVO REGISTRO (FORMULÁRIO ATUALIZADO) -->
+            <!-- ABA 5: FORMULÁRIO COMPLETO -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
-                    <h2 class="chart-title" id="formTitle" style="font-size: 1.15rem;">Cadastrar Nova Transação Individual</h2>
+                    <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
                     <form id="insertForm" onsubmit="addOrUpdateTransaction(event)">
                         <input type="hidden" id="edit_id">
                         <div class="form-grid">
@@ -393,7 +380,6 @@
                                 </select>
                             </div>
 
-                            <!-- CAMPOS ESPECÍFICOS DE CARTÃO DE CRÉDITO -->
                             <div class="input-group card-only-field">
                                 <label>Cartão Utilizado</label>
                                 <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
@@ -412,20 +398,22 @@
                                 <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
                             </div>
 
+                            <!-- CATEGORIA (DISPARA A ATUALIZAÇÃO DA SUBCATEGORIA) -->
                             <div class="input-group">
                                 <label>Categoria</label>
-                                <select id="i_categoria" class="input-field" onchange="handleDynamicSelect(this, 'Categoria')">
-                                    <option value="">-- Selecione --</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Subcategoria</label>
-                                <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
+                                <select id="i_categoria" class="input-field" onchange="onCategoryChange('i_categoria', 'i_subcategoria'); handleDynamicSelect(this, 'Categoria')">
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
 
-                            <!-- CUSTO (OPCIONAL) COLOCADO POR ÚLTIMO -->
+                            <!-- SUBCATEGORIA FILTRADA -->
+                            <div class="input-group">
+                                <label>Subcategoria</label>
+                                <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
+                                    <option value="">-- Selecione a Categoria Primeiro --</option>
+                                </select>
+                            </div>
+
                             <div class="input-group">
                                 <label>Custo (Opcional)</label>
                                 <select id="i_custo" class="input-field">
@@ -436,7 +424,7 @@
                             </div>
                         </div>
 
-                        <div style="margin-top: 1.2rem; display: flex; gap: 0.8rem;">
+                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                             <button type="submit" class="btn-primary" id="btnSalvar">Salvar Registro</button>
                             <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
                         </div>
@@ -445,6 +433,81 @@
             </div>
 
         </div>
+    </div>
+
+    <!-- TELA EXCLUSIVA DE LANÇAMENTO RÁPIDO PARA CELULAR -->
+    <div id="mobileQuickView" class="mobile-quick-modal">
+        <div class="mobile-quick-header">
+            <h2 style="font-size: 1.2rem; color: var(--primary);">📱 Lançador Rápido de Bolso</h2>
+            <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="closeMobileQuickView()">Fechar ✕</button>
+        </div>
+
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.8rem;">Atalhos de Categoria Rápidos:</p>
+        <div class="quick-chips">
+            <button type="button" class="chip-btn" onclick="quickSelectCategory('Alimentação')">🍔 Alimentação</button>
+            <button type="button" class="chip-btn" onclick="quickSelectCategory('Mercado')">🛒 Mercado</button>
+            <button type="button" class="chip-btn" onclick="quickSelectCategory('Transporte')">🚗 Transporte</button>
+            <button type="button" class="chip-btn" onclick="quickSelectCategory('Lazer')">🎉 Lazer</button>
+            <button type="button" class="chip-btn" onclick="quickSelectCategory('Moradia')">🏠 Moradia</button>
+            <button type="button" class="chip-btn" onclick="quickSelectCategory('Saúde')">💊 Saúde</button>
+        </div>
+
+        <form onsubmit="saveMobileQuickTransaction(event)">
+            <div class="input-group">
+                <label>Descrição do Gasto *</label>
+                <input type="text" id="m_descricao" class="input-field" placeholder="Ex: Uber, Lanche, Padaria" required>
+            </div>
+
+            <div class="input-group">
+                <label>Valor (R$) *</label>
+                <input type="number" id="m_valor" step="0.01" class="input-field" placeholder="0.00" inputmode="decimal" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);" required>
+            </div>
+
+            <div class="input-group">
+                <label>Forma de Pagamento</label>
+                <select id="m_pagamento" class="input-field" onchange="toggleMobilePaymentFields()">
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Débito">Débito</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+            </div>
+
+            <div class="input-group m-card-field">
+                <label>Cartão Utilizado</label>
+                <select id="m_cartao" class="input-field"><option value="">-- Selecione --</option></select>
+            </div>
+
+            <div class="input-group m-card-field">
+                <label>Fatura</label>
+                <select id="m_fatura_destino" class="input-field">
+                    <option value="ATUAL">Fatura Atual (Deste Mês)</option>
+                    <option value="PROXIMA">Próxima Fatura (Mês Que Vem)</option>
+                </select>
+            </div>
+
+            <!-- CATEGORIA MOBILE -->
+            <div class="input-group">
+                <label>Categoria</label>
+                <select id="m_categoria" class="input-field" onchange="onCategoryChange('m_categoria', 'm_subcategoria')"><option value="">-- Selecione --</option></select>
+            </div>
+
+            <!-- SUBCATEGORIA MOBILE FILTRADA -->
+            <div class="input-group">
+                <label>Subcategoria</label>
+                <select id="m_subcategoria" class="input-field"><option value="">-- Selecione a Categoria Primeiro --</option></select>
+            </div>
+
+            <div class="input-group">
+                <label>Data</label>
+                <input type="date" id="m_data" class="input-field" required>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                <button type="submit" class="btn-primary" style="padding: 0.9rem; font-size: 1rem;">Lançar Gasto Agora</button>
+                <button type="button" class="btn-secondary" onclick="saveAndResetMobile(event)" style="padding: 0.7rem; text-align:center;">Salvar e Lançar Outro</button>
+            </div>
+        </form>
     </div>
 
     <script>
@@ -469,11 +532,6 @@
                 document.body.classList.add('dark-theme');
                 document.getElementById('themeToggleBtn').innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
             }
-            const savedLayout = localStorage.getItem('layout');
-            if (savedLayout === 'minimalist') {
-                document.body.classList.add('minimalist-theme');
-                document.getElementById('layoutToggleBtn').innerHTML = '🎨 <span id="layoutBtnText">Modo Tradicional</span>';
-            }
         }
 
         function toggleTheme() {
@@ -483,15 +541,6 @@
             document.getElementById('themeToggleBtn').innerHTML = isDark 
                 ? '☀️ <span id="themeBtnText">Modo Claro</span>' 
                 : '🌙 <span id="themeBtnText">Modo Escuro</span>';
-        }
-
-        function toggleLayoutMode() {
-            document.body.classList.toggle('minimalist-theme');
-            const isMin = document.body.classList.contains('minimalist-theme');
-            localStorage.setItem('layout', isMin ? 'minimalist' : 'traditional');
-            document.getElementById('layoutToggleBtn').innerHTML = isMin 
-                ? '🎨 <span id="layoutBtnText">Modo Tradicional</span>' 
-                : '🎨 <span id="layoutBtnText">Modo Minimalista</span>';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -669,6 +718,100 @@
             });
         }
 
+        /* LÓGICA DE LINKAR CATEGORIA COM SUBCATEGORIA */
+        function onCategoryChange(catSelectId, subSelectId) {
+            const selectedCat = document.getElementById(catSelectId).value;
+            const subSelect = document.getElementById(subSelectId);
+            const selectedType = (document.getElementById('i_tipo')?.value || 'Despesa').toUpperCase();
+
+            if (!selectedCat || selectedCat === '' || selectedCat === '__NEW__') {
+                subSelect.innerHTML = '<option value="">-- Selecione a Categoria Primeiro --</option>';
+                return;
+            }
+
+            // Buscar subcategorias existentes que já foram usadas com essa categoria específica
+            const relatedSubcats = [...new Set(
+                globalData
+                    .filter(d => d.type === selectedType && d.category === selectedCat)
+                    .map(d => d.subCat)
+                    .filter(s => s && s.trim() !== '')
+            )].sort();
+
+            subSelect.innerHTML = '<option value="">-- Selecione --</option>';
+            
+            relatedSubcats.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+
+            const newOpt = document.createElement('option');
+            newOpt.value = "__NEW__";
+            newOpt.textContent = "➕ Adicionar Nova Subcategoria...";
+            newOpt.style.fontWeight = "bold";
+            subSelect.appendChild(newOpt);
+        }
+
+        function openMobileQuickView() {
+            document.getElementById('mobileQuickView').style.display = 'block';
+            document.getElementById('m_data').valueAsDate = new Date();
+            document.getElementById('m_categoria').innerHTML = document.getElementById('i_categoria').innerHTML;
+            document.getElementById('m_cartao').innerHTML = document.getElementById('i_cartao').innerHTML;
+            toggleMobilePaymentFields();
+        }
+
+        function closeMobileQuickView() {
+            document.getElementById('mobileQuickView').style.display = 'none';
+        }
+
+        function toggleMobilePaymentFields() {
+            const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
+            document.querySelectorAll('.m-card-field').forEach(el => el.style.display = isCard ? 'block' : 'none');
+        }
+
+        function quickSelectCategory(catName) {
+            document.getElementById('m_categoria').value = catName;
+            onCategoryChange('m_categoria', 'm_subcategoria');
+        }
+
+        async function saveMobileQuickTransaction(e, reset = false) {
+            if (e) e.preventDefault();
+
+            const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
+            const payload = {
+                user_id: currentUser.id,
+                tipo: 'Despesa',
+                data: document.getElementById('m_data').value,
+                descricao: document.getElementById('m_descricao').value,
+                valor: parseFloat(document.getElementById('m_valor').value),
+                pagamento: document.getElementById('m_pagamento').value,
+                cartao: isCard ? document.getElementById('m_cartao').value : '',
+                fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
+                categoria: document.getElementById('m_categoria').value,
+                subcategoria: document.getElementById('m_subcategoria').value
+            };
+
+            const res = await _supabase.from('transacoes').insert([payload]);
+
+            if (res.error) {
+                alert('Erro ao lançar: ' + res.error.message);
+            } else {
+                alert('Gasto lançado com sucesso!');
+                if (reset) {
+                    document.getElementById('m_descricao').value = '';
+                    document.getElementById('m_valor').value = '';
+                } else {
+                    closeMobileQuickView();
+                }
+                manualSync();
+            }
+        }
+
+        function saveAndResetMobile(e) {
+            saveMobileQuickTransaction(e, true);
+        }
+
         function calculateSplit() {
             const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
             const regra = document.getElementById('s_regra').value;
@@ -775,7 +918,7 @@
             let totalGeral = 0, totalMeu = 0, totalParceiro = 0;
 
             if (sharedData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
                 return;
             }
 
@@ -799,7 +942,7 @@
                     <td style="color:var(--danger); font-weight:600;">${fmt(valMeu)}</td>
                     <td style="color:var(--warning); font-weight:600;">${fmt(valParceiro)}</td>
                     <td>
-                        <button class="action-btn" style="padding:0.15rem 0.4rem; font-size:0.7rem;" onclick="toggleSharedPaidStatus('${item.id}', '${item.status}')">
+                        <button class="action-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="toggleSharedPaidStatus('${item.id}', '${item.status}')">
                             <span class="tag-status ${isPago ? 'tag-done' : 'tag-open'}">${isPago ? '✅ Pago' : '⏳ Pendente'}</span>
                         </button>
                     </td>
@@ -825,7 +968,6 @@
             const typeFilteredData = globalData.filter(d => d.type === selectedType);
 
             populateSelect('i_categoria', typeFilteredData.map(d => d.category));
-            populateSelect('i_subcategoria', typeFilteredData.map(d => d.subCat));
             populateSelect('i_cartao', typeFilteredData.map(d => d.cartao));
         }
 
@@ -980,6 +1122,7 @@
             togglePaymentFields();
 
             document.getElementById('i_categoria').value = item.category;
+            onCategoryChange('i_categoria', 'i_subcategoria');
             document.getElementById('i_subcategoria').value = item.subCat;
             document.getElementById('i_cartao').value = item.cartao;
 
@@ -1108,7 +1251,6 @@
             renderPieChart(filtered, selectedYm);
         }
 
-        // AVISOS SUTIS E FOCADOS EM PONTOS DE ATENÇÃO
         function checkDiscreetCategoryAlerts(filteredData) {
             const alertContainer = document.getElementById('alertsContainer');
             alertContainer.innerHTML = '';
@@ -1198,7 +1340,7 @@
             let list = [...dataArr].sort((a, b) => b.date - a.date);
             
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhum lançamento encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
                 return;
             }
 
@@ -1283,7 +1425,6 @@
             });
         }
 
-        // LÓGICA DE FATURA ATUAL, PRÓXIMA FATURA E VERIFICAÇÃO DE PARCELAS PENDENTES
         function renderParcelasTab() {
             const selectedYm = document.getElementById('monthSelector').value;
             const despesasCartao = selectedYm === 'all' 
@@ -1300,12 +1441,10 @@
                 const nomeCartao = item.cartao || 'Cartão';
                 cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
 
-                // 1. Somar na Fatura Atual se for marcado como ATUAL no mês selecionado
                 if (item.faturaDestino === 'ATUAL') {
                     faturaAtualVal += item.value;
                 }
 
-                // 2. Lógica da Próxima Fatura: inclui lançamentos marcados como PROXIMA + próximas parcelas não quitadas
                 if (item.faturaDestino === 'PROXIMA') {
                     faturaProximaVal += item.value;
                 }
@@ -1318,8 +1457,6 @@
                     if (atual < total) {
                         const parcelasRestantes = total - atual;
                         totalRestanteGeral += item.value * parcelasRestantes;
-                        
-                        // Adiciona a parcela imediata do mês que vem na Previsão
                         faturaProximaVal += item.value;
                     }
                 }
@@ -1329,13 +1466,12 @@
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
-            // Renderizar Resumo por Cartão
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
             const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
 
             if (Object.keys(cartoesMap).length === 0) {
-                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; padding:0.4rem;">Nenhum gasto em cartão registrado no período.</div>';
+                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto em cartão registrado no período.</div>';
             } else {
                 Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
                     const val = cartoesMap[nome];
@@ -1346,7 +1482,7 @@
                     card.innerHTML = `
                         <div>
                             <div class="kpi-title">${nome}</div>
-                            <div class="kpi-value" style="font-size:1.15rem; color:var(--danger);">${fmt(val)}</div>
+                            <div class="kpi-value" style="font-size:1.25rem; color:var(--danger);">${fmt(val)}</div>
                         </div>
                         <div class="kpi-details">
                             <div class="kpi-detail-item">
@@ -1363,7 +1499,7 @@
             tbody.innerHTML = '';
 
             if (despesasCartao.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhum lançamento em cartão encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento em cartão encontrado.</td></tr>`;
                 return;
             }
 
@@ -1374,8 +1510,8 @@
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 6px; border-radius:4px;">${item.cartao || 'Cartão'}</span></td>
-                    <td><span style="font-size:0.75rem; font-weight:600; color:${item.faturaDestino === 'PROXIMA' ? 'var(--warning)' : 'var(--primary)'}">${faturaLabel}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.cartao || 'Cartão'}</span></td>
+                    <td><span style="font-size:0.8rem; font-weight:600; color:${item.faturaDestino === 'PROXIMA' ? 'var(--warning)' : 'var(--primary)'}">${faturaLabel}</span></td>
                     <td>${item.parcela || 'À vista'}</td>
                     <td style="font-weight:700;">${fmt(item.value)}</td>
                     <td style="text-align: center;">
@@ -1408,7 +1544,7 @@
             tbody.innerHTML = '';
             
             if (dataInvest.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhum investimento registrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum investimento registrado.</td></tr>`;
                 return;
             }
 
@@ -1417,7 +1553,7 @@
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:500;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 6px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
                     <td>${item.category}</td>
                     <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
                     <td style="text-align: center;">

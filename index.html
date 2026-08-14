@@ -83,6 +83,10 @@
         .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
         #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
 
+        /* ALERTAS E INSIGHTS */
+        .alert-box { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.75rem; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); }
+        .alert-box-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+
         /* LOGIN E FORMULÁRIO */
         .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .input-group { margin-bottom: 1rem; }
@@ -150,7 +154,7 @@
 
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
-            <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Crédito</button>
+            <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
             <button class="tab-btn" id="tabNovoBtn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
@@ -162,6 +166,9 @@
             
             <!-- ABA 1: RESUMO GERAL -->
             <div id="tab-resumo" class="tab-content active">
+                
+                <div id="alertsContainer"></div>
+
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Receitas</div><div class="kpi-value" id="kpi-receitas" style="color: var(--success);">R$ 0,00</div></div><div class="kpi-details" id="kpi-receitas-detalhes"></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">Despesas (Total)</div><div class="kpi-value" id="kpi-despesas" style="color: var(--danger);">R$ 0,00</div></div><div class="kpi-details" id="kpi-despesas-detalhes"></div></div>
@@ -210,16 +217,23 @@
                 </div>
             </div>
 
-            <!-- ABA 2: PARCELAS -->
+            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Total a Pagar (Restante)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Comprometimento Próximo Mês</div><div class="kpi-value" id="kpi-parcela-proxima-fatura" style="color: var(--primary);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Compras Ativas em Aberto</div><div class="kpi-value" id="kpi-parcela-qtd-ativas" style="color: var(--text-main);">0</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Total Fatura (Salário Atual)</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura (Salário Próximo Mês)</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Saldo Total a Pagar (Parcelados Restantes)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
+
+                <!-- CARD DE RESUMO POR CARTÃO / MEIO DE PAGAMENTO -->
+                <div class="chart-card">
+                    <div class="chart-title">Gastos por Cartão / Meio de Pagamento</div>
+                    <div id="cartoesSummaryContainer" class="kpi-container" style="margin-bottom: 0;"></div>
+                </div>
+
                 <div class="chart-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <div class="chart-title" style="margin-bottom:0;">Compras Parceladas</div>
+                        <div class="chart-title" style="margin-bottom:0;">Compras Parceladas e Lançamentos em Cartão</div>
                         <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
                             <option value="open">Em Aberto</option>
                             <option value="done">Liquidado</option>
@@ -227,7 +241,7 @@
                         </select>
                     </div>
                     <table class="data-table">
-                        <thead><tr><th>Data Última</th><th>Descrição</th><th>Cartão/Meio</th><th>Progresso</th><th>Status</th><th>Parc. Mês</th><th>Valor Restante</th><th style="text-align:center;">Ações</th></tr></thead>
+                        <thead><tr><th>Data Lançamento</th><th>Descrição</th><th>Cartão/Meio</th><th>Progresso</th><th>Status</th><th>Parc. Mês</th><th>Valor Restante</th><th style="text-align:center;">Ações</th></tr></thead>
                         <tbody id="parcelasTableBody"></tbody>
                     </table>
                 </div>
@@ -256,8 +270,14 @@
                 </div>
             </div>
 
-            <!-- ABA 4: GASTOS COMPARTILHADOS (NOVA ABA SPLIT) -->
+            <!-- ABA 4: GASTOS COMPARTILHADOS -->
             <div id="tab-divisao" class="tab-content">
+                <div class="kpi-container">
+                    <div class="kpi-card"><div><div class="kpi-title">Total Geral Dividido</div><div class="kpi-value" id="kpi-shared-total" style="color: var(--primary);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Sua Parte Acumulada</div><div class="kpi-value" id="kpi-shared-meu" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Parte Dela Acumulada</div><div class="kpi-value" id="kpi-shared-parceiro" style="color: var(--warning);">R$ 0,00</div></div></div>
+                </div>
+
                 <div class="chart-card">
                     <h2 class="chart-title" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
                     <form id="sharedForm" onsubmit="addSharedTransaction(event)">
@@ -313,9 +333,9 @@
                                 <th>Descrição</th>
                                 <th>Total</th>
                                 <th>Sua Parte</th>
-                                <th>Parte Parcela</th>
-                                <th>Status</th>
-                                <th style="text-align:center;">Ação de Lançamento</th>
+                                <th>Parte Dela</th>
+                                <th>Status de Pagamento</th>
+                                <th style="text-align:center;">Ações de Lançamento</th>
                             </tr>
                         </thead>
                         <tbody id="sharedTableBody"></tbody>
@@ -381,6 +401,10 @@
                                 <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
                                     <option value="">-- Selecione --</option>
                                 </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Dia do Fechamento do Cartão</label>
+                                <input type="number" id="i_fechamento" class="input-field" min="1" max="31" placeholder="Ex: 25 (Dia do mês)">
                             </div>
                             <div class="input-group">
                                 <label>Parcela</label>
@@ -552,7 +576,7 @@
                     renderSharedTable();
                 }
             } catch (e) {
-                console.error("Tabela compartilhada não carregada ou ainda não criada.", e);
+                console.error("Tabela compartilhada não carregada.", e);
             }
         }
 
@@ -619,7 +643,6 @@
             });
         }
 
-        // CÁLCULOS E AÇÕES DA ABA COMPARTILHADA
         function calculateSplit() {
             const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
             const regra = document.getElementById('s_regra').value;
@@ -673,60 +696,57 @@
             btn.innerText = 'Salvar Gastos Divididos';
         }
 
-        async function pushSharedToDashboards(id) {
+        async function pushSharedIndividual(id, target) {
             const conta = sharedData.find(s => s.id === id);
             if (!conta) return;
 
-            // Descobre o ID do parceiro no banco
             const partnerUid = rawSupabaseData.find(d => d.user_id !== currentUser.id)?.user_id;
+            const targetUid = target === 'meu' ? currentUser.id : partnerUid;
+            const targetVal = target === 'meu' ? conta.valor_meu : conta.valor_parceiro;
 
-            if (!partnerUid) {
-                alert("Para lançar no dashboard do parceiro, ele/ela precisa ter feito pelo menos 1 login ou lançamento no sistema!");
+            if (target === 'parceiro' && !partnerUid) {
+                alert("O perfil do parceiro ainda não realizou login no sistema.");
                 return;
             }
 
-            if (confirm(`Confirmar lançamento de R$ ${conta.valor_meu.toFixed(2)} no seu painel e R$ ${conta.valor_parceiro.toFixed(2)} no painel parceiro?`)) {
-                
-                const lancamentoMeu = {
-                    user_id: currentUser.id,
+            if (confirm(`Lançar R$ ${targetVal.toFixed(2)} no painel de ${target === 'meu' ? 'Meu Perfil' : 'Parceiro'}?`)) {
+                const lancamento = {
+                    user_id: targetUid,
                     tipo: 'Despesa',
                     data: conta.data,
-                    descricao: `${conta.descricao} (50% Split)`,
-                    valor: conta.valor_meu,
+                    descricao: `${conta.descricao} (Divisão)`,
+                    valor: targetVal,
                     categoria: conta.categoria,
                     pagamento: conta.pagamento
                 };
 
-                const lancamentoParceiro = {
-                    user_id: partnerUid,
-                    tipo: 'Despesa',
-                    data: conta.data,
-                    descricao: `${conta.descricao} (50% Split)`,
-                    valor: conta.valor_parceiro,
-                    categoria: conta.categoria,
-                    pagamento: conta.pagamento
-                };
-
-                // Insere nos dashboards
-                const { error: err1 } = await _supabase.from('transacoes').insert([lancamentoMeu, lancamentoParceiro]);
+                const { error } = await _supabase.from('transacoes').insert([lancamento]);
                 
-                if (err1) {
-                    alert("Erro ao lançar nos dashboards: " + err1.message);
-                    return;
+                if (error) {
+                    alert("Erro ao lançar no dashboard: " + error.message);
+                } else {
+                    alert("Lançamento efetuado com sucesso!");
+                    manualSync();
                 }
+            }
+        }
 
-                // Atualiza status para LANÇADO
-                await _supabase.from('gastos_compartilhados').update({ status: 'LANCADO' }).eq('id', id);
-
-                alert("Conta compartilhada dividida e lançada nos 2 dashboards com sucesso!");
+        async function toggleSharedPaidStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'PAGO' ? 'PENDENTE' : 'PAGO';
+            const { error } = await _supabase.from('gastos_compartilhados').update({ status: newStatus }).eq('id', id);
+            
+            if (error) {
+                alert("Erro ao alterar status: " + error.message);
+            } else {
                 loadSharedData();
-                manualSync();
             }
         }
 
         function renderSharedTable() {
             const tbody = document.getElementById('sharedTableBody');
             tbody.innerHTML = '';
+
+            let totalGeral = 0, totalMeu = 0, totalParceiro = 0;
 
             if (sharedData.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
@@ -735,24 +755,39 @@
 
             sharedData.forEach(item => {
                 const tr = document.createElement('tr');
-                const isLancado = item.status === 'LANCADO';
+                const isPago = item.status === 'PAGO';
                 const d = new Date(item.data + 'T12:00:00');
+
+                const valTotal = parseFloat(item.valor_total) || 0;
+                const valMeu = parseFloat(item.valor_meu) || 0;
+                const valParceiro = parseFloat(item.valor_parceiro) || 0;
+
+                totalGeral += valTotal;
+                totalMeu += valMeu;
+                totalParceiro += valParceiro;
 
                 tr.innerHTML = `
                     <td>${d.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.descricao}</td>
-                    <td style="font-weight:700;">${fmt(parseFloat(item.valor_total))}</td>
-                    <td style="color:var(--danger); font-weight:600;">${fmt(parseFloat(item.valor_meu))}</td>
-                    <td style="color:var(--danger); font-weight:600;">${fmt(parseFloat(item.valor_parceiro))}</td>
-                    <td><span class="tag-status ${isLancado ? 'tag-done' : 'tag-open'}">${isLancado ? 'Lançado no Dashboard' : 'Pendente'}</span></td>
-                    <td style="text-align:center;">
-                        ${!isLancado 
-                            ? `<button class="btn-success" onclick="pushSharedToDashboards('${item.id}')">🚀 Lançar nos Dashboards</button>` 
-                            : `<span style="font-size:0.8rem; color:var(--text-muted);">✅ Concluído</span>`}
+                    <td style="font-weight:700;">${fmt(valTotal)}</td>
+                    <td style="color:var(--danger); font-weight:600;">${fmt(valMeu)}</td>
+                    <td style="color:var(--warning); font-weight:600;">${fmt(valParceiro)}</td>
+                    <td>
+                        <button class="action-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="toggleSharedPaidStatus('${item.id}', '${item.status}')">
+                            <span class="tag-status ${isPago ? 'tag-done' : 'tag-open'}">${isPago ? '✅ Pago' : '⏳ Pendente'}</span>
+                        </button>
+                    </td>
+                    <td style="text-align:center; white-space:nowrap;">
+                        <button class="reset-btn" style="margin-right:4px;" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Lançar Meu</button>
+                        <button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'parceiro')">👩 Lançar Dela</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            document.getElementById('kpi-shared-total').innerText = fmt(totalGeral);
+            document.getElementById('kpi-shared-meu').innerText = fmt(totalMeu);
+            document.getElementById('kpi-shared-parceiro').innerText = fmt(totalParceiro);
         }
 
         function onTypeChange() {
@@ -1062,8 +1097,47 @@
             renderInvestimentosDetalhes(investArr, invest, receitas);
             renderSaldoDetalhes(saldo, receitas);
 
+            checkCategoryAlertsAndOutliers(filtered);
             applyExtratoFilters();
             renderPieChart(filtered, selectedYm);
+        }
+
+        function checkCategoryAlertsAndOutliers(filteredData) {
+            const alertContainer = document.getElementById('alertsContainer');
+            alertContainer.innerHTML = '';
+
+            const despesas = filteredData.filter(d => d.type === 'DESPESA');
+            if (despesas.length === 0) return;
+
+            const catAtual = {};
+            despesas.forEach(d => { catAtual[d.category] = (catAtual[d.category] || 0) + d.value; });
+
+            const catTotalHistorica = {};
+            const despesasGerais = globalData.filter(d => d.type === 'DESPESA');
+            despesasGerais.forEach(d => { catTotalHistorica[d.category] = (catTotalHistorica[d.category] || 0) + d.value; });
+
+            const totalMeses = [...new Set(despesasGerais.map(d => `${d.year}-${d.month}`))].length || 1;
+
+            Object.keys(catAtual).forEach(cat => {
+                const mediaHistorica = (catTotalHistorica[cat] || 0) / totalMeses;
+                const valorAtual = catAtual[cat];
+
+                if (mediaHistorica > 0 && valorAtual > mediaHistorica * 1.25) {
+                    const pctEstouro = (((valorAtual / mediaHistorica) - 1) * 100).toFixed(0);
+                    const div = document.createElement('div');
+                    div.className = 'alert-box alert-box-danger';
+                    div.innerHTML = `⚠️ <b>Atenção:</b> A categoria <b>${cat}</b> gastou <b>${fmt(valorAtual)}</b> este mês (${pctEstouro}% acima da média de ${fmt(mediaHistorica)}).`;
+                    alertContainer.appendChild(div);
+                }
+            });
+
+            const maiorGasto = despesas.reduce((max, item) => item.value > max.value ? item : max, despesas[0]);
+            if (maiorGasto && maiorGasto.value > 200) {
+                const div = document.createElement('div');
+                div.className = 'alert-box';
+                div.innerHTML = `📌 <b>Gasto Pontual Relevante:</b> Lançamento de <b>${fmt(maiorGasto.value)}</b> em <i>"${maiorGasto.desc}"</i> no dia ${maiorGasto.date.toLocaleDateString('pt-BR')}.`;
+                alertContainer.appendChild(div);
+            }
         }
 
         function renderReceitasDetalhes(receitasArr) {
@@ -1213,67 +1287,101 @@
         }
 
         function renderParcelasTab() {
-            const aPrazoData = globalData.filter(d => d.type === 'DESPESA' && d.parcela && d.parcela.includes('/'));
-            const contratosMap = {};
+            const selectedYm = document.getElementById('monthSelector').value;
+            const despesasCartao = selectedYm === 'all' 
+                ? globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.parcela))
+                : globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.parcela) && `${d.year}-${d.month}` === selectedYm);
             
-            aPrazoData.forEach(item => {
-                let atual = 1, total = 1;
-                const p = item.parcela.split('/');
-                atual = parseInt(p[0], 10) || 1; 
-                total = parseInt(p[1], 10) || 1;
+            const now = new Date();
+            const currMonth = now.getMonth();
+            const currYear = now.getFullYear();
 
-                const key = `${normalizeText(item.desc)}_${normalizeText(item.cartao || item.pagamento)}_${total}`;
-                
-                if (!contratosMap[key] || atual > contratosMap[key].atual || (atual === contratosMap[key].atual && item.date > contratosMap[key].date)) {
-                    contratosMap[key] = { id: item.id, date: item.date, desc: item.desc || 'Compra Parcelada', cartao: item.cartao || item.pagamento || 'Geral', atual: atual, total: total, value: item.value };
+            let faturaAtualVal = 0;
+            let faturaProximaVal = 0;
+            let totalRestanteVal = 0;
+
+            // Mapeamento de Gastos por Cartão / Meio de Pagamento
+            const cartoesMap = {};
+
+            despesasCartao.forEach(item => {
+                const nomeCartao = item.cartao || item.pagamento || 'Outros / Não Especificado';
+                cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
+
+                if (item.month === currMonth && item.year === currYear) {
+                    faturaAtualVal += item.value;
+                } else if ((item.month === currMonth + 1 && item.year === currYear) || (currMonth === 11 && item.month === 0 && item.year === currYear + 1)) {
+                    faturaProximaVal += item.value;
+                }
+
+                if (item.parcela && item.parcela.includes('/')) {
+                    const p = item.parcela.split('/');
+                    const atual = parseInt(p[0]) || 1;
+                    const total = parseInt(p[1]) || 1;
+                    if (atual < total) {
+                        totalRestanteVal += item.value * (total - atual);
+                    }
                 }
             });
 
-            const contratosList = Object.values(contratosMap).sort((a,b) => b.date - a.date);
-            let totalRestante = 0, proximaFatura = 0, ativas = 0;
+            document.getElementById('kpi-fatura-atual').innerText = fmt(faturaAtualVal);
+            document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
+            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteVal);
+
+            // Renderizar Cards de Resumo por Cartão
+            const cartoesContainer = document.getElementById('cartoesSummaryContainer');
+            cartoesContainer.innerHTML = '';
+
+            const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
+
+            if (Object.keys(cartoesMap).length === 0) {
+                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto em cartão registrado no período.</div>';
+            } else {
+                Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
+                    const val = cartoesMap[nome];
+                    const pct = totalGeralCartoes > 0 ? ((val / totalGeralCartoes) * 100).toFixed(1) : 0;
+                    
+                    const card = document.createElement('div');
+                    card.className = 'kpi-card';
+                    card.innerHTML = `
+                        <div>
+                            <div class="kpi-title">${nome}</div>
+                            <div class="kpi-value" style="font-size:1.25rem; color:var(--danger);">${fmt(val)}</div>
+                        </div>
+                        <div class="kpi-details">
+                            <div class="kpi-detail-item">
+                                <span class="kpi-detail-label">Participação</span>
+                                <span class="kpi-detail-val">${pct}%</span>
+                            </div>
+                        </div>
+                    `;
+                    cartoesContainer.appendChild(card);
+                });
+            }
+
             const tbody = document.getElementById('parcelasTableBody');
             tbody.innerHTML = '';
-            const statusFiltro = document.getElementById('statusParcelaSelector').value;
 
-            contratosList.forEach(item => {
-                const isFinalizado = item.atual >= item.total;
-                const parcelasRestantes = isFinalizado ? 0 : Math.max(0, item.total - item.atual);
-                const valorRestante = item.value * parcelasRestantes;
+            if (despesasCartao.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento em cartão encontrado.</td></tr>`;
+                return;
+            }
 
-                if (!isFinalizado) {
-                    totalRestante += valorRestante;
-                    proximaFatura += item.value; 
-                    ativas++;
-                }
-
-                if (statusFiltro === 'open' && isFinalizado) return;
-                if (statusFiltro === 'done' && !isFinalizado) return;
-
-                const pctPago = item.total > 0 ? Math.round((item.atual / item.total) * 100) : 100;
-                
+            despesasCartao.sort((a,b) => b.date - a.date).forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.cartao}</span></td>
-                    <td><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pctPago}%;"></div></div> <span style="font-size:0.8rem; font-weight:600;">${item.atual}/${item.total}</span></td>
-                    <td><span class="tag-status ${isFinalizado ? 'tag-done' : 'tag-open'}">${isFinalizado ? 'Liquidado' : 'Em Aberto'}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.cartao || item.pagamento || 'Cartão'}</span></td>
+                    <td>${item.parcela || 'À vista'}</td>
+                    <td><span class="tag-status tag-done">Registrado</span></td>
                     <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
-                    <td style="font-weight:700; color:${isFinalizado ? 'var(--text-muted)' : 'var(--danger)'}">${fmt(valorRestante)}</td>
+                    <td style="font-weight:700;">${fmt(item.value)}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-
-            if (tbody.children.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para o filtro selecionado.</td></tr>`;
-            }
-
-            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestante);
-            document.getElementById('kpi-parcela-proxima-fatura').innerText = fmt(proximaFatura);
-            document.getElementById('kpi-parcela-qtd-ativas').innerText = ativas;
         }
 
         function renderInvestmentsTab() {

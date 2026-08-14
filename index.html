@@ -6,7 +6,6 @@
     <title>Dashboard Financeiro Pessoal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SUPABASE CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -23,6 +22,23 @@
             --border: #e2e8f0; 
             --input-bg: #ffffff;
             --table-hover: #f1f5f9;
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            --card-padding: 1.25rem 1.5rem;
+            --card-radius: 12px;
+        }
+
+        /* MODO MINIMALISTA (TESTE) */
+        body.minimalist-theme {
+            --bg-color: #fafafa;
+            --card-bg: #ffffff;
+            --border: #f1f5f9;
+            --card-shadow: none;
+            --card-padding: 0.85rem 1rem;
+            --card-radius: 6px;
+        }
+        body.minimalist-theme .kpi-card, 
+        body.minimalist-theme .chart-card {
+            border: 1px solid #e2e8f0;
         }
 
         body.dark-theme {
@@ -41,67 +57,67 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: all 0.2s; }
         
-        /* HEADER E TABS */
         header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        header h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
-        .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
+        header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-main); }
+        .header-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+        
+        .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.5rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: var(--card-shadow); transition: all 0.2s; }
         .action-btn:hover { background-color: var(--border); }
+        
         .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
-        .tab-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .tab-btn { padding: 0.5rem 1.1rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .tab-btn:hover { background-color: var(--border); color: var(--text-main); }
         .tab-btn.active { background-color: var(--primary); color: #ffffff; }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
         
-        /* CARDS E KPI */
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
-        .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
-        .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
-        .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
-        .kpi-details { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--border); font-size: 0.8rem; }
-        .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; color: var(--text-main); }
+        .select-container select { padding: 0.5rem 0.8rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; }
+        
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; align-items: stretch; }
+        .kpi-card { background: var(--card-bg); padding: var(--card-padding); border-radius: var(--card-radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); display: flex; flex-direction: column; justify-content: space-between; }
+        .kpi-title { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+        .kpi-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+        .kpi-details { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); font-size: 0.78rem; }
+        .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; color: var(--text-main); }
         .kpi-detail-item:last-child { margin-bottom: 0; }
         .kpi-detail-label { font-weight: 500; color: var(--text-muted); }
         .kpi-detail-val { font-weight: 600; }
 
-        .chart-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main); }
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-main); }
+        .chart-card { background: var(--card-bg); padding: var(--card-padding); border-radius: var(--card-radius); border: 1px solid var(--border); box-shadow: var(--card-shadow); margin-bottom: 1.25rem; }
+        .chart-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.8rem; color: var(--text-main); }
+        
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 0.4rem; }
+        .data-table th, .data-table td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text-main); }
         .data-table th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; }
         .data-table tbody tr:hover { background-color: var(--table-hover); }
-        .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        
+        .tag-status { padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-block; }
         .tag-open { background-color: #fef3c7; color: #b45309; }
         .tag-done { background-color: #d1fae5; color: #047857; }
-        .progress-bar-bg { background-color: var(--border); border-radius: 6px; height: 8px; width: 80px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
-        .progress-bar-fill { background-color: var(--primary); height: 100%; }
-        .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
         #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
 
-        /* ALERTAS E INSIGHTS */
-        .alert-box { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; display: flex; align-items: center; gap: 0.75rem; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); }
-        .alert-box-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        /* AVISOS MAIS DISCRETOS */
+        .alert-mini-box { padding: 0.5rem 0.8rem; border-radius: 6px; margin-bottom: 0.6rem; font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid var(--warning); background: rgba(245, 158, 11, 0.08); color: var(--text-main); }
+        .alert-mini-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
 
-        /* LOGIN E FORMULÁRIO */
-        .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
-        .input-group { margin-bottom: 1rem; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
-        .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
+        /* AUTH & FORM */
+        .auth-container { max-width: 380px; margin: 4rem auto; background: var(--card-bg); padding: 1.8rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .input-group { margin-bottom: 0.8rem; }
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text-main); }
+        .input-field { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; outline: none; background: var(--input-bg); color: var(--text-main); }
         .input-field:focus { border-color: var(--primary); }
-        .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { width: 100%; padding: 0.7rem; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
-        .btn-success { background: var(--success); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
+        .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.7rem 1.1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .btn-danger { background: var(--danger); color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.8rem; }
+        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1rem; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
         .action-icon-btn:hover { background: var(--border); }
-        .checkbox-container { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
         .admin-badge { background: var(--invest); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; margin-left: 0.5rem; }
     </style>
 </head>
@@ -110,8 +126,8 @@
     <!-- TELA DE LOGIN -->
     <div id="loginView">
         <div class="auth-container">
-            <h2 style="margin-bottom: 0.5rem; text-align: center;">Acesso Restrito</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Faça login para ver seu dashboard</p>
+            <h2 style="margin-bottom: 0.4rem; text-align: center;">Acesso Restrito</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.2rem; font-size: 0.85rem;">Faça login para ver seu dashboard</p>
             <form id="loginForm">
                 <div class="input-group">
                     <label>E-mail</label>
@@ -123,7 +139,7 @@
                 </div>
                 <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
             </form>
-            <p id="loginError" style="color: var(--danger); margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none;"></p>
+            <p id="loginError" style="color: var(--danger); margin-top: 1rem; font-size: 0.8rem; text-align: center; display: none;"></p>
         </div>
     </div>
 
@@ -132,7 +148,7 @@
         <header>
             <div>
                 <h1 style="display: flex; align-items: center;">Painel Financeiro <span id="adminBadge" class="admin-badge" style="display: none;">ADMIN</span></h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Gestão Patrimonial & Controladoria Pessoal</p>
             </div>
             <div class="header-controls">
                 <div class="select-container" id="adminProfileContainer" style="display: none;">
@@ -142,6 +158,7 @@
                     </select>
                 </div>
 
+                <button class="action-btn" onclick="toggleLayoutMode()" id="layoutToggleBtn">🎨 <span id="layoutBtnText">Modo Minimalista</span></button>
                 <button class="action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 <span id="themeBtnText">Modo Escuro</span></button>
                 <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
                 <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn">👁️ <span id="privacyBtnText">Privacidade Off</span></button>
@@ -167,6 +184,7 @@
             <!-- ABA 1: RESUMO GERAL -->
             <div id="tab-resumo" class="tab-content active">
                 
+                <!-- AVISOS FOCADOS E DISCRETOS -->
                 <div id="alertsContainer"></div>
 
                 <div class="kpi-container">
@@ -177,12 +195,11 @@
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
-                        
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar lançamento..." style="width: 200px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
-                            <select id="typeFilterSelector" class="reset-btn" style="padding: 0.45rem 0.8rem;" onchange="applyExtratoFilters()">
+                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar..." style="width: 170px; padding: 0.35rem 0.6rem; font-size: 0.8rem;" oninput="applyExtratoFilters()">
+                            <select id="typeFilterSelector" class="reset-btn" style="padding: 0.4rem 0.6rem;" onchange="applyExtratoFilters()">
                                 <option value="ALL">Todos os Tipos</option>
                                 <option value="RECEITA">Receitas</option>
                                 <option value="DESPESA">Despesas</option>
@@ -190,20 +207,20 @@
                             </select>
                         </div>
                     </div>
-                    <div style="max-height: 400px; overflow-y: auto;">
+                    <div style="max-height: 380px; overflow-y: auto;">
                         <table class="data-table">
-                            <thead><tr><th>Data</th><th>Tipo / Detalhes</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th><th style="text-align: center;">Ações</th></tr></thead>
+                            <thead><tr><th>Data</th><th>Tipo / Meio</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th><th style="text-align: center;">Ações</th></tr></thead>
                             <tbody id="resumoExtratoTableBody"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="chart-card">
-                    <div class="chart-title">Composição de Gastos (Clique em uma fatia para destrinchar)</div>
-                    <div style="width:100%; max-width:400px; margin: 0 auto;"><canvas id="categoryChart" height="220"></canvas></div>
+                    <div class="chart-title">Composição de Gastos (Clique na fatia para detalhar)</div>
+                    <div style="width:100%; max-width:360px; margin: 0 auto;"><canvas id="categoryChart" height="200"></canvas></div>
                     
                     <div id="categoryDetailsSection">
-                        <h3 id="catDetailTitle" style="margin-bottom: 1rem; color: var(--primary);">Análise: Categoria</h3>
+                        <h3 id="catDetailTitle" style="margin-bottom: 0.8rem; color: var(--primary); font-size:0.95rem;">Análise: Categoria</h3>
                         <div class="kpi-container">
                             <div class="kpi-card"><div><div class="kpi-title">Gasto Atual (Período)</div><div class="kpi-value" id="kpi-cat-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
                             <div class="kpi-card"><div><div class="kpi-title">Média Mensal Histórica</div><div class="kpi-value" id="kpi-cat-media">R$ 0,00</div></div></div>
@@ -220,19 +237,18 @@
             <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Total Fatura (Salário Atual)</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura (Salário Próximo Mês)</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Saldo Total a Pagar (Parcelados Restantes)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Atual</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura Próximo Mês</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Saldo Restante A Pagar (Geral)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
 
-                <!-- CARD DE RESUMO POR CARTÃO / MEIO DE PAGAMENTO -->
                 <div class="chart-card">
                     <div class="chart-title">Gastos por Cartão / Meio de Pagamento</div>
                     <div id="cartoesSummaryContainer" class="kpi-container" style="margin-bottom: 0;"></div>
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
                         <div class="chart-title" style="margin-bottom:0;">Compras Parceladas e Lançamentos em Cartão</div>
                         <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
                             <option value="open">Em Aberto</option>
@@ -241,7 +257,7 @@
                         </select>
                     </div>
                     <table class="data-table">
-                        <thead><tr><th>Data Lançamento</th><th>Descrição</th><th>Cartão/Meio</th><th>Progresso</th><th>Status</th><th>Parc. Mês</th><th>Valor Restante</th><th style="text-align:center;">Ações</th></tr></thead>
+                        <thead><tr><th>Data Lançamento</th><th>Descrição</th><th>Cartão/Meio</th><th>Fatura Destino</th><th>Progresso</th><th>Valor Restante</th><th style="text-align:center;">Ações</th></tr></thead>
                         <tbody id="parcelasTableBody"></tbody>
                     </table>
                 </div>
@@ -249,8 +265,8 @@
 
             <!-- ABA 3: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
-                 <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
-                     <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria (Titular):</label>
+                 <div style="margin-bottom:1.25rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:0.8rem 1rem; border-radius:8px; border:1px solid var(--border);">
+                     <label style="font-weight:600; font-size:0.85rem;">Filtro por Subcategoria:</label>
                      <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
                  </div>
                  
@@ -279,7 +295,7 @@
                 </div>
 
                 <div class="chart-card">
-                    <h2 class="chart-title" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
+                    <h2 class="chart-title" style="font-size: 1.1rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
                     <form id="sharedForm" onsubmit="addSharedTransaction(event)">
                         <div class="form-grid">
                             <div class="input-group">
@@ -288,7 +304,7 @@
                             </div>
                             <div class="input-group" style="grid-column: span 2;">
                                 <label>Descrição da Conta *</label>
-                                <input type="text" id="s_descricao" class="input-field" placeholder="Ex: Jantar de Aniversário, Aluguel, Mercado" required>
+                                <input type="text" id="s_descricao" class="input-field" placeholder="Ex: Aluguel, Mercado" required>
                             </div>
                             <div class="input-group">
                                 <label>Valor Total (R$) *</label>
@@ -297,28 +313,24 @@
                             <div class="input-group">
                                 <label>Regra de Divisão</label>
                                 <select id="s_regra" class="input-field" onchange="calculateSplit()">
-                                    <option value="50_50">50% / 50% (Divisão Igual)</option>
-                                    <option value="CUSTOM">Valores Personalizados</option>
+                                    <option value="50_50">50% / 50% (Igual)</option>
+                                    <option value="CUSTOM">Personalizada</option>
                                 </select>
                             </div>
                             <div class="input-group">
                                 <label>Minha Parte (R$)</label>
-                                <input type="number" id="s_valor_meu" step="0.01" class="input-field" placeholder="R$ 0,00" oninput="onCustomSplitChange('meu')">
+                                <input type="number" id="s_valor_meu" step="0.01" class="input-field" oninput="onCustomSplitChange('meu')">
                             </div>
                             <div class="input-group">
-                                <label>Parte Dela/Dele (R$)</label>
-                                <input type="number" id="s_valor_parceiro" step="0.01" class="input-field" placeholder="R$ 0,00" oninput="onCustomSplitChange('parceiro')">
+                                <label>Parte Dela (R$)</label>
+                                <input type="number" id="s_valor_parceiro" step="0.01" class="input-field" oninput="onCustomSplitChange('parceiro')">
                             </div>
                             <div class="input-group">
                                 <label>Categoria</label>
-                                <input type="text" id="s_categoria" class="input-field" placeholder="Ex: Lazer Casal, Casa">
-                            </div>
-                            <div class="input-group">
-                                <label>Forma de Pagamento</label>
-                                <input type="text" id="s_pagamento" class="input-field" placeholder="Ex: Cartão de Crédito, PIX">
+                                <input type="text" id="s_categoria" class="input-field" placeholder="Ex: Casa, Lazer">
                             </div>
                         </div>
-                        <div style="margin-top: 1.5rem;">
+                        <div style="margin-top: 1rem;">
                             <button type="submit" class="btn-primary" id="btnSalvarShared">Salvar Gastos Divididos</button>
                         </div>
                     </form>
@@ -334,7 +346,7 @@
                                 <th>Total</th>
                                 <th>Sua Parte</th>
                                 <th>Parte Dela</th>
-                                <th>Status de Pagamento</th>
+                                <th>Status</th>
                                 <th style="text-align:center;">Ações de Lançamento</th>
                             </tr>
                         </thead>
@@ -343,10 +355,10 @@
                 </div>
             </div>
 
-            <!-- ABA 5: NOVO REGISTRO -->
+            <!-- ABA 5: NOVO REGISTRO (FORMULÁRIO ATUALIZADO) -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
-                    <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
+                    <h2 class="chart-title" id="formTitle" style="font-size: 1.15rem;">Cadastrar Nova Transação Individual</h2>
                     <form id="insertForm" onsubmit="addOrUpdateTransaction(event)">
                         <input type="hidden" id="edit_id">
                         <div class="form-grid">
@@ -371,13 +383,35 @@
                                 <input type="number" id="i_valor" step="0.01" class="input-field" placeholder="Ex: 150.50" required>
                             </div>
                             <div class="input-group">
-                                <label>Custo (Opcional)</label>
-                                <select id="i_custo" class="input-field">
-                                    <option value="">-- Selecione --</option>
-                                    <option value="Fixo">Fixo</option>
-                                    <option value="Variável">Variável</option>
+                                <label>Forma de Pagamento *</label>
+                                <select id="i_pagamento" class="input-field" onchange="togglePaymentFields()" required>
+                                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                    <option value="PIX">PIX</option>
+                                    <option value="Dinheiro">Dinheiro</option>
+                                    <option value="Débito">Débito</option>
+                                    <option value="Transferência">Transferência</option>
                                 </select>
                             </div>
+
+                            <!-- CAMPOS ESPECÍFICOS DE CARTÃO DE CRÉDITO -->
+                            <div class="input-group card-only-field">
+                                <label>Cartão Utilizado</label>
+                                <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
+                                    <option value="">-- Selecione --</option>
+                                </select>
+                            </div>
+                            <div class="input-group card-only-field">
+                                <label>Destino da Fatura</label>
+                                <select id="i_fatura_destino" class="input-field">
+                                    <option value="ATUAL">Fatura Atual (Salário deste mês)</option>
+                                    <option value="PROXIMA">Próxima Fatura (Salário do próximo mês)</option>
+                                </select>
+                            </div>
+                            <div class="input-group card-only-field">
+                                <label>Parcela</label>
+                                <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
+                            </div>
+
                             <div class="input-group">
                                 <label>Categoria</label>
                                 <select id="i_categoria" class="input-field" onchange="handleDynamicSelect(this, 'Categoria')">
@@ -390,51 +424,19 @@
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
+
+                            <!-- CUSTO (OPCIONAL) COLOCADO POR ÚLTIMO -->
                             <div class="input-group">
-                                <label>Forma de Pagamento</label>
-                                <select id="i_pagamento" class="input-field" onchange="handleDynamicSelect(this, 'Forma de Pagamento')">
+                                <label>Custo (Opcional)</label>
+                                <select id="i_custo" class="input-field">
                                     <option value="">-- Selecione --</option>
+                                    <option value="Fixo">Fixo</option>
+                                    <option value="Variável">Variável</option>
                                 </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Cartão Utilizado</label>
-                                <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
-                                    <option value="">-- Selecione --</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Dia do Fechamento do Cartão</label>
-                                <input type="number" id="i_fechamento" class="input-field" min="1" max="31" placeholder="Ex: 25 (Dia do mês)">
-                            </div>
-                            <div class="input-group">
-                                <label>Parcela</label>
-                                <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
                             </div>
                         </div>
 
-                        <div style="margin-top:1.5rem; padding-top:1rem; border-top: 1px dashed var(--border);">
-                            <div class="checkbox-container">
-                                <input type="checkbox" id="i_recorrente" onchange="toggleRecurrenceFields()">
-                                <label for="i_recorrente" style="cursor:pointer; font-weight:600;">É uma movimentação recorrente?</label>
-                            </div>
-
-                            <div id="recurrenceFields" class="form-grid" style="display:none; margin-top:1rem;">
-                                <div class="input-group">
-                                    <label>Frequência</label>
-                                    <select id="i_frequencia" class="input-field">
-                                        <option value="monthly">Mensal</option>
-                                        <option value="weekly">Semanal</option>
-                                        <option value="yearly">Anual</option>
-                                    </select>
-                                </div>
-                                <div class="input-group">
-                                    <label>Repetir por quantos períodos?</label>
-                                    <input type="number" id="i_periodos" class="input-field" min="2" max="60" value="12" placeholder="Ex: 12 meses">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <div style="margin-top: 1.2rem; display: flex; gap: 0.8rem;">
                             <button type="submit" class="btn-primary" id="btnSalvar">Salvar Registro</button>
                             <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
                         </div>
@@ -467,6 +469,11 @@
                 document.body.classList.add('dark-theme');
                 document.getElementById('themeToggleBtn').innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
             }
+            const savedLayout = localStorage.getItem('layout');
+            if (savedLayout === 'minimalist') {
+                document.body.classList.add('minimalist-theme');
+                document.getElementById('layoutToggleBtn').innerHTML = '🎨 <span id="layoutBtnText">Modo Tradicional</span>';
+            }
         }
 
         function toggleTheme() {
@@ -476,6 +483,15 @@
             document.getElementById('themeToggleBtn').innerHTML = isDark 
                 ? '☀️ <span id="themeBtnText">Modo Claro</span>' 
                 : '🌙 <span id="themeBtnText">Modo Escuro</span>';
+        }
+
+        function toggleLayoutMode() {
+            document.body.classList.toggle('minimalist-theme');
+            const isMin = document.body.classList.contains('minimalist-theme');
+            localStorage.setItem('layout', isMin ? 'minimalist' : 'traditional');
+            document.getElementById('layoutToggleBtn').innerHTML = isMin 
+                ? '🎨 <span id="layoutBtnText">Modo Tradicional</span>' 
+                : '🎨 <span id="layoutBtnText">Modo Minimalista</span>';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -556,6 +572,7 @@
                 setupMonthSelector();
                 setupInvestSelector();
                 populateFormDropdowns();
+                togglePaymentFields();
                 updateDashboard(document.getElementById('monthSelector').value);
 
             } catch (error) {
@@ -583,7 +600,6 @@
         function populateAdminProfileSelector() {
             const selector = document.getElementById('profileSelector');
             const currentSelected = selector.value;
-            
             const uniqueUsers = [...new Set(rawSupabaseData.map(d => d.user_id).filter(u => u && u !== currentUser.id))];
 
             selector.innerHTML = `
@@ -637,9 +653,19 @@
                     pagamento: row.pagamento || '',
                     cartao: row.cartao || '',
                     parcela: row.parcela || '',
+                    faturaDestino: row.fatura_destino || 'ATUAL',
                     month: d.getMonth(),
                     year: d.getFullYear()
                 };
+            });
+        }
+
+        function togglePaymentFields() {
+            const pagamento = document.getElementById('i_pagamento').value;
+            const isCard = pagamento === 'Cartão de Crédito';
+            
+            document.querySelectorAll('.card-only-field').forEach(el => {
+                el.style.display = isCard ? 'block' : 'none';
             });
         }
 
@@ -680,7 +706,7 @@
                 valor_meu: parseFloat(document.getElementById('s_valor_meu').value),
                 valor_parceiro: parseFloat(document.getElementById('s_valor_parceiro').value),
                 categoria: document.getElementById('s_categoria').value || 'Gastos Compartilhados',
-                pagamento: document.getElementById('s_pagamento').value || 'PIX / Cartão',
+                pagamento: 'Compartilhado',
                 status: 'PENDENTE'
             };
 
@@ -717,7 +743,7 @@
                     descricao: `${conta.descricao} (Divisão)`,
                     valor: targetVal,
                     categoria: conta.categoria,
-                    pagamento: conta.pagamento
+                    pagamento: 'Compartilhado'
                 };
 
                 const { error } = await _supabase.from('transacoes').insert([lancamento]);
@@ -749,7 +775,7 @@
             let totalGeral = 0, totalMeu = 0, totalParceiro = 0;
 
             if (sharedData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
                 return;
             }
 
@@ -773,13 +799,13 @@
                     <td style="color:var(--danger); font-weight:600;">${fmt(valMeu)}</td>
                     <td style="color:var(--warning); font-weight:600;">${fmt(valParceiro)}</td>
                     <td>
-                        <button class="action-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="toggleSharedPaidStatus('${item.id}', '${item.status}')">
+                        <button class="action-btn" style="padding:0.15rem 0.4rem; font-size:0.7rem;" onclick="toggleSharedPaidStatus('${item.id}', '${item.status}')">
                             <span class="tag-status ${isPago ? 'tag-done' : 'tag-open'}">${isPago ? '✅ Pago' : '⏳ Pendente'}</span>
                         </button>
                     </td>
                     <td style="text-align:center; white-space:nowrap;">
-                        <button class="reset-btn" style="margin-right:4px;" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Lançar Meu</button>
-                        <button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'parceiro')">👩 Lançar Dela</button>
+                        <button class="reset-btn" style="margin-right:4px;" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Meu</button>
+                        <button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'parceiro')">👩 Dela</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -800,7 +826,6 @@
 
             populateSelect('i_categoria', typeFilteredData.map(d => d.category));
             populateSelect('i_subcategoria', typeFilteredData.map(d => d.subCat));
-            populateSelect('i_pagamento', typeFilteredData.map(d => d.pagamento));
             populateSelect('i_cartao', typeFilteredData.map(d => d.cartao));
         }
 
@@ -844,11 +869,6 @@
             }
         }
 
-        function toggleRecurrenceFields() {
-            const isRec = document.getElementById('i_recorrente').checked;
-            document.getElementById('recurrenceFields').style.display = isRec ? 'grid' : 'none';
-        }
-
         function normalizeText(str) {
             if (!str) return '';
             return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
@@ -888,6 +908,7 @@
                     document.getElementById('i_data').valueAsDate = new Date();
                 }
                 populateFormDropdowns();
+                togglePaymentFields();
             }
         }
 
@@ -905,46 +926,29 @@
             const editId = document.getElementById('edit_id').value;
             btn.innerText = 'Salvando...';
 
-            const baseDate = new Date(document.getElementById('i_data').value + 'T12:00:00');
-            const isRecorrente = document.getElementById('i_recorrente').checked;
-            const frequencia = document.getElementById('i_frequencia').value;
-            const numPeriodos = isRecorrente ? parseInt(document.getElementById('i_periodos').value) || 1 : 1;
+            const pagamento = document.getElementById('i_pagamento').value;
+            const isCard = pagamento === 'Cartão de Crédito';
 
-            const listaTransacoes = [];
-
-            for (let i = 0; i < numPeriodos; i++) {
-                let d = new Date(baseDate);
-                if (i > 0) {
-                    if (frequencia === 'monthly') d.setMonth(d.getMonth() + i);
-                    else if (frequencia === 'weekly') d.setDate(d.getDate() + (i * 7));
-                    else if (frequencia === 'yearly') d.setFullYear(d.getFullYear() + i);
-                }
-
-                const dataFormatada = d.toISOString().split('T')[0];
-                const descFinal = isRecorrente && numPeriodos > 1 
-                    ? `${document.getElementById('i_descricao').value} (${i + 1}/${numPeriodos})` 
-                    : document.getElementById('i_descricao').value;
-
-                listaTransacoes.push({
-                    user_id: currentUser.id,
-                    tipo: document.getElementById('i_tipo').value,
-                    data: dataFormatada,
-                    descricao: descFinal,
-                    valor: parseFloat(document.getElementById('i_valor').value),
-                    custo: document.getElementById('i_custo').value,
-                    categoria: document.getElementById('i_categoria').value,
-                    subcategoria: document.getElementById('i_subcategoria').value,
-                    pagamento: document.getElementById('i_pagamento').value,
-                    cartao: document.getElementById('i_cartao').value,
-                    parcela: document.getElementById('i_parcela').value
-                });
-            }
+            const payload = {
+                user_id: currentUser.id,
+                tipo: document.getElementById('i_tipo').value,
+                data: document.getElementById('i_data').value,
+                descricao: document.getElementById('i_descricao').value,
+                valor: parseFloat(document.getElementById('i_valor').value),
+                pagamento: pagamento,
+                cartao: isCard ? document.getElementById('i_cartao').value : '',
+                fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
+                parcela: isCard ? document.getElementById('i_parcela').value : '',
+                categoria: document.getElementById('i_categoria').value,
+                subcategoria: document.getElementById('i_subcategoria').value,
+                custo: document.getElementById('i_custo').value
+            };
 
             let res;
             if (editId) {
-                res = await _supabase.from('transacoes').update(listaTransacoes[0]).eq('id', editId);
+                res = await _supabase.from('transacoes').update(payload).eq('id', editId);
             } else {
-                res = await _supabase.from('transacoes').insert(listaTransacoes);
+                res = await _supabase.from('transacoes').insert([payload]);
             }
 
             if (res.error) {
@@ -952,7 +956,7 @@
                 btn.innerText = editId ? 'Atualizar Registro' : 'Salvar Registro';
             } else {
                 cancelEdit();
-                alert(editId ? 'Registro atualizado!' : `${listaTransacoes.length} lançamento(s) criado(s) com sucesso!`);
+                alert(editId ? 'Registro atualizado!' : 'Lançamento salvo com sucesso!');
                 switchTab('resumo');
                 manualSync();
             }
@@ -967,13 +971,16 @@
             document.getElementById('i_data').value = item.rawDate;
             document.getElementById('i_descricao').value = item.desc;
             document.getElementById('i_valor').value = item.value;
+            document.getElementById('i_pagamento').value = item.pagamento || 'Cartão de Crédito';
             document.getElementById('i_custo').value = item.custo;
             document.getElementById('i_parcela').value = item.parcela;
+            document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
 
             populateFormDropdowns();
+            togglePaymentFields();
+
             document.getElementById('i_categoria').value = item.category;
             document.getElementById('i_subcategoria').value = item.subCat;
-            document.getElementById('i_pagamento').value = item.pagamento;
             document.getElementById('i_cartao').value = item.cartao;
 
             document.getElementById('formTitle').innerText = "Editar Transação";
@@ -987,19 +994,18 @@
         function cancelEdit() {
             document.getElementById('edit_id').value = "";
             document.getElementById('insertForm').reset();
-            document.getElementById('i_recorrente').checked = false;
-            toggleRecurrenceFields();
             document.getElementById('formTitle').innerText = "Cadastrar Nova Transação Individual";
             document.getElementById('btnSalvar').innerText = "Salvar Registro";
             document.getElementById('btnCancelarEdicao').style.display = "none";
             document.getElementById('tabNovoBtn').innerText = "➕ Novo Registro";
+            togglePaymentFields();
         }
 
         async function deleteTransaction(id) {
             const item = globalData.find(d => d.id === id);
             if (!item) return;
 
-            if (confirm(`Tem certeza que deseja excluir o lançamento "${item.desc}" de R$ ${item.value.toFixed(2)}?`)) {
+            if (confirm(`Excluir o lançamento "${item.desc}" de R$ ${item.value.toFixed(2)}?`)) {
                 const { error } = await _supabase.from('transacoes').delete().eq('id', id);
                 if (error) {
                     alert('Erro ao excluir: ' + error.message);
@@ -1055,7 +1061,7 @@
 
         function setupInvestSelector() {
             const select = document.getElementById('investTypeSelector');
-            select.innerHTML = '<option value="todos">Todas as Subcategorias (Consolidado)</option>';
+            select.innerHTML = '<option value="todos">Todas as Subcategorias</option>';
             
             const investData = globalData.filter(d => d.type === 'INVESTIMENTO');
             const subcats = [...new Set(investData.map(d => d.subCat).filter(s => s && s.trim() !== ''))];
@@ -1097,12 +1103,13 @@
             renderInvestimentosDetalhes(investArr, invest, receitas);
             renderSaldoDetalhes(saldo, receitas);
 
-            checkCategoryAlertsAndOutliers(filtered);
+            checkDiscreetCategoryAlerts(filtered);
             applyExtratoFilters();
             renderPieChart(filtered, selectedYm);
         }
 
-        function checkCategoryAlertsAndOutliers(filteredData) {
+        // AVISOS SUTIS E FOCADOS EM PONTOS DE ATENÇÃO
+        function checkDiscreetCategoryAlerts(filteredData) {
             const alertContainer = document.getElementById('alertsContainer');
             alertContainer.innerHTML = '';
 
@@ -1122,22 +1129,14 @@
                 const mediaHistorica = (catTotalHistorica[cat] || 0) / totalMeses;
                 const valorAtual = catAtual[cat];
 
-                if (mediaHistorica > 0 && valorAtual > mediaHistorica * 1.25) {
+                if (mediaHistorica > 0 && valorAtual > mediaHistorica * 1.2) {
                     const pctEstouro = (((valorAtual / mediaHistorica) - 1) * 100).toFixed(0);
                     const div = document.createElement('div');
-                    div.className = 'alert-box alert-box-danger';
-                    div.innerHTML = `⚠️ <b>Atenção:</b> A categoria <b>${cat}</b> gastou <b>${fmt(valorAtual)}</b> este mês (${pctEstouro}% acima da média de ${fmt(mediaHistorica)}).`;
+                    div.className = 'alert-mini-box alert-mini-danger';
+                    div.innerHTML = `<span>⚠️ <b>Atenção:</b> Categoria <b>${cat}</b> está <b>${pctEstouro}% acima</b> da média (${fmt(valorAtual)} vs ${fmt(mediaHistorica)})</span>`;
                     alertContainer.appendChild(div);
                 }
             });
-
-            const maiorGasto = despesas.reduce((max, item) => item.value > max.value ? item : max, despesas[0]);
-            if (maiorGasto && maiorGasto.value > 200) {
-                const div = document.createElement('div');
-                div.className = 'alert-box';
-                div.innerHTML = `📌 <b>Gasto Pontual Relevante:</b> Lançamento de <b>${fmt(maiorGasto.value)}</b> em <i>"${maiorGasto.desc}"</i> no dia ${maiorGasto.date.toLocaleDateString('pt-BR')}.`;
-                alertContainer.appendChild(div);
-            }
         }
 
         function renderReceitasDetalhes(receitasArr) {
@@ -1147,8 +1146,8 @@
             const media = qtd > 0 ? total / qtd : 0;
 
             container.innerHTML = `
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Lançamentos</span><span class="kpi-detail-val">${qtd} entrada(s)</span></div>
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Média p/ Entrada</span><span class="kpi-detail-val" style="color:var(--success);">${fmt(media)}</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Entradas</span><span class="kpi-detail-val">${qtd}</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Média</span><span class="kpi-detail-val" style="color:var(--success);">${fmt(media)}</span></div>
             `;
         }
 
@@ -1180,7 +1179,7 @@
             const taxaAporte = totalReceitas > 0 ? ((totalInvest / totalReceitas) * 100).toFixed(1) : '0.0';
             container.innerHTML = `
                 <div class="kpi-detail-item"><span class="kpi-detail-label">Taxa de Aporte</span><span class="kpi-detail-val" style="color:var(--invest);">${taxaAporte}%</span></div>
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Aportes Realizados</span><span class="kpi-detail-val">${qtd} operação(ões)</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Operações</span><span class="kpi-detail-val">${qtd}</span></div>
             `;
         }
 
@@ -1189,7 +1188,7 @@
             const taxaPoupanca = totalReceitas > 0 ? ((saldo / totalReceitas) * 100).toFixed(1) : '0.0';
             container.innerHTML = `
                 <div class="kpi-detail-item"><span class="kpi-detail-label">Taxa de Sobra</span><span class="kpi-detail-val">${taxaPoupanca}%</span></div>
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Status do Caixa</span><span class="kpi-detail-val" style="color:${saldo >= 0 ? 'var(--success)' : 'var(--danger)'};">${saldo >= 0 ? 'Superávit' : 'Déficit'}</span></div>
+                <div class="kpi-detail-item"><span class="kpi-detail-label">Status</span><span class="kpi-detail-val" style="color:${saldo >= 0 ? 'var(--success)' : 'var(--danger)'};">${saldo >= 0 ? 'Superávit' : 'Déficit'}</span></div>
             `;
         }
 
@@ -1199,20 +1198,18 @@
             let list = [...dataArr].sort((a, b) => b.date - a.date);
             
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhum lançamento encontrado.</td></tr>`;
                 return;
             }
 
             list.forEach(item => {
                 const tr = document.createElement('tr');
                 let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : 'var(--invest)';
-                let tags = `<span style="font-size:0.7rem; background:var(--bg-color); padding:2px 4px; border-radius:4px; color:${color}; font-weight:700;">${item.type}</span>`;
-                if(item.custo) tags += `<br><span style="font-size:0.65rem; color:var(--text-muted);">${item.custo}</span>`;
-                if(item.pagamento) tags += `<br><span style="font-size:0.65rem; background:var(--border); color:var(--text-main); padding:2px 4px; border-radius:4px; display:inline-block; margin-top:2px;">${item.pagamento}</span>`;
+                let meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
                 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td>${tags}</td>
+                    <td><span style="font-size:0.7rem; background:var(--border); padding:2px 5px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
                     <td style="font-weight:500;">${item.desc || '-'}</td>
                     <td>${item.category} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+item.subCat+')</small>' : ''}</td>
                     <td style="font-weight:700; color:${color};">${fmt(item.value)}</td>
@@ -1235,7 +1232,7 @@
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(catMap),
-                    datasets: [{ data: Object.values(catMap), backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#14b8a6', '#f43f5e'] }]
+                    datasets: [{ data: Object.values(catMap), backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'] }]
                 },
                 options: { 
                     responsive: true,
@@ -1286,30 +1283,30 @@
             });
         }
 
+        // LÓGICA DE FATURA ATUAL, PRÓXIMA FATURA E VERIFICAÇÃO DE PARCELAS PENDENTES
         function renderParcelasTab() {
             const selectedYm = document.getElementById('monthSelector').value;
             const despesasCartao = selectedYm === 'all' 
-                ? globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.parcela))
-                : globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.parcela) && `${d.year}-${d.month}` === selectedYm);
+                ? globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'))
+                : globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito') && `${d.year}-${d.month}` === selectedYm);
             
-            const now = new Date();
-            const currMonth = now.getMonth();
-            const currYear = now.getFullYear();
-
             let faturaAtualVal = 0;
             let faturaProximaVal = 0;
-            let totalRestanteVal = 0;
+            let totalRestanteGeral = 0;
 
-            // Mapeamento de Gastos por Cartão / Meio de Pagamento
             const cartoesMap = {};
 
             despesasCartao.forEach(item => {
-                const nomeCartao = item.cartao || item.pagamento || 'Outros / Não Especificado';
+                const nomeCartao = item.cartao || 'Cartão';
                 cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
 
-                if (item.month === currMonth && item.year === currYear) {
+                // 1. Somar na Fatura Atual se for marcado como ATUAL no mês selecionado
+                if (item.faturaDestino === 'ATUAL') {
                     faturaAtualVal += item.value;
-                } else if ((item.month === currMonth + 1 && item.year === currYear) || (currMonth === 11 && item.month === 0 && item.year === currYear + 1)) {
+                }
+
+                // 2. Lógica da Próxima Fatura: inclui lançamentos marcados como PROXIMA + próximas parcelas não quitadas
+                if (item.faturaDestino === 'PROXIMA') {
                     faturaProximaVal += item.value;
                 }
 
@@ -1317,24 +1314,28 @@
                     const p = item.parcela.split('/');
                     const atual = parseInt(p[0]) || 1;
                     const total = parseInt(p[1]) || 1;
+                    
                     if (atual < total) {
-                        totalRestanteVal += item.value * (total - atual);
+                        const parcelasRestantes = total - atual;
+                        totalRestanteGeral += item.value * parcelasRestantes;
+                        
+                        // Adiciona a parcela imediata do mês que vem na Previsão
+                        faturaProximaVal += item.value;
                     }
                 }
             });
 
             document.getElementById('kpi-fatura-atual').innerText = fmt(faturaAtualVal);
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
-            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteVal);
+            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
-            // Renderizar Cards de Resumo por Cartão
+            // Renderizar Resumo por Cartão
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
-
             const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
 
             if (Object.keys(cartoesMap).length === 0) {
-                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto em cartão registrado no período.</div>';
+                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; padding:0.4rem;">Nenhum gasto em cartão registrado no período.</div>';
             } else {
                 Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
                     const val = cartoesMap[nome];
@@ -1345,7 +1346,7 @@
                     card.innerHTML = `
                         <div>
                             <div class="kpi-title">${nome}</div>
-                            <div class="kpi-value" style="font-size:1.25rem; color:var(--danger);">${fmt(val)}</div>
+                            <div class="kpi-value" style="font-size:1.15rem; color:var(--danger);">${fmt(val)}</div>
                         </div>
                         <div class="kpi-details">
                             <div class="kpi-detail-item">
@@ -1362,19 +1363,20 @@
             tbody.innerHTML = '';
 
             if (despesasCartao.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento em cartão encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhum lançamento em cartão encontrado.</td></tr>`;
                 return;
             }
 
             despesasCartao.sort((a,b) => b.date - a.date).forEach(item => {
                 const tr = document.createElement('tr');
+                const faturaLabel = item.faturaDestino === 'PROXIMA' ? '⏩ Próxima Fatura' : '📅 Fatura Atual';
+                
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.cartao || item.pagamento || 'Cartão'}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 6px; border-radius:4px;">${item.cartao || 'Cartão'}</span></td>
+                    <td><span style="font-size:0.75rem; font-weight:600; color:${item.faturaDestino === 'PROXIMA' ? 'var(--warning)' : 'var(--primary)'}">${faturaLabel}</span></td>
                     <td>${item.parcela || 'À vista'}</td>
-                    <td><span class="tag-status tag-done">Registrado</span></td>
-                    <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
                     <td style="font-weight:700;">${fmt(item.value)}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
@@ -1406,7 +1408,7 @@
             tbody.innerHTML = '';
             
             if (dataInvest.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum investimento registrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:0.8rem;">Nenhum investimento registrado.</td></tr>`;
                 return;
             }
 
@@ -1415,7 +1417,7 @@
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:500;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
+                    <td><span style="background:var(--bg-color); padding:2px 6px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
                     <td>${item.category}</td>
                     <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
                     <td style="text-align: center;">

@@ -88,7 +88,7 @@
         .alert-mini-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
         /* LOGIN E FORMULÁRIO */
-        .auth-container { max-width: 400px; margin: 5rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        .auth-container { max-width: 400px; margin: 4rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .input-group { margin-bottom: 1rem; }
         .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
         .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
@@ -100,7 +100,6 @@
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
         .action-icon-btn:hover { background: var(--border); }
-        .admin-badge { background: var(--invest); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; margin-left: 0.5rem; }
 
         .quick-chips-container { margin-bottom: 1.2rem; }
         .quick-chips-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; }
@@ -115,11 +114,24 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN -->
+    <!-- TELA DE LOGIN ATUALIZADA (COM GOOGLE E CADASTRO SEGURO) -->
     <div id="loginView">
         <div class="auth-container">
             <h2 style="margin-bottom: 0.5rem; text-align: center;">Acesso Restrito</h2>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Faça login para ver seu dashboard</p>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Organize suas finanças com segurança total</p>
+            
+            <!-- BOTÃO GOOGLE OAUTH -->
+            <button type="button" onclick="loginWithGoogle()" class="action-btn" style="width: 100%; justify-content: center; padding: 0.8rem; margin-bottom: 1.2rem; background: #ffffff; color: #333; border: 1px solid var(--border); font-size: 0.95rem;">
+                <svg width="18" height="18" viewBox="0 0 18 18" style="margin-right: 8px;"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                Entrar com o Google
+            </button>
+
+            <div style="display: flex; align-items: center; margin-bottom: 1.2rem;">
+                <hr style="flex: 1; border: none; border-top: 1px solid var(--border);">
+                <span style="padding: 0 0.5rem; font-size: 0.8rem; color: var(--text-muted);">OU E-MAIL</span>
+                <hr style="flex: 1; border: none; border-top: 1px solid var(--border);">
+            </div>
+
             <form id="loginForm">
                 <div class="input-group">
                     <label>E-mail</label>
@@ -129,7 +141,11 @@
                     <label>Senha</label>
                     <input type="password" id="senha" class="input-field" required>
                 </div>
-                <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
+                
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
+                    <button type="button" onclick="handleSignUp()" class="btn-secondary" style="width: 100%; text-align: center;">Criar Conta</button>
+                </div>
             </form>
             <p id="loginError" style="color: var(--danger); margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none;"></p>
         </div>
@@ -139,17 +155,10 @@
     <div id="appView" style="display: none;">
         <header>
             <div>
-                <h1 style="display: flex; align-items: center;">Painel Financeiro <span id="adminBadge" class="admin-badge" style="display: none;">ADMIN</span></h1>
+                <h1 style="display: flex; align-items: center;">Painel Financeiro</h1>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
             </div>
             <div class="header-controls">
-                <div class="select-container" id="adminProfileContainer" style="display: none;">
-                    <select id="profileSelector" style="background-color: #fef3c7; color: #b45309; border-color: #f59e0b;" onchange="onProfileChange()">
-                        <option value="MY_PROFILE">👤 Meu Perfil</option>
-                        <option value="ALL">👥 Casal (Consolidado)</option>
-                    </select>
-                </div>
-
                 <button class="action-btn" style="background-color: var(--primary); color: white;" onclick="openMobileQuickView()">📱 Lançador Celular</button>
                 <button class="action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 <span id="themeBtnText">Modo Escuro</span></button>
                 <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
@@ -409,7 +418,6 @@
                                 </select>
                             </div>
 
-                            <!-- 7. FORMA DE PAGAMENTO (PIX PRÉ-MARCADO) -->
                             <div class="input-group">
                                 <label>7. Forma de Pagamento *</label>
                                 <select id="i_pagamento" class="input-field" onchange="togglePaymentFields()" required>
@@ -420,7 +428,6 @@
                                 </select>
                             </div>
 
-                            <!-- CAMPOS EXCLUSIVOS DE CARTÃO DE CRÉDITO -->
                             <div class="input-group card-only-field" style="display: none;">
                                 <label>Cartão Utilizado</label>
                                 <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
@@ -531,12 +538,10 @@
     <script>
         const SUPABASE_URL = 'https://zrlkexqogahoeryqkeyr.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
-        const ADMIN_EMAIL = 'tbilard@hotmail.com';
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let currentUser = null;
-        let isAdmin = false;
         let rawSupabaseData = [];
         let globalData = [];
         let sharedData = [];
@@ -570,13 +575,6 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 currentUser = session.user;
-                isAdmin = currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-
-                if (isAdmin) {
-                    document.getElementById('adminBadge').style.display = 'inline-block';
-                    document.getElementById('adminProfileContainer').style.display = 'block';
-                }
-
                 document.getElementById('loginView').style.display = 'none';
                 document.getElementById('appView').style.display = 'block';
                 loadDashboardData();
@@ -584,6 +582,58 @@
             } else {
                 document.getElementById('loginView').style.display = 'block';
                 document.getElementById('appView').style.display = 'none';
+            }
+        }
+
+        // LOGIN COM GOOGLE OAUTH
+        async function loginWithGoogle() {
+            const { data, error } = await _supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href
+                }
+            });
+
+            if (error) {
+                alert("Erro ao conectar com o Google: " + error.message);
+            }
+        }
+
+        // VALIDAÇÃO DE SENHA FORTE
+        function isStrongPassword(password) {
+            const strongRegex = new RegExp("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})");
+            return strongRegex.test(password);
+        }
+
+        // CRIAR CONTA COM E-MAIL E SENHA
+        async function handleSignUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('senha').value;
+            const errorMsg = document.getElementById('loginError');
+
+            if (!email || !password) {
+                alert("Preencha o e-mail e a senha.");
+                return;
+            }
+
+            if (!isStrongPassword(password)) {
+                errorMsg.innerText = "A senha deve ter no mínimo 8 caracteres, incluindo 1 letra maiúscula, 1 número e 1 caractere especial (!@#$%^&*).";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+            
+            const { data, error } = await _supabase.auth.signUp({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                errorMsg.innerText = "Erro ao criar conta: " + error.message;
+                errorMsg.style.display = 'block';
+            } else {
+                alert("Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro.");
             }
         }
 
@@ -626,11 +676,6 @@
                 if (error) throw error;
 
                 rawSupabaseData = data;
-
-                if (isAdmin) {
-                    populateAdminProfileSelector();
-                }
-
                 filterDataByActiveProfile();
 
                 document.getElementById('loading').style.display = 'none';
@@ -665,45 +710,8 @@
             }
         }
 
-        function populateAdminProfileSelector() {
-            const selector = document.getElementById('profileSelector');
-            const currentSelected = selector.value;
-            const uniqueUsers = [...new Set(rawSupabaseData.map(d => d.user_id).filter(u => u && u !== currentUser.id))];
-
-            selector.innerHTML = `
-                <option value="MY_PROFILE">👤 Meu Perfil (${currentUser.email})</option>
-                <option value="ALL">👥 Casal (Consolidado)</option>
-            `;
-
-            uniqueUsers.forEach((uid, index) => {
-                const opt = document.createElement('option');
-                opt.value = uid;
-                opt.textContent = `👩 Esposa / Perfil ${index + 1} (${uid.substring(0, 8)}...)`;
-                selector.appendChild(opt);
-            });
-
-            if (currentSelected) selector.value = currentSelected;
-        }
-
-        function onProfileChange() {
-            filterDataByActiveProfile();
-            setupMonthSelector();
-            setupInvestSelector();
-            populateFormDropdowns();
-            renderTopCategoryChips();
-            updateDashboard(document.getElementById('monthSelector').value);
-        }
-
         function filterDataByActiveProfile() {
-            const selectedProfile = isAdmin ? document.getElementById('profileSelector').value : 'MY_PROFILE';
-            
-            let filteredRows = rawSupabaseData;
-
-            if (selectedProfile === 'MY_PROFILE') {
-                filteredRows = rawSupabaseData.filter(d => d.user_id === currentUser.id);
-            } else if (selectedProfile !== 'ALL') {
-                filteredRows = rawSupabaseData.filter(d => d.user_id === selectedProfile);
-            }
+            let filteredRows = rawSupabaseData.filter(d => d.user_id === currentUser.id);
 
             globalData = filteredRows.map(row => {
                 const d = new Date(row.data + 'T12:00:00');
@@ -722,7 +730,7 @@
                     pagamento: row.pagamento || '',
                     cartao: row.cartao || '',
                     parcela: row.parcela || '',
-                    faturaDestino: row.fatura_destino || 'ATUAL', // Padrão seguro para este mês
+                    faturaDestino: row.fatura_destino || 'ATUAL',
                     month: d.getMonth(),
                     year: d.getFullYear()
                 };
@@ -931,18 +939,11 @@
             const conta = sharedData.find(s => s.id === id);
             if (!conta) return;
 
-            const partnerUid = rawSupabaseData.find(d => d.user_id !== currentUser.id)?.user_id;
-            const targetUid = target === 'meu' ? currentUser.id : partnerUid;
             const targetVal = target === 'meu' ? conta.valor_meu : conta.valor_parceiro;
 
-            if (target === 'parceiro' && !partnerUid) {
-                alert("O perfil do parceiro ainda não realizou login no sistema.");
-                return;
-            }
-
-            if (confirm(`Lançar R$ ${targetVal.toFixed(2)} no painel de ${target === 'meu' ? 'Meu Perfil' : 'Parceiro'}?`)) {
+            if (confirm(`Lançar R$ ${targetVal.toFixed(2)} no seu painel?`)) {
                 const lancamento = {
-                    user_id: targetUid,
+                    user_id: currentUser.id,
                     tipo: 'Despesa',
                     data: conta.data,
                     descricao: `${conta.descricao} (Divisão)`,
@@ -1009,8 +1010,7 @@
                         </button>
                     </td>
                     <td style="text-align:center; white-space:nowrap;">
-                        <button class="reset-btn" style="margin-right:4px;" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Meu</button>
-                        <button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'parceiro')">👩 Dela</button>
+                        <button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Lançar Meu Valor</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1489,7 +1489,6 @@
             });
         }
 
-        /* LÓGICA CORRIGIDA E COMPLETA DA ABA CARTÕES / PARCELAS */
         function renderParcelasTab() {
             const selectedYm = document.getElementById('monthSelector').value;
             const statusFilter = document.getElementById('statusParcelaSelector').value;
@@ -1519,17 +1518,14 @@
                 }
 
                 const parcelasRestantes = Math.max(0, total - atual);
-                const valorParcela = item.value; // O valor cadastrado é o valor mensal da parcela
+                const valorParcela = item.value;
                 const valorRestante = valorParcela * parcelasRestantes;
                 const isQuitadoEsteMes = (atual === total) && isParcelado;
 
-                // Fatura deste mês:
                 if (item.faturaDestino === 'ATUAL' || !item.faturaDestino) {
                     faturaAtualVal += valorParcela;
                 }
 
-                // Previsão Próxima Fatura:
-                // Se atual < total (ex: 5/6), vai para a próxima fatura (6/6). Se 7/7 (quitado), NÃO vai para a próxima!
                 if (!isQuitadoEsteMes) {
                     if (isParcelado || item.faturaDestino === 'PROXIMA') {
                         faturaProximaVal += valorParcela;
@@ -1554,7 +1550,6 @@
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
-            // Renderizar Resumo dos Cartões
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
             const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
@@ -1584,7 +1579,6 @@
                 });
             }
 
-            // Aplicar Filtro de Status se Selecionado
             let filteredList = processedItems;
             if (statusFilter === 'open') {
                 filteredList = processedItems.filter(i => i.parcelasRestantes > 0);
@@ -1592,10 +1586,6 @@
                 filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
             }
 
-            // ORDENAÇÃO EXIGIDA:
-            // 1. Parcelas restantes (Decrescente)
-            // 2. Valor Restante (Decrescente)
-            // 3. Quitadas no Mês Atual (Ir para o final)
             filteredList.sort((a, b) => {
                 if (a.isQuitadoEsteMes && !b.isQuitadoEsteMes) return 1;
                 if (!a.isQuitadoEsteMes && b.isQuitadoEsteMes) return -1;

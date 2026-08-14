@@ -78,6 +78,7 @@
         .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
         .tag-open { background-color: #fef3c7; color: #b45309; }
         .tag-done { background-color: #d1fae5; color: #047857; }
+        .tag-quitado { background-color: #e0e7ff; color: #3730a3; }
         .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
         #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
@@ -101,7 +102,6 @@
         .action-icon-btn:hover { background: var(--border); }
         .admin-badge { background: var(--invest); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; margin-left: 0.5rem; }
 
-        /* CHIPS DE ATALHO DE CATEGORIA */
         .quick-chips-container { margin-bottom: 1.2rem; }
         .quick-chips-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; }
         .quick-chips { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.4rem; }
@@ -109,7 +109,6 @@
         .chip-btn { background: var(--input-bg); border: 1px solid var(--border); border-radius: 20px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; color: var(--text-main); transition: 0.2s; }
         .chip-btn:hover, .chip-btn:active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
-        /* MODO MODAL CELULAR OTIMIZADO */
         .mobile-quick-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 9999; padding: 1.2rem; overflow-y: auto; }
         .mobile-quick-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
     </style>
@@ -204,7 +203,6 @@
                         </table>
                     </div>
 
-                    <!-- ALERTAS POSICIONADOS ABAIXO DO HISTÓRICO -->
                     <div id="alertsContainer"></div>
                 </div>
 
@@ -230,9 +228,9 @@
             <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Total Fatura (Salário Atual)</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura (Salário Próximo Mês)</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Saldo Total a Pagar (Parcelados Restantes)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Deste Mês</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura Próximo Mês</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Saldo Total Restante A Pagar</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
 
                 <div class="chart-card">
@@ -242,15 +240,26 @@
 
                 <div class="chart-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <div class="chart-title" style="margin-bottom:0;">Compras Parceladas e Lançamentos em Cartão</div>
+                        <div class="chart-title" style="margin-bottom:0;">Compras Parceladas e Faturas em Cartão</div>
                         <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
-                            <option value="open">Em Aberto</option>
-                            <option value="done">Liquidado</option>
-                            <option value="all">Todos</option>
+                            <option value="all">Todas as Compras</option>
+                            <option value="open">Em Aberto (Com Parcelas Pendentes)</option>
+                            <option value="done">Quitadas Este Mês</option>
                         </select>
                     </div>
                     <table class="data-table">
-                        <thead><tr><th>Data Lançamento</th><th>Descrição</th><th>Cartão/Meio</th><th>Fatura Destino</th><th>Progresso</th><th>Valor Restante</th><th style="text-align:center;">Ações</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Cartão</th>
+                                <th>Fatura</th>
+                                <th>Progresso</th>
+                                <th>Valor Parcela</th>
+                                <th>Valor Restante</th>
+                                <th style="text-align:center;">Ações</th>
+                            </tr>
+                        </thead>
                         <tbody id="parcelasTableBody"></tbody>
                     </table>
                 </div>
@@ -348,12 +357,11 @@
                 </div>
             </div>
 
-            <!-- ABA 5: FORMULÁRIO COMPLETO COM NOVA ORDEM DOS CAMPOS -->
+            <!-- ABA 5: FORMULÁRIO COMPLETO -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
                     <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
 
-                    <!-- ATALHOS RÁPIDOS DE CATEGORIAS MAIS USADAS -->
                     <div class="quick-chips-container">
                         <div class="quick-chips-title">Categorias Mais Frequentes (Clique para selecionar rápida):</div>
                         <div class="quick-chips" id="topCategoriesChips"></div>
@@ -363,7 +371,6 @@
                         <input type="hidden" id="edit_id">
                         <div class="form-grid">
                             
-                            <!-- 1. TIPO -->
                             <div class="input-group">
                                 <label>1. Tipo *</label>
                                 <select id="i_tipo" class="input-field" onchange="onTypeChange()" required>
@@ -373,25 +380,21 @@
                                 </select>
                             </div>
 
-                            <!-- 2. DATA -->
                             <div class="input-group">
                                 <label>2. Data *</label>
                                 <input type="date" id="i_data" class="input-field" required>
                             </div>
 
-                            <!-- 3. DESCRIÇÃO -->
                             <div class="input-group" style="grid-column: span 2;">
                                 <label>3. Descrição *</label>
                                 <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão" required>
                             </div>
 
-                            <!-- 4. VALOR -->
                             <div class="input-group">
                                 <label>4. Valor (R$) *</label>
                                 <input type="number" id="i_valor" step="0.01" class="input-field" placeholder="Ex: 150.50" required>
                             </div>
 
-                            <!-- 5. CATEGORIA -->
                             <div class="input-group">
                                 <label>5. Categoria</label>
                                 <select id="i_categoria" class="input-field" onchange="onCategoryChange('i_categoria', 'i_subcategoria'); handleDynamicSelect(this, 'Categoria')">
@@ -399,7 +402,6 @@
                                 </select>
                             </div>
 
-                            <!-- 6. SUBCATEGORIA (LINKADA) -->
                             <div class="input-group">
                                 <label>6. Subcategoria</label>
                                 <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
@@ -407,37 +409,36 @@
                                 </select>
                             </div>
 
-                            <!-- 7. FORMA DE PAGAMENTO (SEM TRANSFERÊNCIA) -->
+                            <!-- 7. FORMA DE PAGAMENTO (PIX PRÉ-MARCADO) -->
                             <div class="input-group">
                                 <label>7. Forma de Pagamento *</label>
                                 <select id="i_pagamento" class="input-field" onchange="togglePaymentFields()" required>
+                                    <option value="PIX" selected>PIX</option>
                                     <option value="Cartão de Crédito">Cartão de Crédito</option>
-                                    <option value="PIX">PIX</option>
                                     <option value="Débito">Débito</option>
                                     <option value="Dinheiro">Dinheiro</option>
                                 </select>
                             </div>
 
                             <!-- CAMPOS EXCLUSIVOS DE CARTÃO DE CRÉDITO -->
-                            <div class="input-group card-only-field">
+                            <div class="input-group card-only-field" style="display: none;">
                                 <label>Cartão Utilizado</label>
                                 <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
-                            <div class="input-group card-only-field">
+                            <div class="input-group card-only-field" style="display: none;">
                                 <label>Destino da Fatura</label>
                                 <select id="i_fatura_destino" class="input-field">
-                                    <option value="PROXIMA" selected>Próxima Fatura (Salário do próximo mês)</option>
-                                    <option value="ATUAL">Fatura Atual (Salário deste mês)</option>
+                                    <option value="ATUAL" selected>Fatura Atual (Salário deste mês)</option>
+                                    <option value="PROXIMA">Próxima Fatura (Salário do próximo mês)</option>
                                 </select>
                             </div>
-                            <div class="input-group card-only-field">
+                            <div class="input-group card-only-field" style="display: none;">
                                 <label>Parcela</label>
                                 <input type="text" id="i_parcela" class="input-field" placeholder="Ex: 1/12 (Vazio se à vista)">
                             </div>
 
-                            <!-- CUSTO (OPCIONAL) -->
                             <div class="input-group">
                                 <label>Custo (Opcional)</label>
                                 <select id="i_custo" class="input-field">
@@ -495,23 +496,23 @@
             <div class="input-group">
                 <label>Forma de Pagamento</label>
                 <select id="m_pagamento" class="input-field" onchange="toggleMobilePaymentFields()">
+                    <option value="PIX" selected>PIX</option>
                     <option value="Cartão de Crédito">Cartão de Crédito</option>
-                    <option value="PIX">PIX</option>
                     <option value="Débito">Débito</option>
                     <option value="Dinheiro">Dinheiro</option>
                 </select>
             </div>
 
-            <div class="input-group m-card-field">
+            <div class="input-group m-card-field" style="display: none;">
                 <label>Cartão Utilizado</label>
                 <select id="m_cartao" class="input-field"><option value="">-- Selecione --</option></select>
             </div>
 
-            <div class="input-group m-card-field">
+            <div class="input-group m-card-field" style="display: none;">
                 <label>Fatura</label>
                 <select id="m_fatura_destino" class="input-field">
-                    <option value="PROXIMA" selected>Próxima Fatura (Mês Que Vem)</option>
-                    <option value="ATUAL">Fatura Atual (Deste Mês)</option>
+                    <option value="ATUAL" selected>Fatura Atual (Deste Mês)</option>
+                    <option value="PROXIMA">Próxima Fatura (Mês Que Vem)</option>
                 </select>
             </div>
 
@@ -721,14 +722,13 @@
                     pagamento: row.pagamento || '',
                     cartao: row.cartao || '',
                     parcela: row.parcela || '',
-                    faturaDestino: row.fatura_destino || 'PROXIMA',
+                    faturaDestino: row.fatura_destino || 'ATUAL', // Padrão seguro para este mês
                     month: d.getMonth(),
                     year: d.getFullYear()
                 };
             });
         }
 
-        /* EXIBIÇÃO CONDICIONAL ESTRITA DE CARTÃO DE CRÉDITO */
         function togglePaymentFields() {
             const pagamento = document.getElementById('i_pagamento').value;
             const isCard = pagamento === 'Cartão de Crédito';
@@ -738,7 +738,6 @@
             });
         }
 
-        /* ORDENAÇÃO DE OPÇÕES BASEADA NO HISTÓRICO DE FREQUÊNCIA DE USO */
         function getFrequencySortedOptions(arrayValues) {
             const counts = {};
             arrayValues.forEach(val => {
@@ -749,7 +748,6 @@
             return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
         }
 
-        /* CHIPS DE ATALHO COM AS CATEGORIAS MAIS FREQUENTES */
         function renderTopCategoryChips() {
             const despesas = globalData.filter(d => d.type === 'DESPESA');
             const topCategories = getFrequencySortedOptions(despesas.map(d => d.category)).slice(0, 6);
@@ -790,7 +788,6 @@
             onCategoryChange('m_categoria', 'm_subcategoria');
         }
 
-        /* LÓGICA DE LINKAR CATEGORIA COM SUBCATEGORIA (ORDENADA POR USO) */
         function onCategoryChange(catSelectId, subSelectId) {
             const selectedCat = document.getElementById(catSelectId).value;
             const subSelect = document.getElementById(subSelectId);
@@ -852,7 +849,7 @@
                 valor: parseFloat(document.getElementById('m_valor').value),
                 pagamento: document.getElementById('m_pagamento').value,
                 cartao: isCard ? document.getElementById('m_cartao').value : '',
-                fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'PROXIMA',
+                fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
                 categoria: document.getElementById('m_categoria').value,
                 subcategoria: document.getElementById('m_subcategoria').value
             };
@@ -1145,7 +1142,7 @@
                 valor: parseFloat(document.getElementById('i_valor').value),
                 pagamento: pagamento,
                 cartao: isCard ? document.getElementById('i_cartao').value : '',
-                fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'PROXIMA',
+                fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
                 parcela: isCard ? document.getElementById('i_parcela').value : '',
                 categoria: document.getElementById('i_categoria').value,
                 subcategoria: document.getElementById('i_subcategoria').value,
@@ -1179,10 +1176,10 @@
             document.getElementById('i_data').value = item.rawDate;
             document.getElementById('i_descricao').value = item.desc;
             document.getElementById('i_valor').value = item.value;
-            document.getElementById('i_pagamento').value = item.pagamento || 'Cartão de Crédito';
+            document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
             document.getElementById('i_parcela').value = item.parcela;
-            document.getElementById('i_fatura_destino').value = item.faturaDestino || 'PROXIMA';
+            document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
 
             populateFormDropdowns();
             togglePaymentFields();
@@ -1207,7 +1204,7 @@
             document.getElementById('btnSalvar').innerText = "Salvar Registro";
             document.getElementById('btnCancelarEdicao').style.display = "none";
             document.getElementById('tabNovoBtn').innerText = "➕ Novo Registro";
-            document.getElementById('i_fatura_destino').value = 'PROXIMA';
+            document.getElementById('i_pagamento').value = 'PIX';
             togglePaymentFields();
         }
 
@@ -1492,8 +1489,11 @@
             });
         }
 
+        /* LÓGICA CORRIGIDA E COMPLETA DA ABA CARTÕES / PARCELAS */
         function renderParcelasTab() {
             const selectedYm = document.getElementById('monthSelector').value;
+            const statusFilter = document.getElementById('statusParcelaSelector').value;
+
             const despesasCartao = selectedYm === 'all' 
                 ? globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'))
                 : globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito') && `${d.year}-${d.month}` === selectedYm);
@@ -1504,35 +1504,57 @@
 
             const cartoesMap = {};
 
-            despesasCartao.forEach(item => {
+            const processedItems = despesasCartao.map(item => {
                 const nomeCartao = item.cartao || 'Cartão';
                 cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
 
-                if (item.faturaDestino === 'ATUAL') {
-                    faturaAtualVal += item.value;
-                }
-
-                if (item.faturaDestino === 'PROXIMA') {
-                    faturaProximaVal += item.value;
-                }
+                let atual = 1, total = 1;
+                let isParcelado = false;
 
                 if (item.parcela && item.parcela.includes('/')) {
                     const p = item.parcela.split('/');
-                    const atual = parseInt(p[0]) || 1;
-                    const total = parseInt(p[1]) || 1;
-                    
-                    if (atual < total) {
-                        const parcelasRestantes = total - atual;
-                        totalRestanteGeral += item.value * parcelasRestantes;
-                        faturaProximaVal += item.value;
+                    atual = parseInt(p[0]) || 1;
+                    total = parseInt(p[1]) || 1;
+                    isParcelado = true;
+                }
+
+                const parcelasRestantes = Math.max(0, total - atual);
+                const valorParcela = item.value; // O valor cadastrado é o valor mensal da parcela
+                const valorRestante = valorParcela * parcelasRestantes;
+                const isQuitadoEsteMes = (atual === total) && isParcelado;
+
+                // Fatura deste mês:
+                if (item.faturaDestino === 'ATUAL' || !item.faturaDestino) {
+                    faturaAtualVal += valorParcela;
+                }
+
+                // Previsão Próxima Fatura:
+                // Se atual < total (ex: 5/6), vai para a próxima fatura (6/6). Se 7/7 (quitado), NÃO vai para a próxima!
+                if (!isQuitadoEsteMes) {
+                    if (isParcelado || item.faturaDestino === 'PROXIMA') {
+                        faturaProximaVal += valorParcela;
                     }
                 }
+
+                totalRestanteGeral += valorRestante;
+
+                return {
+                    ...item,
+                    atual,
+                    total,
+                    isParcelado,
+                    parcelasRestantes,
+                    valorParcela,
+                    valorRestante,
+                    isQuitadoEsteMes
+                };
             });
 
             document.getElementById('kpi-fatura-atual').innerText = fmt(faturaAtualVal);
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
+            // Renderizar Resumo dos Cartões
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
             const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
@@ -1562,25 +1584,53 @@
                 });
             }
 
+            // Aplicar Filtro de Status se Selecionado
+            let filteredList = processedItems;
+            if (statusFilter === 'open') {
+                filteredList = processedItems.filter(i => i.parcelasRestantes > 0);
+            } else if (statusFilter === 'done') {
+                filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
+            }
+
+            // ORDENAÇÃO EXIGIDA:
+            // 1. Parcelas restantes (Decrescente)
+            // 2. Valor Restante (Decrescente)
+            // 3. Quitadas no Mês Atual (Ir para o final)
+            filteredList.sort((a, b) => {
+                if (a.isQuitadoEsteMes && !b.isQuitadoEsteMes) return 1;
+                if (!a.isQuitadoEsteMes && b.isQuitadoEsteMes) return -1;
+                if (b.parcelasRestantes !== a.parcelasRestantes) {
+                    return b.parcelasRestantes - a.parcelasRestantes;
+                }
+                return b.valorRestante - a.valorRestante;
+            });
+
             const tbody = document.getElementById('parcelasTableBody');
             tbody.innerHTML = '';
 
-            if (despesasCartao.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento em cartão encontrado.</td></tr>`;
+            if (filteredList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
                 return;
             }
 
-            despesasCartao.sort((a,b) => b.date - a.date).forEach(item => {
+            filteredList.forEach(item => {
                 const tr = document.createElement('tr');
-                const faturaLabel = item.faturaDestino === 'PROXIMA' ? '⏩ Próxima Fatura' : '📅 Fatura Atual';
                 
+                let faturaTag = '<span class="tag-status tag-open">📅 Fatura Atual</span>';
+                if (item.isQuitadoEsteMes) {
+                    faturaTag = '<span class="tag-status tag-quitado">🎉 Quitado Este Mês</span>';
+                } else if (item.faturaDestino === 'PROXIMA') {
+                    faturaTag = '<span class="tag-status tag-open" style="background:#fef3c7; color:#b45309;">⏩ Próxima Fatura</span>';
+                }
+
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.cartao || 'Cartão'}</span></td>
-                    <td><span style="font-size:0.8rem; font-weight:600; color:${item.faturaDestino === 'PROXIMA' ? 'var(--warning)' : 'var(--primary)'}">${faturaLabel}</span></td>
-                    <td>${item.parcela || 'À vista'}</td>
-                    <td style="font-weight:700;">${fmt(item.value)}</td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${item.cartao || 'Cartão'}</span></td>
+                    <td>${faturaTag}</td>
+                    <td style="font-weight:600;">${item.parcela || 'À vista'}</td>
+                    <td style="font-weight:700; color:var(--danger);">${fmt(item.valorParcela)}</td>
+                    <td style="font-weight:700;">${fmt(item.valorRestante)}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
                     </td>

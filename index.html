@@ -59,7 +59,7 @@
         .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
         
         /* CARDS E KPI */
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
+        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
         .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
         .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
         .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
@@ -84,9 +84,11 @@
         .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
         #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
 
-        /* AVISOS DISCRETOS */
-        .alert-mini-box { padding: 0.6rem 0.9rem; border-radius: 8px; margin-top: 1rem; font-size: 0.85rem; display: flex; align-items: center; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); color: var(--text-main); }
+        /* AVISOS E METAS */
+        .alert-mini-box { padding: 0.6rem 0.9rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; display: flex; align-items: center; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); color: var(--text-main); }
         .alert-mini-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .progress-bar-bg { width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
 
         /* LOGIN E FORMULÁRIO */
         .auth-container { max-width: 420px; margin: 4rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
@@ -95,7 +97,6 @@
         .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
         .input-field:focus { border-color: var(--primary); }
         
-        /* CAMPO DE SENHA COM OLHO */
         .password-wrapper { position: relative; display: flex; align-items: center; }
         .toggle-password-btn { position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted); padding: 0 4px; }
 
@@ -178,6 +179,7 @@
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
+            <button class="tab-btn" onclick="switchTab('metas')">🎯 Metas & Limites</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
             <button class="tab-btn" id="tabNovoBtn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
@@ -196,7 +198,10 @@
                     <div class="kpi-card"><div><div class="kpi-title">Despesas (Total)</div><div class="kpi-value" id="kpi-despesas" style="color: var(--danger);">R$ 0,00</div></div><div class="kpi-details" id="kpi-despesas-detalhes"></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">Aportes</div><div class="kpi-value" id="kpi-investimentos" style="color: var(--invest);">R$ 0,00</div></div><div class="kpi-details" id="kpi-investimentos-detalhes"></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">Sobra (Caixa)</div><div class="kpi-value" id="kpi-saldo">R$ 0,00</div></div><div class="kpi-details" id="kpi-saldo-detalhes"></div></div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--warning);"><div><div class="kpi-title">💵 Dinheiro Vivo (Físico)</div><div class="kpi-value" id="kpi-dinheiro-vivo" style="color: var(--warning);">R$ 0,00</div></div><div class="kpi-details"><small style="color:var(--text-muted);">Acumulado de saques e gastos em espécie</small></div></div>
                 </div>
+
+                <div id="alertsContainer"></div>
 
                 <div class="chart-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
@@ -208,6 +213,7 @@
                                 <option value="RECEITA">Receitas</option>
                                 <option value="DESPESA">Despesas</option>
                                 <option value="INVESTIMENTO">Investimentos</option>
+                                <option value="SAQUE">💵 Saques / Dinheiro Vivo</option>
                             </select>
                         </div>
                     </div>
@@ -217,8 +223,6 @@
                             <tbody id="resumoExtratoTableBody"></tbody>
                         </table>
                     </div>
-
-                    <div id="alertsContainer"></div>
                 </div>
 
                 <div class="chart-card">
@@ -245,7 +249,7 @@
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Deste Mês</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura Próximo Mês</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Saldo Total Restante A Pagar (Parcelados)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">🔮 Total Comprometido (Projeções Futuras)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
 
                 <div class="chart-card">
@@ -281,7 +285,32 @@
                 </div>
             </div>
 
-            <!-- ABA 3: INVESTIMENTOS -->
+            <!-- ABA 3: METAS E LIMITES DE GASTOS -->
+            <div id="tab-metas" class="tab-content">
+                <div class="chart-card">
+                    <h2 class="chart-title" style="font-size: 1.2rem;">🎯 Definir Meta / Teto de Gastos Mensal</h2>
+                    <form onsubmit="saveCategoryBudget(event)">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>Categoria ou Cartão *</label>
+                                <input type="text" id="b_target" class="input-field" placeholder="Ex: Alimentação, Lazer ou Nubank" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Limite Máximo Mensal (R$) *</label>
+                                <input type="number" id="b_limit" step="0.01" class="input-field" placeholder="Ex: 800.00" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 1rem; width: auto; padding: 0.6rem 1.5rem;">Salvar Meta</button>
+                    </form>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Acompanhamento dos Limites Configurados</div>
+                    <div id="budgetsListContainer"></div>
+                </div>
+            </div>
+
+            <!-- ABA 4: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
                  <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
                      <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria:</label>
@@ -304,7 +333,7 @@
                 </div>
             </div>
 
-            <!-- ABA 4: GASTOS COMPARTILHADOS -->
+            <!-- ABA 5: GASTOS COMPARTILHADOS -->
             <div id="tab-divisao" class="tab-content">
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Total Geral Dividido</div><div class="kpi-value" id="kpi-shared-total" style="color: var(--primary);">R$ 0,00</div></div></div>
@@ -373,7 +402,7 @@
                 </div>
             </div>
 
-            <!-- ABA 5: FORMULÁRIO COMPLETO -->
+            <!-- ABA 6: FORMULÁRIO COMPLETO COM MODO BATCH E SELEÇÃO DE MEMBRO DA FAMÍLIA -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
                     <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
@@ -383,7 +412,7 @@
                         <div class="quick-chips" id="topCategoriesChips"></div>
                     </div>
 
-                    <form id="insertForm" onsubmit="addOrUpdateTransaction(event)">
+                    <form id="insertForm" onsubmit="addOrUpdateTransaction(event, false)">
                         <input type="hidden" id="edit_id">
                         <div class="form-grid">
                             
@@ -393,6 +422,7 @@
                                     <option value="Despesa">Despesa</option>
                                     <option value="Receita">Receita</option>
                                     <option value="Investimento">Investimento</option>
+                                    <option value="Saque">💵 Saque / Transferência p/ Dinheiro Vivo</option>
                                 </select>
                             </div>
 
@@ -403,7 +433,7 @@
 
                             <div class="input-group" style="grid-column: span 2;">
                                 <label>3. Descrição *</label>
-                                <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão, Netflix" required>
+                                <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão, Saque Caixa Eletrônico" required>
                             </div>
 
                             <div class="input-group">
@@ -425,13 +455,25 @@
                                 </select>
                             </div>
 
+                            <!-- CAMPO DE MEMBRO DA FAMÍLIA (EXIBIDO APENAS PARA USUÁRIOS AUTORIZADOS) -->
+                            <div class="input-group" id="familyMemberGroup" style="display: none;">
+                                <label>👤 Beneficiário / Responsável</label>
+                                <select id="i_membro_familia" class="input-field">
+                                    <option value="Família (Geral)" selected>🏠 Família (Geral)</option>
+                                    <option value="Pai">👨 Pai</option>
+                                    <option value="Mãe">👩 Mãe</option>
+                                    <option value="Filho">👦 Filho</option>
+                                    <option value="Filha">👧 Filha</option>
+                                </select>
+                            </div>
+
                             <div class="input-group">
                                 <label>7. Forma de Pagamento *</label>
                                 <select id="i_pagamento" class="input-field" onchange="togglePaymentFields()" required>
                                     <option value="PIX" selected>PIX</option>
                                     <option value="Cartão de Crédito">Cartão de Crédito</option>
                                     <option value="Débito">Débito</option>
-                                    <option value="Dinheiro">Dinheiro</option>
+                                    <option value="Dinheiro">Dinheiro Vivo (Espécie)</option>
                                 </select>
                             </div>
 
@@ -450,7 +492,6 @@
                                 </select>
                             </div>
 
-                            <!-- CAMPO DE PARCELA COM OPÇÃO RECORRENTE -->
                             <div class="input-group card-only-field" style="display: none;">
                                 <label>Parcela / Recorrência</label>
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
@@ -471,15 +512,17 @@
                             </div>
                         </div>
 
-                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                            <button type="submit" class="btn-primary" id="btnSalvar">Salvar Registro</button>
+                        <!-- BOTOES DE MODO BATCH (LANÇAMENTO CONTÍNUO) -->
+                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button type="submit" class="btn-primary" id="btnSalvar" style="flex:1;">Salvar e Ir pro Resumo</button>
+                            <button type="button" class="btn-secondary" onclick="addOrUpdateTransaction(event, true)" style="flex:1; background:var(--primary-light); color:var(--primary); font-weight:700;">➕ Salvar e Lançar Outro</button>
                             <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- ABA 6: MINHA CONTA / ALTERAR SENHA -->
+            <!-- ABA 7: MINHA CONTA / ALTERAR SENHA -->
             <div id="tab-conta" class="tab-content">
                 <div class="chart-card" style="max-width: 500px; margin: 0 auto;">
                     <h2 class="chart-title">🔒 Alterar Minha Senha</h2>
@@ -540,13 +583,25 @@
                 <select id="m_subcategoria" class="input-field"><option value="">-- Selecione a Categoria Primeiro --</option></select>
             </div>
 
+            <!-- CAMPO MOBILE DE MEMBRO DA FAMÍLIA -->
+            <div class="input-group" id="mobileFamilyMemberGroup" style="display: none;">
+                <label>👤 Beneficiário / Responsável</label>
+                <select id="m_membro_familia" class="input-field">
+                    <option value="Família (Geral)" selected>🏠 Família (Geral)</option>
+                    <option value="Pai">👨 Pai</option>
+                    <option value="Mãe">👩 Mãe</option>
+                    <option value="Filho">👦 Filho</option>
+                    <option value="Filha">👧 Filha</option>
+                </select>
+            </div>
+
             <div class="input-group">
                 <label>Forma de Pagamento</label>
                 <select id="m_pagamento" class="input-field" onchange="toggleMobilePaymentFields()">
                     <option value="PIX" selected>PIX</option>
                     <option value="Cartão de Crédito">Cartão de Crédito</option>
                     <option value="Débito">Débito</option>
-                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Dinheiro">Dinheiro Vivo (Espécie)</option>
                 </select>
             </div>
 
@@ -589,6 +644,9 @@
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
+        // E-mails autorizados para recursos de família estendidos
+        const EMAILS_AUTORIZADOS = ['fjbilard@gmail.com'];
+
         let currentUser = null;
         let rawSupabaseData = [];
         let globalData = [];
@@ -596,6 +654,7 @@
         let currentFilteredExtratoData = [];
         let charts = {};
         let isPrivacyMode = false;
+        let userBudgets = JSON.parse(localStorage.getItem('userBudgets') || '{}');
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -625,6 +684,15 @@
                 currentUser = session.user;
                 document.getElementById('loginView').style.display = 'none';
                 document.getElementById('appView').style.display = 'block';
+
+                // Libera recursos estendidos de membros da família se o usuário estiver na lista
+                if (currentUser.email && EMAILS_AUTORIZADOS.includes(currentUser.email.toLowerCase())) {
+                    const familyGroup = document.getElementById('familyMemberGroup');
+                    const mobileFamilyGroup = document.getElementById('mobileFamilyMemberGroup');
+                    if (familyGroup) familyGroup.style.display = 'block';
+                    if (mobileFamilyGroup) mobileFamilyGroup.style.display = 'block';
+                }
+
                 loadDashboardData();
                 loadSharedData();
             } else {
@@ -914,7 +982,6 @@
         function onCategoryChange(catSelectId, subSelectId) {
             const selectedCat = document.getElementById(catSelectId).value;
             const subSelect = document.getElementById(subSelectId);
-            const selectedType = (document.getElementById('i_tipo')?.value || 'Despesa').toUpperCase();
 
             if (!selectedCat || selectedCat === '' || selectedCat === '__NEW__') {
                 subSelect.innerHTML = '<option value="">-- Selecione a Categoria Primeiro --</option>';
@@ -923,17 +990,19 @@
 
             const relatedSubcats = getFrequencySortedOptions(
                 globalData
-                    .filter(d => d.type === selectedType && d.category === selectedCat)
+                    .filter(d => d.category === selectedCat)
                     .map(d => d.subCat)
             );
 
             subSelect.innerHTML = '<option value="">-- Selecione --</option>';
             
             relatedSubcats.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = sub;
-                subSelect.appendChild(opt);
+                if (sub) {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subSelect.appendChild(opt);
+                }
             });
 
             const newOpt = document.createElement('option');
@@ -966,6 +1035,12 @@
             const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
             const mParcelaSel = document.getElementById('m_parcela_select').value;
 
+            // Pega o membro da família se o campo estiver visível
+            const mFamiliaEl = document.getElementById('m_membro_familia');
+            const mFamiliaVal = (mFamiliaEl && mFamiliaEl.offsetParent !== null) ? mFamiliaEl.value : 'Família (Geral)';
+            const subCatBase = document.getElementById('m_subcategoria').value || '';
+            const subCatFinal = mFamiliaVal !== 'Família (Geral)' ? `${subCatBase} [${mFamiliaVal}]` : subCatBase;
+
             const payload = {
                 user_id: currentUser.id,
                 tipo: 'Despesa',
@@ -977,7 +1052,7 @@
                 fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
                 parcela: isCard ? (mParcelaSel === 'RECORRENTE' ? 'RECORRENTE' : '') : '',
                 categoria: document.getElementById('m_categoria').value,
-                subcategoria: document.getElementById('m_subcategoria').value
+                subcategoria: subCatFinal
             };
 
             const res = await _supabase.from('transacoes').insert([payload]);
@@ -1145,7 +1220,7 @@
 
         function populateFormDropdowns() {
             const selectedType = (document.getElementById('i_tipo').value || 'Despesa').toUpperCase();
-            const typeFilteredData = globalData.filter(d => d.type === selectedType);
+            const typeFilteredData = globalData.filter(d => d.type === selectedType || d.type === 'DESPESA');
 
             populateSelect('i_categoria', typeFilteredData.map(d => d.category));
             populateSelect('i_cartao', typeFilteredData.map(d => d.cartao));
@@ -1220,6 +1295,7 @@
             else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
             
             if(tabId === 'parcelas') renderParcelasTab();
+            if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
             if(tabId === 'divisao') {
                 document.getElementById('s_data').valueAsDate = new Date();
@@ -1243,16 +1319,16 @@
             setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
         }
 
-        async function addOrUpdateTransaction(e) {
-            e.preventDefault();
+        async function addOrUpdateTransaction(e, isBatch = false) {
+            if (e) e.preventDefault();
             const btn = document.getElementById('btnSalvar');
             const editId = document.getElementById('edit_id').value;
             btn.innerText = 'Salvando...';
 
+            const tipo = document.getElementById('i_tipo').value;
             const pagamento = document.getElementById('i_pagamento').value;
             const isCard = pagamento === 'Cartão de Crédito';
 
-            // Tratamento do campo Parcela
             let valorParcelaFinal = '';
             if (isCard) {
                 const pSel = document.getElementById('i_parcela_select').value;
@@ -1263,9 +1339,15 @@
                 }
             }
 
+            // Pega a seleção do membro da família
+            const membroEl = document.getElementById('i_membro_familia');
+            const membroVal = (membroEl && membroEl.offsetParent !== null) ? membroEl.value : 'Família (Geral)';
+            const subCatBase = document.getElementById('i_subcategoria').value || '';
+            const subCatFinal = membroVal !== 'Família (Geral)' ? `${subCatBase} [${membroVal}]` : subCatBase;
+
             const payload = {
                 user_id: currentUser.id,
-                tipo: document.getElementById('i_tipo').value,
+                tipo: tipo,
                 data: document.getElementById('i_data').value,
                 descricao: document.getElementById('i_descricao').value,
                 valor: parseFloat(document.getElementById('i_valor').value),
@@ -1273,8 +1355,8 @@
                 cartao: isCard ? document.getElementById('i_cartao').value : '',
                 fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
                 parcela: valorParcelaFinal,
-                categoria: document.getElementById('i_categoria').value,
-                subcategoria: document.getElementById('i_subcategoria').value,
+                categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
+                subcategoria: subCatFinal,
                 custo: document.getElementById('i_custo').value
             };
 
@@ -1287,11 +1369,17 @@
 
             if (res.error) {
                 alert('Erro ao salvar: ' + res.error.message);
-                btn.innerText = editId ? 'Atualizar Registro' : 'Salvar Registro';
+                btn.innerText = editId ? 'Atualizar Registro' : 'Salvar e Ir pro Resumo';
             } else {
-                cancelEdit();
                 alert(editId ? 'Registro atualizado!' : 'Lançamento salvo com sucesso!');
-                switchTab('resumo');
+                if (isBatch) {
+                    document.getElementById('i_descricao').value = '';
+                    document.getElementById('i_valor').value = '';
+                    btn.innerText = 'Salvar e Ir pro Resumo';
+                } else {
+                    cancelEdit();
+                    switchTab('resumo');
+                }
                 manualSync();
             }
         }
@@ -1309,7 +1397,6 @@
             document.getElementById('i_custo').value = item.custo;
             document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
 
-            // Ajuste do campo Parcela
             const pSel = document.getElementById('i_parcela_select');
             const pCustom = document.getElementById('i_parcela_custom');
             if (item.parcela === 'RECORRENTE') {
@@ -1344,7 +1431,7 @@
             document.getElementById('edit_id').value = "";
             document.getElementById('insertForm').reset();
             document.getElementById('formTitle').innerText = "Cadastrar Nova Transação Individual";
-            document.getElementById('btnSalvar').innerText = "Salvar Registro";
+            document.getElementById('btnSalvar').innerText = "Salvar e Ir pro Resumo";
             document.getElementById('btnCancelarEdicao').style.display = "none";
             document.getElementById('tabNovoBtn').innerText = "➕ Novo Registro";
             document.getElementById('i_pagamento').value = 'PIX';
@@ -1442,9 +1529,14 @@
             
             const saldo = receitas - despesas - invest;
             
+            const totalSaques = globalData.filter(d => d.type === 'SAQUE').reduce((a, b) => a + b.value, 0);
+            const totalGastoEspecie = globalData.filter(d => d.pagamento === 'Dinheiro' || d.pagamento === 'Dinheiro Vivo (Espécie)').reduce((a, b) => a + b.value, 0);
+            const saldoDinheiroVivo = Math.max(0, totalSaques - totalGastoEspecie);
+
             document.getElementById('kpi-receitas').innerText = fmt(receitas);
             document.getElementById('kpi-despesas').innerText = fmt(despesas);
             document.getElementById('kpi-investimentos').innerText = fmt(invest);
+            document.getElementById('kpi-dinheiro-vivo').innerText = fmt(saldoDinheiroVivo);
             
             const saldoEl = document.getElementById('kpi-saldo');
             saldoEl.innerText = fmt(saldo);
@@ -1456,37 +1548,83 @@
             renderSaldoDetalhes(saldo, receitas);
 
             applyExtratoFilters();
-            checkDiscreetCategoryAlerts(filtered);
+            checkBudgetAlerts(filtered);
             renderPieChart(filtered, selectedYm);
         }
 
-        function checkDiscreetCategoryAlerts(filteredData) {
+        function saveCategoryBudget(e) {
+            e.preventDefault();
+            const target = document.getElementById('b_target').value.trim();
+            const limit = parseFloat(document.getElementById('b_limit').value) || 0;
+
+            userBudgets[target] = limit;
+            localStorage.setItem('userBudgets', JSON.stringify(userBudgets));
+            alert(`Meta para "${target}" definida em R$ ${limit.toFixed(2)}`);
+            renderMetasTab();
+            updateDashboard(document.getElementById('monthSelector').value);
+        }
+
+        function checkBudgetAlerts(filteredData) {
             const alertContainer = document.getElementById('alertsContainer');
             alertContainer.innerHTML = '';
 
-            const despesas = filteredData.filter(d => d.type === 'DESPESA');
-            if (despesas.length === 0) return;
+            const totalsByCat = {};
+            filteredData.filter(d => d.type === 'DESPESA').forEach(d => {
+                totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
+                if (d.cartao) totalsByCat[d.cartao] = (totalsByCat[d.cartao] || 0) + d.value;
+            });
 
-            const catAtual = {};
-            despesas.forEach(d => { catAtual[d.category] = (catAtual[d.category] || 0) + d.value; });
+            Object.keys(userBudgets).forEach(target => {
+                const limit = userBudgets[target];
+                const spent = totalsByCat[target] || 0;
+                const pct = (spent / limit) * 100;
 
-            const catTotalHistorica = {};
-            const despesasGerais = globalData.filter(d => d.type === 'DESPESA');
-            despesasGerais.forEach(d => { catTotalHistorica[d.category] = (catTotalHistorica[d.category] || 0) + d.value; });
-
-            const totalMeses = [...new Set(despesasGerais.map(d => `${d.year}-${d.month}`))].length || 1;
-
-            Object.keys(catAtual).forEach(cat => {
-                const mediaHistorica = (catTotalHistorica[cat] || 0) / totalMeses;
-                const valorAtual = catAtual[cat];
-
-                if (mediaHistorica > 0 && valorAtual > mediaHistorica * 1.2) {
-                    const pctEstouro = (((valorAtual / mediaHistorica) - 1) * 100).toFixed(0);
+                if (pct >= 80) {
+                    const isOver = pct >= 100;
                     const div = document.createElement('div');
-                    div.className = 'alert-mini-box alert-mini-danger';
-                    div.innerHTML = `<span>⚠️ <b>Atenção:</b> Categoria <b>${cat}</b> está <b>${pctEstouro}% acima</b> da média (${fmt(valorAtual)} vs ${fmt(mediaHistorica)})</span>`;
+                    div.className = `alert-mini-box ${isOver ? 'alert-mini-danger' : ''}`;
+                    div.innerHTML = `<span>⚠️ <b>Aviso de Limite:</b> "${target}" atingiu <b>${pct.toFixed(0)}%</b> da meta (${fmt(spent)} de ${fmt(limit)})</span>`;
                     alertContainer.appendChild(div);
                 }
+            });
+        }
+
+        function renderMetasTab() {
+            const container = document.getElementById('budgetsListContainer');
+            container.innerHTML = '';
+
+            const selectedYm = document.getElementById('monthSelector').value;
+            const filtered = selectedYm === 'all' ? globalData : globalData.filter(d => `${d.year}-${d.month}` === selectedYm);
+
+            const totalsByCat = {};
+            filtered.filter(d => d.type === 'DESPESA').forEach(d => {
+                totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
+                if (d.cartao) totalsByCat[d.cartao] = (totalsByCat[d.cartao] || 0) + d.value;
+            });
+
+            if (Object.keys(userBudgets).length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">Nenhuma meta ou limite configurado ainda.</p>';
+                return;
+            }
+
+            Object.keys(userBudgets).forEach(target => {
+                const limit = userBudgets[target];
+                const spent = totalsByCat[target] || 0;
+                const pct = Math.min(100, (spent / limit) * 100);
+                const color = pct >= 100 ? 'var(--danger)' : pct >= 80 ? 'var(--warning)' : 'var(--primary)';
+
+                const card = document.createElement('div');
+                card.style.marginBottom = '1rem';
+                card.innerHTML = `
+                    <div style="display:flex; justify-style:space-between; margin-bottom:0.3rem;">
+                        <b>${target}</b>
+                        <span>${fmt(spent)} de ${fmt(limit)} (${pct.toFixed(0)}%)</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${pct}%; background-color: ${color};"></div>
+                    </div>
+                `;
+                container.appendChild(card);
             });
         }
 
@@ -1555,7 +1693,7 @@
 
             list.forEach(item => {
                 const tr = document.createElement('tr');
-                let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : 'var(--invest)';
+                let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : item.type === 'SAQUE' ? 'var(--warning)' : 'var(--invest)';
                 let meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
                 
                 tr.innerHTML = `
@@ -1693,7 +1831,7 @@
 
             document.getElementById('kpi-fatura-atual').innerText = fmt(faturaAtualVal);
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
-            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
+            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral + faturaProximaVal);
 
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';

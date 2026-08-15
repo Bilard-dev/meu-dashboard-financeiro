@@ -17,6 +17,7 @@
             --primary: #2563eb; 
             --primary-light: #eff6ff;
             --success: #10b981; 
+            --success-btn: #059669;
             --danger: #ef4444; 
             --warning: #f59e0b; 
             --invest: #8b5cf6; 
@@ -33,6 +34,7 @@
             --primary: #3b82f6; 
             --primary-light: #1e3a8a;
             --success: #10b981; 
+            --success-btn: #059669;
             --danger: #ef4444; 
             --warning: #f59e0b; 
             --invest: #a78bfa; 
@@ -102,6 +104,8 @@
 
         .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { opacity: 0.9; }
+        .btn-success { background: var(--success-btn); color: white; border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-success:hover { opacity: 0.9; }
         .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-secondary:hover { background-color: #cbd5e1; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
@@ -208,7 +212,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar..." style="width: 180px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
+                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar por texto/pessoa..." style="width: 220px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
                             <select id="typeFilterSelector" class="reset-btn" style="padding: 0.45rem 0.8rem;" onchange="applyExtratoFilters()">
                                 <option value="ALL">Todos os Tipos</option>
                                 <option value="RECEITA">Receitas</option>
@@ -245,7 +249,7 @@
                 </div>
             </div>
 
-            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS -->
+            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS COM FILTRO GLOBAL DA ABA -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Deste Mês</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
@@ -254,22 +258,25 @@
                 </div>
 
                 <div class="chart-card">
-                    <div class="chart-title">Gastos por Cartão / Meio de Pagamento</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                        <div class="chart-title" style="margin-bottom:0;">Gastos por Cartão / Meio de Pagamento</div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <label style="font-weight:600; font-size:0.85rem;">Filtro da Fatura:</label>
+                            <select id="statusParcelaSelector" class="reset-btn" style="padding:0.45rem 0.8rem; background:var(--card-bg);" onchange="renderParcelasTab()">
+                                <option value="all">Todas as Compras</option>
+                                <option value="atual" selected>📅 Fatura Atual</option>
+                                <option value="proxima">⏩ Próxima Fatura (Em Aberto)</option>
+                                <option value="open">Em Aberto (Com Parcelas Pendentes)</option>
+                                <option value="recorrente">🔄 Assinaturas / Recorrentes</option>
+                                <option value="done">Quitadas Este Mês</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id="cartoesSummaryContainer" class="kpi-container" style="margin-bottom: 0;"></div>
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
-                        <div class="chart-title" style="margin-bottom:0;">Compras Parceladas, Faturas e Assinaturas</div>
-                        <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
-                            <option value="all">Todas as Compras</option>
-                            <option value="atual">📅 Fatura Atual</option>
-                            <option value="proxima">⏩ Próxima Fatura (Em Aberto)</option>
-                            <option value="open">Em Aberto (Com Parcelas Pendentes)</option>
-                            <option value="recorrente">🔄 Assinaturas / Recorrentes</option>
-                            <option value="done">Quitadas Este Mês</option>
-                        </select>
-                    </div>
+                    <div class="chart-title">Compras Parceladas, Faturas e Assinaturas</div>
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -405,7 +412,7 @@
                 </div>
             </div>
 
-            <!-- ABA NOVA: GERENCIAR CATEGORIAS E LISTAS -->
+            <!-- ABA GERENCIAR CATEGORIAS E LISTAS -->
             <div id="tab-gerenciar-listas" class="tab-content">
                 <div class="chart-card">
                     <h2 class="chart-title">⚙️ Gerenciar Categorias, Subcategorias e Formas de Pagamento</h2>
@@ -538,10 +545,10 @@
                             </div>
                         </div>
 
-                        <!-- BOTOES DE MODO BATCH (LANÇAMENTO CONTÍNUO) -->
+                        <!-- BOTOES DE MODO BATCH (BOTÃO VERDE DE LANÇAR OUTRO) -->
                         <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button type="submit" class="btn-primary" id="btnSalvar" style="flex:1;">Salvar e Ir pro Resumo</button>
-                            <button type="button" class="btn-secondary" onclick="addOrUpdateTransaction(event, true)" style="flex:1; background:var(--primary-light); color:var(--primary); font-weight:700;">➕ Salvar e Lançar Outro</button>
+                            <button type="button" class="btn-success" onclick="addOrUpdateTransaction(event, true)" style="flex:1;">🟢 Salvar e Lançar Outro</button>
                             <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
                         </div>
                     </form>
@@ -659,7 +666,7 @@
 
             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
                 <button type="submit" class="btn-primary" style="padding: 0.9rem; font-size: 1rem;">Lançar Gasto Agora</button>
-                <button type="button" class="btn-secondary" onclick="saveAndResetMobile(event)" style="padding: 0.7rem; text-align:center;">Salvar e Lançar Outro</button>
+                <button type="button" class="btn-success" onclick="saveAndResetMobile(event)" style="padding: 0.7rem; text-align:center;">🟢 Salvar e Lançar Outro</button>
             </div>
         </form>
     </div>
@@ -1062,21 +1069,24 @@
 
             const mFamiliaEl = document.getElementById('m_membro_familia');
             const mFamiliaVal = (mFamiliaEl && mFamiliaEl.offsetParent !== null) ? mFamiliaEl.value : 'Família (Geral)';
-            const subCatBase = document.getElementById('m_subcategoria').value || '';
-            const subCatFinal = mFamiliaVal !== 'Família (Geral)' ? `${subCatBase} [${mFamiliaVal}]` : subCatBase;
+            
+            let descBase = document.getElementById('m_descricao').value;
+            if (mFamiliaVal !== 'Família (Geral)' && !descBase.includes(`[${mFamiliaVal}]`)) {
+                descBase = `${descBase} [${mFamiliaVal}]`;
+            }
 
             const payload = {
                 user_id: currentUser.id,
                 tipo: 'Despesa',
                 data: document.getElementById('m_data').value,
-                descricao: document.getElementById('m_descricao').value,
+                descricao: descBase,
                 valor: parseFloat(document.getElementById('m_valor').value),
                 pagamento: document.getElementById('m_pagamento').value,
                 cartao: isCard ? document.getElementById('m_cartao').value : '',
                 fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
                 parcela: isCard ? (mParcelaSel === 'RECORRENTE' ? 'RECORRENTE' : '') : '',
                 categoria: document.getElementById('m_categoria').value,
-                subcategoria: subCatFinal
+                subcategoria: document.getElementById('m_subcategoria').value || ''
             };
 
             const res = await _supabase.from('transacoes').insert([payload]);
@@ -1370,21 +1380,24 @@
 
             const membroEl = document.getElementById('i_membro_familia');
             const membroVal = (membroEl && membroEl.offsetParent !== null) ? membroEl.value : 'Família (Geral)';
-            const subCatBase = document.getElementById('i_subcategoria').value || '';
-            const subCatFinal = membroVal !== 'Família (Geral)' ? `${subCatBase} [${membroVal}]` : subCatBase;
+            
+            let descBase = document.getElementById('i_descricao').value;
+            if (membroVal !== 'Família (Geral)' && !descBase.includes(`[${membroVal}]`)) {
+                descBase = `${descBase} [${membroVal}]`;
+            }
 
             const payload = {
                 user_id: currentUser.id,
                 tipo: tipo,
                 data: document.getElementById('i_data').value,
-                descricao: document.getElementById('i_descricao').value,
+                descricao: descBase,
                 valor: parseFloat(document.getElementById('i_valor').value),
                 pagamento: pagamento,
                 cartao: isCard ? document.getElementById('i_cartao').value : '',
                 fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
                 parcela: valorParcelaFinal,
                 categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
-                subcategoria: subCatFinal,
+                subcategoria: document.getElementById('i_subcategoria').value || '',
                 custo: document.getElementById('i_custo').value
             };
 
@@ -1800,7 +1813,7 @@
             });
         }
 
-        /* CORREÇÃO DO CÁLCULO E FILTRO DA PRÓXIMA FATURA */
+        /* LÓGICA ATUALIZADA: O FILTRO DA FATURA CONTROLA OS CARDS DOS CARTÕES E A TABELA */
         function renderParcelasTab() {
             const selectedYm = document.getElementById('monthSelector').value;
             const statusFilter = document.getElementById('statusParcelaSelector').value;
@@ -1813,12 +1826,7 @@
             let faturaProximaVal = 0;
             let totalRestanteGeral = 0;
 
-            const cartoesMap = {};
-
             const processedItems = despesasCartao.map(item => {
-                const nomeCartao = item.cartao || 'Cartão';
-                cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
-
                 let atual = 1, total = 1;
                 let isParcelado = false;
                 let isRecorrente = item.parcela === 'RECORRENTE';
@@ -1837,14 +1845,11 @@
                 const parcelasRestantes = isRecorrente ? 0 : Math.max(0, total - (isProximaFatura ? atual - 1 : atual));
                 const valorRestante = isRecorrente ? 0 : (valorParcela * parcelasRestantes);
 
-                if (!isProximaFatura) {
-                    faturaAtualVal += valorParcela;
-                } else {
+                if (isProximaFatura) {
                     faturaProximaVal += valorParcela;
-                }
-
-                if (isRecorrente || isProximaFatura || (isParcelado && atual < total)) {
-                    if (!isProximaFatura) {
+                } else {
+                    faturaAtualVal += valorParcela;
+                    if (isRecorrente || (isParcelado && atual < total)) {
                         faturaProximaVal += valorParcela;
                     }
                 }
@@ -1869,12 +1874,33 @@
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
+            // FILTRAGEM DA LISTA BASEADA NO SELETOR DA FATURA
+            let filteredList = processedItems;
+            if (statusFilter === 'atual') {
+                filteredList = processedItems.filter(i => !i.isProximaFatura);
+            } else if (statusFilter === 'proxima') {
+                filteredList = processedItems.filter(i => i.isProximaFatura);
+            } else if (statusFilter === 'open') {
+                filteredList = processedItems.filter(i => i.parcelasRestantes > 0 || i.isRecorrente || i.isProximaFatura);
+            } else if (statusFilter === 'recorrente') {
+                filteredList = processedItems.filter(i => i.isRecorrente);
+            } else if (statusFilter === 'done') {
+                filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
+            }
+
+            // CARDS DOS CARTÕES - AGORA RESPEITAM RIGOROSAMENTE O FILTRO DA FATURA
+            const cartoesMap = {};
+            filteredList.forEach(item => {
+                const nomeCartao = item.cartao || 'Cartão';
+                cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.valorParcela;
+            });
+
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
             const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
 
             if (Object.keys(cartoesMap).length === 0) {
-                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto em cartão registrado no período.</div>';
+                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto registrado para o filtro selecionado.</div>';
             } else {
                 Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
                     const val = cartoesMap[nome];
@@ -1896,19 +1922,6 @@
                     `;
                     cartoesContainer.appendChild(card);
                 });
-            }
-
-            let filteredList = processedItems;
-            if (statusFilter === 'atual') {
-                filteredList = processedItems.filter(i => !i.isProximaFatura);
-            } else if (statusFilter === 'proxima') {
-                filteredList = processedItems.filter(i => i.isProximaFatura);
-            } else if (statusFilter === 'open') {
-                filteredList = processedItems.filter(i => i.parcelasRestantes > 0 || i.isRecorrente || i.isProximaFatura);
-            } else if (statusFilter === 'recorrente') {
-                filteredList = processedItems.filter(i => i.isRecorrente);
-            } else if (statusFilter === 'done') {
-                filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
             }
 
             filteredList.sort((a, b) => b.date - a.date);
@@ -1952,7 +1965,6 @@
             });
         }
 
-        /* LÓGICA DA ABA DE GERENCIAMENTO DE CATEGORIAS E LISTAS */
         function renderManageLists() {
             const catContainer = document.getElementById('manageCategoriesList');
             const subContainer = document.getElementById('manageSubcategoriesList');

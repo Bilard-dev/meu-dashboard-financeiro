@@ -182,6 +182,7 @@
             <button class="tab-btn" onclick="switchTab('metas')">🎯 Metas & Limites</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
+            <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias & Listas</button>
             <button class="tab-btn" id="tabNovoBtn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
             <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
         </div>
@@ -258,10 +259,12 @@
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Compras Parceladas, Faturas e Assinaturas</div>
                         <select id="statusParcelaSelector" class="reset-btn" onchange="renderParcelasTab()">
                             <option value="all">Todas as Compras</option>
+                            <option value="atual">📅 Fatura Atual</option>
+                            <option value="proxima">⏩ Próxima Fatura (Em Aberto)</option>
                             <option value="open">Em Aberto (Com Parcelas Pendentes)</option>
                             <option value="recorrente">🔄 Assinaturas / Recorrentes</option>
                             <option value="done">Quitadas Este Mês</option>
@@ -399,6 +402,29 @@
                         </thead>
                         <tbody id="sharedTableBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- ABA NOVA: GERENCIAR CATEGORIAS E LISTAS -->
+            <div id="tab-gerenciar-listas" class="tab-content">
+                <div class="chart-card">
+                    <h2 class="chart-title">⚙️ Gerenciar Categorias, Subcategorias e Formas de Pagamento</h2>
+                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Ao editar o nome de uma categoria ou subcategoria, todas as transações associadas serão atualizadas automaticamente.</p>
+                    
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
+                        <div>
+                            <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Categorias Existentes</h3>
+                            <div id="manageCategoriesList"></div>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Subcategorias Existentes</h3>
+                            <div id="manageSubcategoriesList"></div>
+                        </div>
+                        <div>
+                            <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Formas de Pagamento / Cartões</h3>
+                            <div id="managePaymentsList"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -644,7 +670,6 @@
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // E-mails autorizados para recursos de família estendidos
         const EMAILS_AUTORIZADOS = ['fjbilard@gmail.com'];
 
         let currentUser = null;
@@ -685,7 +710,6 @@
                 document.getElementById('loginView').style.display = 'none';
                 document.getElementById('appView').style.display = 'block';
 
-                // Libera recursos estendidos de membros da família se o usuário estiver na lista
                 if (currentUser.email && EMAILS_AUTORIZADOS.includes(currentUser.email.toLowerCase())) {
                     const familyGroup = document.getElementById('familyMemberGroup');
                     const mobileFamilyGroup = document.getElementById('mobileFamilyMemberGroup');
@@ -858,6 +882,7 @@
                 populateFormDropdowns();
                 renderTopCategoryChips();
                 togglePaymentFields();
+                renderManageLists();
                 updateDashboard(document.getElementById('monthSelector').value);
 
             } catch (error) {
@@ -1035,7 +1060,6 @@
             const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
             const mParcelaSel = document.getElementById('m_parcela_select').value;
 
-            // Pega o membro da família se o campo estiver visível
             const mFamiliaEl = document.getElementById('m_membro_familia');
             const mFamiliaVal = (mFamiliaEl && mFamiliaEl.offsetParent !== null) ? mFamiliaEl.value : 'Família (Geral)';
             const subCatBase = document.getElementById('m_subcategoria').value || '';
@@ -1260,6 +1284,10 @@
                     opt.textContent = cleanValue;
                     selectElement.insertBefore(opt, selectElement.lastElementChild);
                     selectElement.value = cleanValue;
+
+                    if (label === 'Categoria') {
+                        onCategoryChange(selectElement.id, selectElement.id === 'm_categoria' ? 'm_subcategoria' : 'i_subcategoria');
+                    }
                 } else {
                     selectElement.value = '';
                 }
@@ -1297,6 +1325,7 @@
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
+            if(tabId === 'gerenciar-listas') renderManageLists();
             if(tabId === 'divisao') {
                 document.getElementById('s_data').valueAsDate = new Date();
                 loadSharedData();
@@ -1339,7 +1368,6 @@
                 }
             }
 
-            // Pega a seleção do membro da família
             const membroEl = document.getElementById('i_membro_familia');
             const membroVal = (membroEl && membroEl.offsetParent !== null) ? membroEl.value : 'Família (Geral)';
             const subCatBase = document.getElementById('i_subcategoria').value || '';
@@ -1616,7 +1644,7 @@
                 const card = document.createElement('div');
                 card.style.marginBottom = '1rem';
                 card.innerHTML = `
-                    <div style="display:flex; justify-style:space-between; margin-bottom:0.3rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">
                         <b>${target}</b>
                         <span>${fmt(spent)} de ${fmt(limit)} (${pct.toFixed(0)}%)</span>
                     </div>
@@ -1772,6 +1800,7 @@
             });
         }
 
+        /* CORREÇÃO DO CÁLCULO E FILTRO DA PRÓXIMA FATURA */
         function renderParcelasTab() {
             const selectedYm = document.getElementById('monthSelector').value;
             const statusFilter = document.getElementById('statusParcelaSelector').value;
@@ -1801,17 +1830,23 @@
                     isParcelado = true;
                 }
 
-                const parcelasRestantes = isRecorrente ? 0 : Math.max(0, total - atual);
-                const valorParcela = item.value;
-                const valorRestante = isRecorrente ? 0 : (valorParcela * parcelasRestantes);
-                const isQuitadoEsteMes = (!isRecorrente) && (atual === total) && isParcelado;
+                const isProximaFatura = item.faturaDestino === 'PROXIMA';
+                const isQuitadoEsteMes = (!isRecorrente) && (atual === total) && isParcelado && (!isProximaFatura);
 
-                if (item.faturaDestino === 'ATUAL' || !item.faturaDestino) {
+                const valorParcela = item.value;
+                const parcelasRestantes = isRecorrente ? 0 : Math.max(0, total - (isProximaFatura ? atual - 1 : atual));
+                const valorRestante = isRecorrente ? 0 : (valorParcela * parcelasRestantes);
+
+                if (!isProximaFatura) {
                     faturaAtualVal += valorParcela;
+                } else {
+                    faturaProximaVal += valorParcela;
                 }
 
-                if (isRecorrente || (!isQuitadoEsteMes && (isParcelado || item.faturaDestino === 'PROXIMA'))) {
-                    faturaProximaVal += valorParcela;
+                if (isRecorrente || isProximaFatura || (isParcelado && atual < total)) {
+                    if (!isProximaFatura) {
+                        faturaProximaVal += valorParcela;
+                    }
                 }
 
                 totalRestanteGeral += valorRestante;
@@ -1822,6 +1857,7 @@
                     total,
                     isParcelado,
                     isRecorrente,
+                    isProximaFatura,
                     parcelasRestantes,
                     valorParcela,
                     valorRestante,
@@ -1831,7 +1867,7 @@
 
             document.getElementById('kpi-fatura-atual').innerText = fmt(faturaAtualVal);
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
-            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral + faturaProximaVal);
+            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
@@ -1863,21 +1899,19 @@
             }
 
             let filteredList = processedItems;
-            if (statusFilter === 'open') {
-                filteredList = processedItems.filter(i => i.parcelasRestantes > 0 || i.isRecorrente);
+            if (statusFilter === 'atual') {
+                filteredList = processedItems.filter(i => !i.isProximaFatura);
+            } else if (statusFilter === 'proxima') {
+                filteredList = processedItems.filter(i => i.isProximaFatura);
+            } else if (statusFilter === 'open') {
+                filteredList = processedItems.filter(i => i.parcelasRestantes > 0 || i.isRecorrente || i.isProximaFatura);
             } else if (statusFilter === 'recorrente') {
                 filteredList = processedItems.filter(i => i.isRecorrente);
             } else if (statusFilter === 'done') {
                 filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
             }
 
-            filteredList.sort((a, b) => {
-                if (a.isRecorrente && !b.isRecorrente) return -1;
-                if (!a.isRecorrente && b.isRecorrente) return 1;
-                if (a.isQuitadoEsteMes && !b.isQuitadoEsteMes) return 1;
-                if (!a.isQuitadoEsteMes && b.isQuitadoEsteMes) return -1;
-                return b.valorParcela - a.valorParcela;
-            });
+            filteredList.sort((a, b) => b.date - a.date);
 
             const tbody = document.getElementById('parcelasTableBody');
             tbody.innerHTML = '';
@@ -1893,10 +1927,10 @@
                 let faturaTag = '<span class="tag-status tag-open">📅 Fatura Atual</span>';
                 if (item.isRecorrente) {
                     faturaTag = '<span class="tag-status tag-recorrente">🔄 Assinatura</span>';
+                } else if (item.isProximaFatura) {
+                    faturaTag = '<span class="tag-status tag-open" style="background:#fef3c7; color:#b45309;">⏩ Próxima Fatura</span>';
                 } else if (item.isQuitadoEsteMes) {
                     faturaTag = '<span class="tag-status tag-quitado">🎉 Quitado Este Mês</span>';
-                } else if (item.faturaDestino === 'PROXIMA') {
-                    faturaTag = '<span class="tag-status tag-open" style="background:#fef3c7; color:#b45309;">⏩ Próxima Fatura</span>';
                 }
 
                 let progressoTexto = item.isRecorrente ? '🔄 Recorrente' : (item.parcela || 'À vista');
@@ -1916,6 +1950,63 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        /* LÓGICA DA ABA DE GERENCIAMENTO DE CATEGORIAS E LISTAS */
+        function renderManageLists() {
+            const catContainer = document.getElementById('manageCategoriesList');
+            const subContainer = document.getElementById('manageSubcategoriesList');
+            const payContainer = document.getElementById('managePaymentsList');
+
+            const categories = getFrequencySortedOptions(globalData.map(d => d.category));
+            const subcategories = getFrequencySortedOptions(globalData.map(d => d.subCat));
+            const payments = getFrequencySortedOptions(globalData.map(d => d.cartao || d.pagamento));
+
+            catContainer.innerHTML = categories.map(cat => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.5rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+                    <span style="font-weight:600; font-size:0.9rem;">${cat}</span>
+                    <button class="action-icon-btn" onclick="renameGlobalItem('category', '${cat}')">✏️ Editar</button>
+                </div>
+            `).join('') || '<p style="color:var(--text-muted);">Nenhuma categoria registrada.</p>';
+
+            subContainer.innerHTML = subcategories.map(sub => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.5rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+                    <span style="font-size:0.85rem;">${sub}</span>
+                    <button class="action-icon-btn" onclick="renameGlobalItem('subcategoria', '${sub}')">✏️ Editar</button>
+                </div>
+            `).join('') || '<p style="color:var(--text-muted);">Nenhuma subcategoria registrada.</p>';
+
+            payContainer.innerHTML = payments.map(pay => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.5rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+                    <span style="font-size:0.85rem;">${pay}</span>
+                    <button class="action-icon-btn" onclick="renameGlobalItem('cartao', '${pay}')">✏️ Editar</button>
+                </div>
+            `).join('') || '<p style="color:var(--text-muted);">Nenhuma forma registrada.</p>';
+        }
+
+        async function renameGlobalItem(type, oldValue) {
+            const newValue = prompt(`Digite o novo nome para "${oldValue}":`, oldValue);
+            if (!newValue || newValue.trim() === '' || newValue.trim() === oldValue) return;
+
+            const cleanValue = newValue.trim();
+            let updatePayload = {};
+
+            if (type === 'category') updatePayload = { categoria: cleanValue };
+            if (type === 'subcategoria') updatePayload = { subcategoria: cleanValue };
+            if (type === 'cartao') updatePayload = { cartao: cleanValue };
+
+            const { error } = await _supabase
+                .from('transacoes')
+                .update(updatePayload)
+                .eq('user_id', currentUser.id)
+                .eq(type === 'category' ? 'categoria' : type === 'subcategoria' ? 'subcategoria' : 'cartao', oldValue);
+
+            if (error) {
+                alert("Erro ao renomear: " + error.message);
+            } else {
+                alert(`"${oldValue}" alterado com sucesso para "${cleanValue}" em todos os lançamentos!`);
+                manualSync();
+            }
         }
 
         function renderInvestmentsTab() {

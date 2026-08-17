@@ -974,7 +974,7 @@
                     pagamento: row.pagamento || '',
                     cartao: row.cartao || '',
                     parcela: row.parcela || '',
-                    faturaDestino: row.fatura_destino || 'ATUAL', // Garante que foi extraído corretamente
+                    faturaDestino: row.fatura_destino || 'ATUAL',
                     month: d.getMonth(),
                     year: d.getFullYear()
                 };
@@ -1379,7 +1379,7 @@
             else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
             
             if(tabId === 'analise') initAnaliseTab();
-            if(tabId === 'parcelas') renderParcelasTab(); // Gatilho forte para o recalculo
+            if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
             if(tabId === 'gerenciar-listas') renderManageLists();
@@ -1584,7 +1584,6 @@
             select.addEventListener('change', (e) => updateDashboard(e.target.value));
         }
 
-        /* MONTA O SELETOR DE MÊS DA FATURA REAL */
         function setupFaturaMonthSelector() {
             const select = document.getElementById('faturaMonthSelector');
             if (!select) return;
@@ -1996,7 +1995,7 @@
         }
 
         /* ==========================================================
-           LÓGICA DE FATURAS COM SISTEMA DE SEMENTES PARA DEDUPLICAÇÃO
+           LÓGICA DE FATURAS COM SISTEMA DE SEMENTES E BLINDAGEM DE DUPLICATAS
            ========================================================== */
         function renderParcelasTab() {
             setupFaturaMonthSelector();
@@ -2006,16 +2005,12 @@
 
             const [targetYear, targetMonth] = monthSelector.value.split('-').map(Number);
 
-            // Mês subsequente no calendário para cálculo da previsão
             const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
             const nextYear = nextMonthDate.getFullYear();
             const nextMonth = nextMonthDate.getMonth();
 
             const despesasCartao = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
 
-            // PASSO 1: DEDUPLICAÇÃO INTELIGENTE (Correção do Erro do Passado)
-            // Agrupa compras idênticas lançadas manualmente mês a mês, mantendo apenas 
-            // a "semente" original (primeiro lançamento) para projetar o futuro.
             const purchasesMap = new Map();
             const avistaItems = [];
 
@@ -2036,15 +2031,14 @@
                 }
 
                 if (isParcelado || isRecorrente) {
-                    const descNorm = item.desc.trim().toLowerCase();
-                    const cartaoNorm = item.cartao || '';
+                    const safeDesc = (item.desc || '').replace(/\[.*?\]/g, '').trim().toLowerCase().replace(/\s+/g, '');
+                    const safeCartao = (item.cartao || item.pagamento || '').trim().toLowerCase().replace(/\s+/g, '');
+                    const safeValue = Math.round(item.value);
 
                     let key = '';
                     if (isRecorrente) {
-                        // Para assinaturas, agrupamos por nome, cartao e valor.
-                        key = `${descNorm}_${cartaoNorm}_${item.value}_REC`;
+                        key = `${safeDesc}_${safeCartao}_${safeValue}_REC`;
                     } else {
-                        // Descobre o mês e ano "Original" da compra (Mês 1) para gerar uma chave única
                         let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
                         let baseMonth = pMonth + faturaOffset;
                         let baseYear = pYear;
@@ -2055,14 +2049,13 @@
                             originalMonth += 12;
                             originalYear -= 1;
                         }
-                        key = `${descNorm}_${cartaoNorm}_${item.value}_${total}_${originalYear}_${originalMonth}`;
+                        key = `${safeDesc}_${safeCartao}_${safeValue}_${total}_${originalYear}_${originalMonth}`;
                     }
 
                     if (!purchasesMap.has(key)) {
                         purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
                     } else {
                         const existing = purchasesMap.get(key);
-                        // Mantém sempre o lançamento mais antigo como SEMENTE da projeção
                         if (pDate < existing.seedDate) {
                             purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
                         }
@@ -2072,10 +2065,8 @@
                 }
             });
 
-            // Base filtrada sem as duplicações manuais do passado
             const baseItemsToProject = [...Array.from(purchasesMap.values()), ...avistaItems];
 
-            // PASSO 2: CÁLCULO E PROJEÇÃO TEMPORAL PARA O MÊS SELECIONADO
             let totalFaturaSelecionada = 0;
             let totalFaturaSeguinte = 0;
             let totalRestanteFuturo = 0;
@@ -2086,10 +2077,7 @@
                 const pYear = pDate.getFullYear();
                 let pMonth = pDate.getMonth();
 
-                // Se for próxima fatura, a semente avança 1 mês no calendário base
-                if (item.faturaDestino === 'PROXIMA') {
-                    pMonth += 1;
-                }
+                if (item.faturaDestino === 'PROXIMA') pMonth += 1;
 
                 const deltaTarget = (targetYear * 12 + targetMonth) - (pYear * 12 + pMonth);
                 const deltaNext = (nextYear * 12 + nextMonth) - (pYear * 12 + pMonth);
@@ -2116,7 +2104,7 @@
                 if (!item.isRecorrente) {
                     let parcelasAposEsteMes = 0;
                     if (deltaTarget < 0) {
-                        parcelasAposEsteMes = item.total; // Nem começou a cobrar ainda
+                        parcelasAposEsteMes = item.total;
                     } else if (parcelaNoMesTarget <= item.total) {
                         parcelasAposEsteMes = Math.max(0, item.total - parcelaNoMesTarget);
                     }
@@ -2124,7 +2112,6 @@
                 }
             });
 
-            // PASSO 3: RENDERIZAÇÃO NA TELA
             document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
             document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
 

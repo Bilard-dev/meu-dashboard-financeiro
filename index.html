@@ -308,7 +308,7 @@
                 </div>
             </div>
 
-            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS COM FILTRO GLOBAL CORRIGIDO -->
+            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS COM CÁLCULO TEMPORAL RIGOROSO -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Deste Mês</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
@@ -547,7 +547,6 @@
                                 </select>
                             </div>
 
-                            <!-- CAMPO DE TAGS PARA TODOS OS USUÁRIOS -->
                             <div class="input-group">
                                 <label>🏷️ TAGs (Opcional - Separe por vírgulas)</label>
                                 <input type="text" id="i_tags" class="input-field" placeholder="Ex: Mãe, Viagem, Trabalho">
@@ -598,7 +597,6 @@
                             </div>
                         </div>
 
-                        <!-- BOTOES DE MODO BATCH -->
                         <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button type="submit" class="btn-primary" id="btnSalvar" style="flex:1;">Salvar e Ir pro Resumo</button>
                             <button type="button" class="btn-success" onclick="addOrUpdateTransaction(event, true)" style="flex:1;">🟢 Salvar e Lançar Outro</button>
@@ -1963,10 +1961,23 @@
             });
         }
 
+        /* LÓGICA DE CÁLCULO MENSAL DA FATURA CORRIGIDA */
         function renderParcelasTab() {
             const statusFilter = document.getElementById('statusParcelaSelector').value;
+            const selectedYm = document.getElementById('monthSelector').value;
 
-            // Busca todas as despesas no cartão ignorando a trava do mês do topo para capturar compras ativas/parceladas de qualquer mês
+            // Define o ano e mês de referência atual (com base no seletor do topo ou data atual)
+            let refYear, refMonth;
+            if (selectedYm && selectedYm !== 'all') {
+                const [y, m] = selectedYm.split('-');
+                refYear = parseInt(y);
+                refMonth = parseInt(m);
+            } else {
+                const now = new Date();
+                refYear = now.getFullYear();
+                refMonth = now.getMonth();
+            }
+
             const despesasCartao = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
 
             let faturaAtualVal = 0;
@@ -1974,48 +1985,83 @@
             let totalRestanteGeral = 0;
 
             const processedItems = despesasCartao.map(item => {
-                let atual = 1, total = 1;
+                const pDate = new Date(item.rawDate + 'T12:00:00');
+                let pYear = pDate.getFullYear();
+                let pMonth = pDate.getMonth();
+
+                // Se marcado para Próxima Fatura na compra, a primeira parcela inicia 1 mês após a compra
+                if (item.faturaDestino === 'PROXIMA') {
+                    pMonth += 1;
+                    if (pMonth > 11) {
+                        pMonth = 0;
+                        pYear += 1;
+                    }
+                }
+
+                let initAtual = 1, total = 1;
                 let isParcelado = false;
                 let isRecorrente = item.parcela === 'RECORRENTE';
 
                 if (!isRecorrente && item.parcela && item.parcela.includes('/')) {
-                    const p = item.parcela.split('/');
-                    atual = parseInt(p[0]) || 1;
-                    total = parseInt(p[1]) || 1;
+                    const parts = item.parcela.split('/');
+                    initAtual = parseInt(parts[0]) || 1;
+                    total = parseInt(parts[1]) || 1;
                     isParcelado = true;
                 }
 
-                const isProximaFatura = item.faturaDestino === 'PROXIMA';
-                const isQuitadoEsteMes = (!isRecorrente) && (atual === total) && isParcelado && (!isProximaFatura);
+                // Diferença de meses da data inicial da fatura para o mês selecionado (Fatura Atual)
+                const deltaAtual = (refYear * 12 + refMonth) - (pYear * 12 + pMonth);
+                const deltaProxima = deltaAtual + 1;
 
-                const valorParcela = item.value;
-                const parcelasRestantes = isRecorrente ? 0 : Math.max(0, total - (isProximaFatura ? atual - 1 : atual));
-                const valorRestante = isRecorrente ? 0 : (valorParcela * parcelasRestantes);
-
-                if (isProximaFatura) {
-                    faturaProximaVal += valorParcela;
+                // Cálculo para Fatura Atual
+                let instAtualNum = initAtual + deltaAtual;
+                let isActiveAtual = false;
+                if (isRecorrente) {
+                    isActiveAtual = deltaAtual >= 0;
                 } else {
-                    faturaAtualVal += valorParcela;
-                    if (isRecorrente || (isParcelado && atual < total)) {
-                        faturaProximaVal += valorParcela;
-                    }
+                    isActiveAtual = instAtualNum >= 1 && instAtualNum <= total;
                 }
 
+                // Cálculo para Próxima Fatura
+                let instProximaNum = initAtual + deltaProxima;
+                let isActiveProxima = false;
+                if (isRecorrente) {
+                    isActiveProxima = deltaProxima >= 0;
+                } else {
+                    isActiveProxima = instProximaNum >= 1 && instProximaNum <= total;
+                }
+
+                // Soma dos Valores dos KPIs
+                if (isActiveAtual) faturaAtualVal += item.value;
+                if (isActiveProxima) faturaProximaVal += item.value;
+
+                // Cálculo das parcelas e valor restante a partir do mês atual
+                let remainingInstallments = 0;
+                if (!isRecorrente) {
+                    if (instAtualNum <= 0) {
+                        remainingInstallments = total;
+                    } else if (instAtualNum <= total) {
+                        remainingInstallments = total - instAtualNum + 1;
+                    } else {
+                        remainingInstallments = 0; // Já encerrada no passado!
+                    }
+                }
+                const valorRestante = isRecorrente ? 0 : (item.value * remainingInstallments);
                 totalRestanteGeral += valorRestante;
 
-                // Define se este lançamento compõe a cobrança da próxima fatura
-                const pertenceProximaFatura = isProximaFatura || isRecorrente || (isParcelado && atual < total);
+                const isQuitadoEsteMes = (!isRecorrente) && isParcelado && (instAtualNum === total);
 
                 return {
                     ...item,
-                    atual,
+                    initAtual,
                     total,
                     isParcelado,
                     isRecorrente,
-                    isProximaFatura,
-                    pertenceProximaFatura,
-                    parcelasRestantes,
-                    valorParcela,
+                    instAtualNum,
+                    instProximaNum,
+                    isActiveAtual,
+                    isActiveProxima,
+                    remainingInstallments,
                     valorRestante,
                     isQuitadoEsteMes
                 };
@@ -2025,25 +2071,27 @@
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
-            // Aplicar a filtragem escolhida no dropdown
-            let filteredList = processedItems;
+            // Filtragem da lista com base na escolha do dropdown
+            let filteredList = [];
             if (statusFilter === 'atual') {
-                filteredList = processedItems.filter(i => !i.isProximaFatura);
+                filteredList = processedItems.filter(i => i.isActiveAtual);
             } else if (statusFilter === 'proxima') {
-                filteredList = processedItems.filter(i => i.pertenceProximaFatura);
+                filteredList = processedItems.filter(i => i.isActiveProxima);
             } else if (statusFilter === 'open') {
-                filteredList = processedItems.filter(i => i.parcelasRestantes > 0 || i.isRecorrente || i.isProximaFatura);
+                filteredList = processedItems.filter(i => i.isRecorrente ? i.isActiveAtual : i.remainingInstallments > 0);
             } else if (statusFilter === 'recorrente') {
-                filteredList = processedItems.filter(i => i.isRecorrente);
+                filteredList = processedItems.filter(i => i.isRecorrente && i.isActiveAtual);
             } else if (statusFilter === 'done') {
                 filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
+            } else {
+                filteredList = processedItems;
             }
 
-            // CARDS DOS CARTÕES - RESPEITAM RIGOROSAMENTE O FILTRO DA FATURA
+            // Cards de Resumo dos Cartões
             const cartoesMap = {};
             filteredList.forEach(item => {
                 const nomeCartao = item.cartao || 'Cartão';
-                cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.valorParcela;
+                cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
             });
 
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
@@ -2088,16 +2136,19 @@
             filteredList.forEach(item => {
                 const tr = document.createElement('tr');
                 
+                // Exibe a parcela calculada para o contexto selecionado (Atual vs Próxima)
+                let activeInstNum = (statusFilter === 'proxima') ? item.instProximaNum : item.instAtualNum;
+                let progressoTexto = item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${activeInstNum}/${item.total}` : (item.parcela || 'À vista'));
+                
                 let faturaTag = '<span class="tag-status tag-open">📅 Fatura Atual</span>';
                 if (item.isRecorrente) {
                     faturaTag = '<span class="tag-status tag-recorrente">🔄 Assinatura</span>';
-                } else if (item.isProximaFatura) {
+                } else if (statusFilter === 'proxima' || (item.faturaDestino === 'PROXIMA' && !item.isActiveAtual)) {
                     faturaTag = '<span class="tag-status tag-open" style="background:#fef3c7; color:#b45309;">⏩ Próxima Fatura</span>';
                 } else if (item.isQuitadoEsteMes) {
                     faturaTag = '<span class="tag-status tag-quitado">🎉 Quitado Este Mês</span>';
                 }
 
-                let progressoTexto = item.isRecorrente ? '🔄 Recorrente' : (item.parcela || 'À vista');
                 let valorRestanteTexto = item.isRecorrente ? '♾️ Contínuo' : fmt(item.valorRestante);
 
                 tr.innerHTML = `
@@ -2106,7 +2157,7 @@
                     <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${item.cartao || 'Cartão'}</span></td>
                     <td>${faturaTag}</td>
                     <td style="font-weight:600;">${progressoTexto}</td>
-                    <td style="font-weight:700; color:var(--danger);">${fmt(item.valorParcela)}</td>
+                    <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
                     <td style="font-weight:700; color: ${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${valorRestanteTexto}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>

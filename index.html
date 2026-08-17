@@ -512,13 +512,13 @@
                             </div>
 
                             <div class="input-group">
-                                <label>2. Data *</label>
-                                <input type="date" id="i_data" class="input-field" required>
+                                <label>2. Data da Compra *</label>
+                                <input type="date" id="i_data" class="input-field" onchange="updateDynamicFaturaDropdown()" required>
                             </div>
 
                             <div class="input-group" style="grid-column: span 2;">
                                 <label>3. Descrição *</label>
-                                <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão, Saque Caixa Eletrônico" required>
+                                <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão, Novablast 5" required>
                             </div>
 
                             <div class="input-group">
@@ -563,10 +563,9 @@
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
-                                <label>Destino da Fatura</label>
+                                <label>Destino da Fatura (Competência exata)</label>
                                 <select id="i_fatura_destino" class="input-field">
-                                    <option value="ATUAL" selected>Fatura Atual (Salário deste mês)</option>
-                                    <option value="PROXIMA">Próxima Fatura (Salário do próximo mês)</option>
+                                    <!-- Preenchido dinamicamente via JS com Agosto/2026, Setembro/2026, etc. -->
                                 </select>
                             </div>
 
@@ -575,9 +574,9 @@
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
                                     <option value="À vista">À vista / Sem parcela</option>
                                     <option value="RECORRENTE">🔄 Recorrente / Assinatura (Mensal)</option>
-                                    <option value="CUSTOM">🔢 Digitado (Ex: 1/12, 2/6)</option>
+                                    <option value="CUSTOM">🔢 Digitado (Ex: 1/12, 2/6, 8/11)</option>
                                 </select>
-                                <input type="text" id="i_parcela_custom" class="input-field" placeholder="Ex: 1/12" style="display: none; margin-top: 0.4rem;">
+                                <input type="text" id="i_parcela_custom" class="input-field" placeholder="Ex: 8/11" style="display: none; margin-top: 0.4rem;">
                             </div>
 
                             <div class="input-group">
@@ -681,10 +680,9 @@
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
-                <label>Fatura</label>
+                <label>Fatura Destino Exata</label>
                 <select id="m_fatura_destino" class="input-field">
-                    <option value="ATUAL" selected>Fatura Atual (Deste Mês)</option>
-                    <option value="PROXIMA">Próxima Fatura (Mês Que Vem)</option>
+                    <!-- Preenchido via JS -->
                 </select>
             </div>
 
@@ -698,7 +696,7 @@
 
             <div class="input-group">
                 <label>Data</label>
-                <input type="date" id="m_data" class="input-field" required>
+                <input type="date" id="m_data" class="input-field" onchange="updateMobileDynamicFaturaDropdown()" required>
             </div>
 
             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
@@ -920,6 +918,11 @@
                 renderTopCategoryChips();
                 togglePaymentFields();
                 renderManageLists();
+                
+                // Preenche os seletores de fatura com base na data padrão atual
+                updateDynamicFaturaDropdown();
+                updateMobileDynamicFaturaDropdown();
+
                 updateDashboard(document.getElementById('monthSelector').value);
 
             } catch (error) {
@@ -1084,11 +1087,62 @@
             subSelect.appendChild(newOpt);
         }
 
+        /* GERADOR DINÂMICO DE OPÇÕES DE FATURA (EX: AGOSTO 2026, SETEMBRO 2026...) */
+        function populateFaturaDropdown(selectElementId, selectedValue = 'ATUAL') {
+            const selectEl = document.getElementById(selectElementId);
+            if (!selectEl) return;
+
+            const currVal = selectEl.value || selectedValue;
+            selectEl.innerHTML = '';
+
+            const dateInputId = selectElementId.startsWith('m_') ? 'm_data' : 'i_data';
+            const dateVal = document.getElementById(dateInputId)?.value;
+            const baseDate = dateVal ? new Date(dateVal + 'T12:00:00') : new Date();
+
+            const baseYear = baseDate.getFullYear();
+            const baseMonth = baseDate.getMonth();
+
+            // Opções relativas baseadas na data da compra selecionada
+            const options = [
+                { val: 'ATUAL', label: `Fatura do Mês da Compra (${monthNamesBR[baseMonth]}/${baseYear})` },
+                { val: 'PROXIMA', label: `Fatura do Mês Seguinte (${monthNamesBR[(baseMonth + 1) % 12]}/${baseMonth === 11 ? baseYear + 1 : baseYear})` }
+            ];
+
+            // Adiciona também opções absolutas para garantir liberdade total de lançamento (Agosto 2026 em diante)
+            for (let i = 0; i < 12; i++) {
+                const targetDate = new Date(2026, 7 + i, 1); // Começando de Agosto/2026 (Mês 7 no JS)
+                const y = targetDate.getFullYear();
+                const m = targetDate.getMonth();
+                const key = `${y}-${m}`;
+                options.push({ val: key, label: `Fatura Específica: ${monthNamesBR[m]}/${y}` });
+            }
+
+            options.forEach(optData => {
+                const opt = document.createElement('option');
+                opt.value = optData.val;
+                opt.textContent = optData.label;
+                selectEl.appendChild(opt);
+            });
+
+            if (currVal) {
+                selectEl.value = currVal;
+            }
+        }
+
+        function updateDynamicFaturaDropdown() {
+            populateFaturaDropdown('i_fatura_destino');
+        }
+
+        function updateMobileDynamicFaturaDropdown() {
+            populateFaturaDropdown('m_fatura_destino');
+        }
+
         function openMobileQuickView() {
             document.getElementById('mobileQuickView').style.display = 'block';
             document.getElementById('m_data').valueAsDate = new Date();
             document.getElementById('m_categoria').innerHTML = document.getElementById('i_categoria').innerHTML;
             document.getElementById('m_cartao').innerHTML = document.getElementById('i_cartao').innerHTML;
+            updateMobileDynamicFaturaDropdown();
             toggleMobilePaymentFields();
         }
 
@@ -1394,6 +1448,7 @@
                 populateFormDropdowns();
                 renderTopCategoryChips();
                 togglePaymentFields();
+                updateDynamicFaturaDropdown();
             }
         }
 
@@ -1481,6 +1536,8 @@
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
+            
+            updateDynamicFaturaDropdown();
             document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
 
             const pSel = document.getElementById('i_parcela_select');
@@ -2040,6 +2097,13 @@
                         key = `${safeDesc}_${safeCartao}_${safeValue}_REC`;
                     } else {
                         let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
+                        
+                        // Tratamento caso a fatura destino seja uma chave fixa absoluta (ex: '2026-7' para Agosto 2026)
+                        if (item.faturaDestino && item.faturaDestino.includes('-')) {
+                            const [absY, absM] = item.faturaDestino.split('-').map(Number);
+                            faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
+                        }
+
                         let baseMonth = pMonth + faturaOffset;
                         let baseYear = pYear;
                         
@@ -2077,7 +2141,13 @@
                 const pYear = pDate.getFullYear();
                 let pMonth = pDate.getMonth();
 
-                if (item.faturaDestino === 'PROXIMA') pMonth += 1;
+                let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
+                if (item.faturaDestino && item.faturaDestino.includes('-')) {
+                    const [absY, absM] = item.faturaDestino.split('-').map(Number);
+                    faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
+                }
+
+                pMonth += faturaOffset;
 
                 const deltaTarget = (targetYear * 12 + targetMonth) - (pYear * 12 + pMonth);
                 const deltaNext = (nextYear * 12 + nextMonth) - (pYear * 12 + pMonth);

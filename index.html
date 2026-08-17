@@ -308,44 +308,37 @@
                 </div>
             </div>
 
-            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS COM CÁLCULO TEMPORAL RIGOROSO -->
+            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS REAIS POR MÊS -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Deste Mês</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Previsão Fatura Próximo Mês</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">🔮 Total Comprometido (Projeções Futuras)</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-selecionada">Fatura Selecionada</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-proxima">Fatura Mês Seguinte</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">🔮 Total Pendente Futuro</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
 
                 <div class="chart-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
-                        <div class="chart-title" style="margin-bottom:0;">Gastos por Cartão / Meio de Pagamento</div>
+                        <div class="chart-title" style="margin-bottom:0;">Gastos Por Cartão</div>
                         <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <label style="font-weight:600; font-size:0.85rem;">Filtro da Fatura:</label>
-                            <select id="statusParcelaSelector" class="reset-btn" style="padding:0.45rem 0.8rem; background:var(--card-bg);" onchange="renderParcelasTab()">
-                                <option value="all">Todas as Compras</option>
-                                <option value="atual" selected>📅 Fatura Atual</option>
-                                <option value="proxima">⏩ Próxima Fatura (Em Aberto)</option>
-                                <option value="open">Em Aberto (Com Parcelas Pendentes)</option>
-                                <option value="recorrente">🔄 Assinaturas / Recorrentes</option>
-                                <option value="done">Quitadas Este Mês</option>
-                            </select>
+                            <label style="font-weight:600; font-size:0.85rem;">Selecione o Mês da Fatura:</label>
+                            <select id="faturaMonthSelector" class="reset-btn" style="padding:0.45rem 0.8rem; background:var(--card-bg);" onchange="renderParcelasTab()"></select>
                         </div>
                     </div>
                     <div id="cartoesSummaryContainer" class="kpi-container" style="margin-bottom: 0;"></div>
                 </div>
 
                 <div class="chart-card">
-                    <div class="chart-title">Compras Parceladas, Faturas e Assinaturas</div>
+                    <div class="chart-title">Compras Parceladas e Assinaturas Pertencentes a Este Mês</div>
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Data</th>
+                                <th>Data Compra</th>
                                 <th>Descrição</th>
                                 <th>Cartão</th>
-                                <th>Fatura</th>
-                                <th>Tipo / Progresso</th>
+                                <th>Fatura Competência</th>
+                                <th>Parcela no Mês</th>
                                 <th>Valor Mensal</th>
-                                <th>Valor Restante</th>
+                                <th>Restante Após Este Mês</th>
                                 <th style="text-align:center;">Ações</th>
                             </tr>
                         </thead>
@@ -570,14 +563,6 @@
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
-                                <label>Destino da Fatura</label>
-                                <select id="i_fatura_destino" class="input-field">
-                                    <option value="ATUAL" selected>Fatura Atual (Salário deste mês)</option>
-                                    <option value="PROXIMA">Próxima Fatura (Salário do próximo mês)</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group card-only-field" style="display: none;">
                                 <label>Parcela / Recorrência</label>
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
                                     <option value="À vista">À vista / Sem parcela</option>
@@ -688,14 +673,6 @@
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
-                <label>Fatura</label>
-                <select id="m_fatura_destino" class="input-field">
-                    <option value="ATUAL" selected>Fatura Atual (Deste Mês)</option>
-                    <option value="PROXIMA">Próxima Fatura (Mês Que Vem)</option>
-                </select>
-            </div>
-
-            <div class="input-group m-card-field" style="display: none;">
                 <label>Tipo de Cobrança</label>
                 <select id="m_parcela_select" class="input-field">
                     <option value="À vista">À vista</option>
@@ -729,6 +706,8 @@
         let charts = {};
         let isPrivacyMode = false;
         let userBudgets = JSON.parse(localStorage.getItem('userBudgets') || '{}');
+
+        const monthNamesBR = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -920,6 +899,7 @@
                 document.getElementById('dashboard').style.display = 'block';
 
                 setupMonthSelector();
+                setupFaturaMonthSelector();
                 setupInvestSelector();
                 populateFormDropdowns();
                 renderTopCategoryChips();
@@ -979,7 +959,6 @@
                     pagamento: row.pagamento || '',
                     cartao: row.cartao || '',
                     parcela: row.parcela || '',
-                    faturaDestino: row.fatura_destino || 'ATUAL',
                     month: d.getMonth(),
                     year: d.getFullYear()
                 };
@@ -1133,7 +1112,6 @@
                 valor: parseFloat(document.getElementById('m_valor').value),
                 pagamento: document.getElementById('m_pagamento').value,
                 cartao: isCard ? document.getElementById('m_cartao').value : '',
-                fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
                 parcela: isCard ? (mParcelaSel === 'RECORRENTE' ? 'RECORRENTE' : '') : '',
                 categoria: document.getElementById('m_categoria').value,
                 subcategoria: document.getElementById('m_subcategoria').value || ''
@@ -1440,7 +1418,6 @@
                 valor: parseFloat(document.getElementById('i_valor').value),
                 pagamento: pagamento,
                 cartao: isCard ? document.getElementById('i_cartao').value : '',
-                fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
                 parcela: valorParcelaFinal,
                 categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
                 subcategoria: document.getElementById('i_subcategoria').value || '',
@@ -1486,7 +1463,6 @@
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
-            document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
 
             const pSel = document.getElementById('i_parcela_select');
             const pCustom = document.getElementById('i_parcela_custom');
@@ -1574,13 +1550,12 @@
         function setupMonthSelector() {
             const select = document.getElementById('monthSelector');
             select.innerHTML = '<option value="all">Todo o Histórico</option>';
-            const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
             
             const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
             activeMonths.forEach(ym => {
                 const [y, m] = ym.split('-');
                 const opt = document.createElement('option');
-                opt.value = ym; opt.textContent = `${months[m]} ${y}`;
+                opt.value = ym; opt.textContent = `${monthNamesBR[parseInt(m)].substring(0,3)} ${y}`;
                 select.appendChild(opt);
             });
             
@@ -1588,6 +1563,50 @@
             if (activeMonths.includes(currYm)) select.value = currYm;
             
             select.addEventListener('change', (e) => updateDashboard(e.target.value));
+        }
+
+        /* MONTA O SELETOR DE MÊS DA FATURA REAL */
+        function setupFaturaMonthSelector() {
+            const select = document.getElementById('faturaMonthSelector');
+            if (!select) return;
+
+            const currVal = select.value;
+            select.innerHTML = '';
+
+            const now = new Date();
+            const currentYmKey = `${now.getFullYear()}-${now.getMonth()}`;
+
+            // Coleta meses reais que tem compras ou gera projeções para até 12 meses no futuro
+            const monthKeysSet = new Set();
+            globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito')).forEach(d => {
+                monthKeysSet.add(`${d.year}-${d.month}`);
+            });
+
+            // Adiciona meses futuros no calendário
+            for(let i = -3; i <= 12; i++) {
+                const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                monthKeysSet.add(`${futureDate.getFullYear()}-${futureDate.getMonth()}`);
+            }
+
+            const sortedKeys = Array.from(monthKeysSet).sort((a,b) => {
+                const [y1, m1] = a.split('-').map(Number);
+                const [y2, m2] = b.split('-').map(Number);
+                return (y1 * 12 + m1) - (y2 * 12 + m2);
+            });
+
+            sortedKeys.forEach(ym => {
+                const [y, m] = ym.split('-').map(Number);
+                const opt = document.createElement('option');
+                opt.value = ym;
+                opt.textContent = `Fatura de ${monthNamesBR[m]}/${y}`;
+                select.appendChild(opt);
+            });
+
+            if (currVal && sortedKeys.includes(currVal)) {
+                select.value = currVal;
+            } else {
+                select.value = currentYmKey;
+            }
         }
 
         function setupInvestSelector() {
@@ -1606,15 +1625,13 @@
         }
 
         function initAnaliseTab() {
-            const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-            
             const selMes = document.getElementById('an_mes');
             selMes.innerHTML = '<option value="all">Todo o Histórico (Todos os Meses)</option>';
             const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
             activeMonths.forEach(ym => {
                 const [y, m] = ym.split('-');
                 const opt = document.createElement('option');
-                opt.value = ym; opt.textContent = `${months[m]} ${y}`;
+                opt.value = ym; opt.textContent = `${monthNamesBR[parseInt(m)].substring(0,3)} ${y}`;
                 selMes.appendChild(opt);
             });
 
@@ -1961,42 +1978,32 @@
             });
         }
 
-        /* LÓGICA DE CÁLCULO MENSAL DA FATURA CORRIGIDA */
+        /* LÓGICA DE FATURAS BASEADA EM MESES REAIS DO CALENDÁRIO */
         function renderParcelasTab() {
-            const statusFilter = document.getElementById('statusParcelaSelector').value;
-            const selectedYm = document.getElementById('monthSelector').value;
+            setupFaturaMonthSelector();
 
-            // Define o ano e mês de referência atual (com base no seletor do topo ou data atual)
-            let refYear, refMonth;
-            if (selectedYm && selectedYm !== 'all') {
-                const [y, m] = selectedYm.split('-');
-                refYear = parseInt(y);
-                refMonth = parseInt(m);
-            } else {
-                const now = new Date();
-                refYear = now.getFullYear();
-                refMonth = now.getMonth();
-            }
+            const monthSelector = document.getElementById('faturaMonthSelector');
+            if (!monthSelector.value) return;
+
+            const [targetYear, targetMonth] = monthSelector.value.split('-').map(Number);
+
+            // Mês subsequente no calendário para cálculo da previsão
+            const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
+            const nextYear = nextMonthDate.getFullYear();
+            const nextMonth = nextMonthDate.getMonth();
 
             const despesasCartao = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
 
-            let faturaAtualVal = 0;
-            let faturaProximaVal = 0;
-            let totalRestanteGeral = 0;
+            let totalFaturaSelecionada = 0;
+            let totalFaturaSeguinte = 0;
+            let totalRestanteFuturo = 0;
 
-            const processedItems = despesasCartao.map(item => {
+            const itemsNoMes = [];
+
+            despesasCartao.forEach(item => {
                 const pDate = new Date(item.rawDate + 'T12:00:00');
-                let pYear = pDate.getFullYear();
-                let pMonth = pDate.getMonth();
-
-                // Se marcado para Próxima Fatura na compra, a primeira parcela inicia 1 mês após a compra
-                if (item.faturaDestino === 'PROXIMA') {
-                    pMonth += 1;
-                    if (pMonth > 11) {
-                        pMonth = 0;
-                        pYear += 1;
-                    }
-                }
+                const pYear = pDate.getFullYear();
+                const pMonth = pDate.getMonth();
 
                 let initAtual = 1, total = 1;
                 let isParcelado = false;
@@ -2009,101 +2016,65 @@
                     isParcelado = true;
                 }
 
-                // Diferença de meses da data inicial da fatura para o mês selecionado (Fatura Atual)
-                const deltaAtual = (refYear * 12 + refMonth) - (pYear * 12 + pMonth);
-                const deltaProxima = deltaAtual + 1;
+                // Quantidade de meses entre a data de realização da compra e a fatura selecionada
+                const deltaTarget = (targetYear * 12 + targetMonth) - (pYear * 12 + pMonth);
+                const deltaNext = (nextYear * 12 + nextMonth) - (pYear * 12 + pMonth);
 
-                // Cálculo para Fatura Atual
-                let instAtualNum = initAtual + deltaAtual;
-                let isActiveAtual = false;
-                if (isRecorrente) {
-                    isActiveAtual = deltaAtual >= 0;
-                } else {
-                    isActiveAtual = instAtualNum >= 1 && instAtualNum <= total;
+                const parcelaNoMesTarget = initAtual + deltaTarget;
+                const parcelaNoMesNext = initAtual + deltaNext;
+
+                const pertenceNoMesTarget = isRecorrente ? (deltaTarget >= 0) : (parcelaNoMesTarget >= 1 && parcelaNoMesTarget <= total);
+                const pertenceNoMesNext = isRecorrente ? (deltaNext >= 0) : (parcelaNoMesNext >= 1 && parcelaNoMesNext <= total);
+
+                if (pertenceNoMesTarget) {
+                    totalFaturaSelecionada += item.value;
+                    itemsNoMes.push({
+                        ...item,
+                        parcelaExibida: isRecorrente ? '🔄 Recorrente' : (isParcelado ? `${parcelaNoMesTarget}/${total}` : 'À vista'),
+                        restanteAposEsteMes: isRecorrente ? 0 : Math.max(0, total - parcelaNoMesTarget) * item.value
+                    });
                 }
 
-                // Cálculo para Próxima Fatura
-                let instProximaNum = initAtual + deltaProxima;
-                let isActiveProxima = false;
-                if (isRecorrente) {
-                    isActiveProxima = deltaProxima >= 0;
-                } else {
-                    isActiveProxima = instProximaNum >= 1 && instProximaNum <= total;
+                if (pertenceNoMesNext) {
+                    totalFaturaSeguinte += item.value;
                 }
 
-                // Soma dos Valores dos KPIs
-                if (isActiveAtual) faturaAtualVal += item.value;
-                if (isActiveProxima) faturaProximaVal += item.value;
-
-                // Cálculo das parcelas e valor restante a partir do mês atual
-                let remainingInstallments = 0;
+                // Cálculo das pendências para faturas posteriores a este mês
                 if (!isRecorrente) {
-                    if (instAtualNum <= 0) {
-                        remainingInstallments = total;
-                    } else if (instAtualNum <= total) {
-                        remainingInstallments = total - instAtualNum + 1;
-                    } else {
-                        remainingInstallments = 0; // Já encerrada no passado!
+                    let parcelasAposEsteMes = 0;
+                    if (deltaTarget < 0) {
+                        parcelasAposEsteMes = total; // Compra futura
+                    } else if (parcelaNoMesTarget <= total) {
+                        parcelasAposEsteMes = Math.max(0, total - parcelaNoMesTarget);
                     }
+                    totalRestanteFuturo += (parcelasAposEsteMes * item.value);
                 }
-                const valorRestante = isRecorrente ? 0 : (item.value * remainingInstallments);
-                totalRestanteGeral += valorRestante;
-
-                const isQuitadoEsteMes = (!isRecorrente) && isParcelado && (instAtualNum === total);
-
-                return {
-                    ...item,
-                    initAtual,
-                    total,
-                    isParcelado,
-                    isRecorrente,
-                    instAtualNum,
-                    instProximaNum,
-                    isActiveAtual,
-                    isActiveProxima,
-                    remainingInstallments,
-                    valorRestante,
-                    isQuitadoEsteMes
-                };
             });
 
-            document.getElementById('kpi-fatura-atual').innerText = fmt(faturaAtualVal);
-            document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
-            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
+            // Atualização dos títulos e valores dos KPIs
+            document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
+            document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
 
-            // Filtragem da lista com base na escolha do dropdown
-            let filteredList = [];
-            if (statusFilter === 'atual') {
-                filteredList = processedItems.filter(i => i.isActiveAtual);
-            } else if (statusFilter === 'proxima') {
-                filteredList = processedItems.filter(i => i.isActiveProxima);
-            } else if (statusFilter === 'open') {
-                filteredList = processedItems.filter(i => i.isRecorrente ? i.isActiveAtual : i.remainingInstallments > 0);
-            } else if (statusFilter === 'recorrente') {
-                filteredList = processedItems.filter(i => i.isRecorrente && i.isActiveAtual);
-            } else if (statusFilter === 'done') {
-                filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
-            } else {
-                filteredList = processedItems;
-            }
+            document.getElementById('kpi-fatura-atual').innerText = fmt(totalFaturaSelecionada);
+            document.getElementById('kpi-fatura-proxima').innerText = fmt(totalFaturaSeguinte);
+            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteFuturo);
 
-            // Cards de Resumo dos Cartões
+            // Totais por Cartão do Mês Selecionado
             const cartoesMap = {};
-            filteredList.forEach(item => {
+            itemsNoMes.forEach(item => {
                 const nomeCartao = item.cartao || 'Cartão';
                 cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
             });
 
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';
-            const totalGeralCartoes = Object.values(cartoesMap).reduce((a, b) => a + b, 0);
 
             if (Object.keys(cartoesMap).length === 0) {
-                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto registrado para o filtro selecionado.</div>';
+                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto registrado nesta fatura.</div>';
             } else {
                 Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
                     const val = cartoesMap[nome];
-                    const pct = totalGeralCartoes > 0 ? ((val / totalGeralCartoes) * 100).toFixed(1) : 0;
+                    const pct = totalFaturaSelecionada > 0 ? ((val / totalFaturaSelecionada) * 100).toFixed(1) : 0;
                     
                     const card = document.createElement('div');
                     card.className = 'kpi-card';
@@ -2123,42 +2094,28 @@
                 });
             }
 
-            filteredList.sort((a, b) => b.date - a.date);
+            itemsNoMes.sort((a, b) => b.date - a.date);
 
             const tbody = document.getElementById('parcelasTableBody');
             tbody.innerHTML = '';
 
-            if (filteredList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
+            if (itemsNoMes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento para a fatura de ${monthNamesBR[targetMonth]}/${targetYear}.</td></tr>`;
                 return;
             }
 
-            filteredList.forEach(item => {
+            itemsNoMes.forEach(item => {
                 const tr = document.createElement('tr');
-                
-                // Exibe a parcela calculada para o contexto selecionado (Atual vs Próxima)
-                let activeInstNum = (statusFilter === 'proxima') ? item.instProximaNum : item.instAtualNum;
-                let progressoTexto = item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${activeInstNum}/${item.total}` : (item.parcela || 'À vista'));
-                
-                let faturaTag = '<span class="tag-status tag-open">📅 Fatura Atual</span>';
-                if (item.isRecorrente) {
-                    faturaTag = '<span class="tag-status tag-recorrente">🔄 Assinatura</span>';
-                } else if (statusFilter === 'proxima' || (item.faturaDestino === 'PROXIMA' && !item.isActiveAtual)) {
-                    faturaTag = '<span class="tag-status tag-open" style="background:#fef3c7; color:#b45309;">⏩ Próxima Fatura</span>';
-                } else if (item.isQuitadoEsteMes) {
-                    faturaTag = '<span class="tag-status tag-quitado">🎉 Quitado Este Mês</span>';
-                }
-
-                let valorRestanteTexto = item.isRecorrente ? '♾️ Contínuo' : fmt(item.valorRestante);
+                const restanteTexto = item.parcela === 'RECORRENTE' ? '♾️ Contínuo' : fmt(item.restanteAposEsteMes);
 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.desc}</td>
                     <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${item.cartao || 'Cartão'}</span></td>
-                    <td>${faturaTag}</td>
-                    <td style="font-weight:600;">${progressoTexto}</td>
+                    <td><span class="tag-status tag-open">📅 Fatura ${monthNamesBR[targetMonth]}/${targetYear}</span></td>
+                    <td style="font-weight:600;">${item.parcelaExibida}</td>
                     <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
-                    <td style="font-weight:700; color: ${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${valorRestanteTexto}</td>
+                    <td style="font-weight:700; color:${item.parcela === 'RECORRENTE' ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
                     </td>

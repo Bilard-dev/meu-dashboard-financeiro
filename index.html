@@ -182,6 +182,7 @@
 
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
+            <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
             <button class="tab-btn" onclick="switchTab('metas')">🎯 Metas & Limites</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
@@ -212,7 +213,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                         <div class="chart-title" style="margin-bottom:0;">Histórico do Período Selecionado</div>
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar por texto/pessoa..." style="width: 220px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
+                            <input type="text" id="searchInput" class="input-field" placeholder="🔍 Buscar por texto/TAG..." style="width: 220px; padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="applyExtratoFilters()">
                             <select id="typeFilterSelector" class="reset-btn" style="padding: 0.45rem 0.8rem;" onchange="applyExtratoFilters()">
                                 <option value="ALL">Todos os Tipos</option>
                                 <option value="RECEITA">Receitas</option>
@@ -249,7 +250,65 @@
                 </div>
             </div>
 
-            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS COM FILTRO GLOBAL DA ABA -->
+            <!-- NOVA ABA: ANÁLISE DE GASTOS AVANÇADA POR TAG E MÚLTIPLOS FILTROS -->
+            <div id="tab-analise" class="tab-content">
+                <div class="chart-card">
+                    <h2 class="chart-title" style="font-size: 1.2rem;">📊 Painel Avançado de Análise Multi-Filtros</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Filtre seu histórico completo por período, categorias, TAGs customizadas e meios de pagamento.</p>
+                    
+                    <div class="form-grid" style="margin-bottom: 1rem;">
+                        <div class="input-group">
+                            <label>Filtrar Período</label>
+                            <select id="an_mes" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todo o Histórico (Todos os Meses)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Filtrar Categoria</label>
+                            <select id="an_categoria" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todas as Categorias</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Filtrar TAG</label>
+                            <select id="an_tag" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todas as TAGs</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Forma de Pagamento / Meio</label>
+                            <select id="an_pagamento" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-container">
+                    <div class="kpi-card"><div><div class="kpi-title">Total Filtrado</div><div class="kpi-value" id="an-kpi-total" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Média por Lançamento</div><div class="kpi-value" id="an-kpi-media">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Quantidade de Transações</div><div class="kpi-value" id="an-kpi-qtd">0</div></div></div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Resultado da Análise</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição / TAGs</th>
+                                <th>Categoria / Sub</th>
+                                <th>Pagamento / Cartão</th>
+                                <th>Valor</th>
+                                <th style="text-align:center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analiseTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS COM FILTRO GLOBAL CORRIGIDO -->
             <div id="tab-parcelas" class="tab-content">
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Fatura Salário Deste Mês</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
@@ -435,7 +494,7 @@
                 </div>
             </div>
 
-            <!-- ABA 6: FORMULÁRIO COMPLETO COM MODO BATCH E SELEÇÃO DE MEMBRO DA FAMÍLIA -->
+            <!-- ABA 6: FORMULÁRIO COMPLETO COM MODO BATCH E CAMPO DE TAGS -->
             <div id="tab-novo" class="tab-content">
                 <div class="chart-card">
                     <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
@@ -488,16 +547,10 @@
                                 </select>
                             </div>
 
-                            <!-- CAMPO DE MEMBRO DA FAMÍLIA (EXIBIDO APENAS PARA USUÁRIOS AUTORIZADOS) -->
-                            <div class="input-group" id="familyMemberGroup" style="display: none;">
-                                <label>👤 Beneficiário / Responsável</label>
-                                <select id="i_membro_familia" class="input-field">
-                                    <option value="Família (Geral)" selected>🏠 Família (Geral)</option>
-                                    <option value="Pai">👨 Pai</option>
-                                    <option value="Mãe">👩 Mãe</option>
-                                    <option value="Filho">👦 Filho</option>
-                                    <option value="Filha">👧 Filha</option>
-                                </select>
+                            <!-- CAMPO DE TAGS PARA TODOS OS USUÁRIOS -->
+                            <div class="input-group">
+                                <label>🏷️ TAGs (Opcional - Separe por vírgulas)</label>
+                                <input type="text" id="i_tags" class="input-field" placeholder="Ex: Mãe, Viagem, Trabalho">
                             </div>
 
                             <div class="input-group">
@@ -545,7 +598,7 @@
                             </div>
                         </div>
 
-                        <!-- BOTOES DE MODO BATCH (BOTÃO VERDE DE LANÇAR OUTRO) -->
+                        <!-- BOTOES DE MODO BATCH -->
                         <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button type="submit" class="btn-primary" id="btnSalvar" style="flex:1;">Salvar e Ir pro Resumo</button>
                             <button type="button" class="btn-success" onclick="addOrUpdateTransaction(event, true)" style="flex:1;">🟢 Salvar e Lançar Outro</button>
@@ -616,16 +669,9 @@
                 <select id="m_subcategoria" class="input-field"><option value="">-- Selecione a Categoria Primeiro --</option></select>
             </div>
 
-            <!-- CAMPO MOBILE DE MEMBRO DA FAMÍLIA -->
-            <div class="input-group" id="mobileFamilyMemberGroup" style="display: none;">
-                <label>👤 Beneficiário / Responsável</label>
-                <select id="m_membro_familia" class="input-field">
-                    <option value="Família (Geral)" selected>🏠 Família (Geral)</option>
-                    <option value="Pai">👨 Pai</option>
-                    <option value="Mãe">👩 Mãe</option>
-                    <option value="Filho">👦 Filho</option>
-                    <option value="Filha">👧 Filha</option>
-                </select>
+            <div class="input-group">
+                <label>🏷️ TAGs (Separe por vírgulas)</label>
+                <input type="text" id="m_tags" class="input-field" placeholder="Ex: Mãe, Viagem">
             </div>
 
             <div class="input-group">
@@ -676,8 +722,6 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const EMAILS_AUTORIZADOS = ['fjbilard@gmail.com'];
 
         let currentUser = null;
         let rawSupabaseData = [];
@@ -716,13 +760,6 @@
                 currentUser = session.user;
                 document.getElementById('loginView').style.display = 'none';
                 document.getElementById('appView').style.display = 'block';
-
-                if (currentUser.email && EMAILS_AUTORIZADOS.includes(currentUser.email.toLowerCase())) {
-                    const familyGroup = document.getElementById('familyMemberGroup');
-                    const mobileFamilyGroup = document.getElementById('mobileFamilyMemberGroup');
-                    if (familyGroup) familyGroup.style.display = 'block';
-                    if (mobileFamilyGroup) mobileFamilyGroup.style.display = 'block';
-                }
 
                 loadDashboardData();
                 loadSharedData();
@@ -914,11 +951,20 @@
             }
         }
 
+        function extractTagsFromDesc(desc) {
+            const match = desc.match(/\[(.*?)\]/);
+            if (!match) return [];
+            return match[1].split(',').map(t => t.trim()).filter(t => t.length > 0);
+        }
+
         function filterDataByActiveProfile() {
             let filteredRows = rawSupabaseData.filter(d => d.user_id === currentUser.id);
 
             globalData = filteredRows.map(row => {
                 const d = new Date(row.data + 'T12:00:00');
+                const rawDesc = row.descricao || '';
+                const tags = extractTagsFromDesc(rawDesc);
+
                 return {
                     id: row.id,
                     user_id: row.user_id,
@@ -926,7 +972,8 @@
                     rawTipo: row.tipo || 'Despesa',
                     date: d,
                     rawDate: row.data,
-                    desc: row.descricao || '',
+                    desc: rawDesc,
+                    tags: tags,
                     custo: row.custo || '',
                     category: row.categoria || 'Outros',
                     subCat: row.subcategoria || '',
@@ -1061,25 +1108,30 @@
             document.querySelectorAll('.m-card-field').forEach(el => el.style.display = isCard ? 'block' : 'none');
         }
 
+        function buildDescWithTags(baseDesc, tagsInput) {
+            let cleanDesc = baseDesc.replace(/\[(.*?)\]/, '').trim();
+            if (!tagsInput || tagsInput.trim() === '') return cleanDesc;
+            
+            const formattedTags = tagsInput.split(',')
+                .map(t => t.trim())
+                .filter(t => t.length > 0)
+                .join(', ');
+
+            return formattedTags ? `[${formattedTags}] ${cleanDesc}` : cleanDesc;
+        }
+
         async function saveMobileQuickTransaction(e, reset = false) {
             if (e) e.preventDefault();
 
             const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
             const mParcelaSel = document.getElementById('m_parcela_select').value;
-
-            const mFamiliaEl = document.getElementById('m_membro_familia');
-            const mFamiliaVal = (mFamiliaEl && mFamiliaEl.offsetParent !== null) ? mFamiliaEl.value : 'Família (Geral)';
-            
-            let descBase = document.getElementById('m_descricao').value;
-            if (mFamiliaVal !== 'Família (Geral)' && !descBase.includes(`[${mFamiliaVal}]`)) {
-                descBase = `${descBase} [${mFamiliaVal}]`;
-            }
+            const descWithTags = buildDescWithTags(document.getElementById('m_descricao').value, document.getElementById('m_tags').value);
 
             const payload = {
                 user_id: currentUser.id,
                 tipo: 'Despesa',
                 data: document.getElementById('m_data').value,
-                descricao: descBase,
+                descricao: descWithTags,
                 valor: parseFloat(document.getElementById('m_valor').value),
                 pagamento: document.getElementById('m_pagamento').value,
                 cartao: isCard ? document.getElementById('m_cartao').value : '',
@@ -1098,6 +1150,7 @@
                 if (reset) {
                     document.getElementById('m_descricao').value = '';
                     document.getElementById('m_valor').value = '';
+                    document.getElementById('m_tags').value = '';
                 } else {
                     closeMobileQuickView();
                 }
@@ -1332,6 +1385,7 @@
             if (tabId === 'resumo') { document.getElementById('filterContainer').style.visibility = 'visible'; } 
             else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
             
+            if(tabId === 'analise') initAnaliseTab();
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
@@ -1378,19 +1432,13 @@
                 }
             }
 
-            const membroEl = document.getElementById('i_membro_familia');
-            const membroVal = (membroEl && membroEl.offsetParent !== null) ? membroEl.value : 'Família (Geral)';
-            
-            let descBase = document.getElementById('i_descricao').value;
-            if (membroVal !== 'Família (Geral)' && !descBase.includes(`[${membroVal}]`)) {
-                descBase = `${descBase} [${membroVal}]`;
-            }
+            const descWithTags = buildDescWithTags(document.getElementById('i_descricao').value, document.getElementById('i_tags').value);
 
             const payload = {
                 user_id: currentUser.id,
                 tipo: tipo,
                 data: document.getElementById('i_data').value,
-                descricao: descBase,
+                descricao: descWithTags,
                 valor: parseFloat(document.getElementById('i_valor').value),
                 pagamento: pagamento,
                 cartao: isCard ? document.getElementById('i_cartao').value : '',
@@ -1416,6 +1464,7 @@
                 if (isBatch) {
                     document.getElementById('i_descricao').value = '';
                     document.getElementById('i_valor').value = '';
+                    document.getElementById('i_tags').value = '';
                     btn.innerText = 'Salvar e Ir pro Resumo';
                 } else {
                     cancelEdit();
@@ -1432,7 +1481,10 @@
             document.getElementById('edit_id').value = item.id;
             document.getElementById('i_tipo').value = item.rawTipo;
             document.getElementById('i_data').value = item.rawDate;
-            document.getElementById('i_descricao').value = item.desc;
+            
+            document.getElementById('i_descricao').value = item.desc.replace(/\[(.*?)\]/, '').trim();
+            document.getElementById('i_tags').value = item.tags.join(', ');
+            
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
@@ -1512,7 +1564,8 @@
                     normalizeText(d.category).includes(searchText) ||
                     normalizeText(d.subCat).includes(searchText) ||
                     normalizeText(d.pagamento).includes(searchText) ||
-                    normalizeText(d.cartao).includes(searchText)
+                    normalizeText(d.cartao).includes(searchText) ||
+                    d.tags.some(t => normalizeText(t).includes(searchText))
                 );
             }
 
@@ -1551,6 +1604,103 @@
                 opt.value = sub;
                 opt.textContent = sub;
                 select.appendChild(opt);
+            });
+        }
+
+        function initAnaliseTab() {
+            const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            
+            const selMes = document.getElementById('an_mes');
+            selMes.innerHTML = '<option value="all">Todo o Histórico (Todos os Meses)</option>';
+            const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
+            activeMonths.forEach(ym => {
+                const [y, m] = ym.split('-');
+                const opt = document.createElement('option');
+                opt.value = ym; opt.textContent = `${months[m]} ${y}`;
+                selMes.appendChild(opt);
+            });
+
+            const selCat = document.getElementById('an_categoria');
+            selCat.innerHTML = '<option value="all">Todas as Categorias</option>';
+            getFrequencySortedOptions(globalData.map(d => d.category)).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                selCat.appendChild(opt);
+            });
+
+            const selTag = document.getElementById('an_tag');
+            selTag.innerHTML = '<option value="all">Todas as TAGs</option>';
+            const allTags = globalData.flatMap(d => d.tags);
+            getFrequencySortedOptions(allTags).forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                selTag.appendChild(opt);
+            });
+
+            const selPay = document.getElementById('an_pagamento');
+            selPay.innerHTML = '<option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>';
+            const allPays = globalData.map(d => d.cartao || d.pagamento);
+            getFrequencySortedOptions(allPays).forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p; opt.textContent = p;
+                selPay.appendChild(opt);
+            });
+
+            runAnaliseGastos();
+        }
+
+        function runAnaliseGastos() {
+            const mesVal = document.getElementById('an_mes').value;
+            const catVal = document.getElementById('an_categoria').value;
+            const tagVal = document.getElementById('an_tag').value;
+            const payVal = document.getElementById('an_pagamento').value;
+
+            let filtered = globalData.filter(d => d.type === 'DESPESA');
+
+            if (mesVal !== 'all') {
+                filtered = filtered.filter(d => `${d.year}-${d.month}` === mesVal);
+            }
+            if (catVal !== 'all') {
+                filtered = filtered.filter(d => d.category === catVal);
+            }
+            if (tagVal !== 'all') {
+                filtered = filtered.filter(d => d.tags.includes(tagVal));
+            }
+            if (payVal !== 'all') {
+                filtered = filtered.filter(d => (d.cartao === payVal) || (d.pagamento === payVal));
+            }
+
+            const total = filtered.reduce((a, b) => a + b.value, 0);
+            const qtd = filtered.length;
+            const media = qtd > 0 ? total / qtd : 0;
+
+            document.getElementById('an-kpi-total').innerText = fmt(total);
+            document.getElementById('an-kpi-media').innerText = fmt(media);
+            document.getElementById('an-kpi-qtd').innerText = qtd;
+
+            const tbody = document.getElementById('analiseTableBody');
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum gasto encontrado para a combinação de filtros.</td></tr>`;
+                return;
+            }
+
+            filtered.sort((a,b) => b.date - a.date).forEach(item => {
+                const tr = document.createElement('tr');
+                let meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
+
+                tr.innerHTML = `
+                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td style="font-weight:600;">${item.desc}</td>
+                    <td>${item.category} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+item.subCat+')</small>' : ''}</td>
+                    <td><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
+                    <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
+                    <td style="text-align: center;">
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
@@ -1813,15 +1963,12 @@
             });
         }
 
-        /* LÓGICA ATUALIZADA: O FILTRO DA FATURA CONTROLA OS CARDS DOS CARTÕES E A TABELA */
         function renderParcelasTab() {
-            const selectedYm = document.getElementById('monthSelector').value;
             const statusFilter = document.getElementById('statusParcelaSelector').value;
 
-            const despesasCartao = selectedYm === 'all' 
-                ? globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'))
-                : globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito') && `${d.year}-${d.month}` === selectedYm);
-            
+            // Busca todas as despesas no cartão ignorando a trava do mês do topo para capturar compras ativas/parceladas de qualquer mês
+            const despesasCartao = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
+
             let faturaAtualVal = 0;
             let faturaProximaVal = 0;
             let totalRestanteGeral = 0;
@@ -1856,6 +2003,9 @@
 
                 totalRestanteGeral += valorRestante;
 
+                // Define se este lançamento compõe a cobrança da próxima fatura
+                const pertenceProximaFatura = isProximaFatura || isRecorrente || (isParcelado && atual < total);
+
                 return {
                     ...item,
                     atual,
@@ -1863,6 +2013,7 @@
                     isParcelado,
                     isRecorrente,
                     isProximaFatura,
+                    pertenceProximaFatura,
                     parcelasRestantes,
                     valorParcela,
                     valorRestante,
@@ -1874,12 +2025,12 @@
             document.getElementById('kpi-fatura-proxima').innerText = fmt(faturaProximaVal);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteGeral);
 
-            // FILTRAGEM DA LISTA BASEADA NO SELETOR DA FATURA
+            // Aplicar a filtragem escolhida no dropdown
             let filteredList = processedItems;
             if (statusFilter === 'atual') {
                 filteredList = processedItems.filter(i => !i.isProximaFatura);
             } else if (statusFilter === 'proxima') {
-                filteredList = processedItems.filter(i => i.isProximaFatura);
+                filteredList = processedItems.filter(i => i.pertenceProximaFatura);
             } else if (statusFilter === 'open') {
                 filteredList = processedItems.filter(i => i.parcelasRestantes > 0 || i.isRecorrente || i.isProximaFatura);
             } else if (statusFilter === 'recorrente') {
@@ -1888,7 +2039,7 @@
                 filteredList = processedItems.filter(i => i.isQuitadoEsteMes);
             }
 
-            // CARDS DOS CARTÕES - AGORA RESPEITAM RIGOROSAMENTE O FILTRO DA FATURA
+            // CARDS DOS CARTÕES - RESPEITAM RIGOROSAMENTE O FILTRO DA FATURA
             const cartoesMap = {};
             filteredList.forEach(item => {
                 const nomeCartao = item.cartao || 'Cartão';

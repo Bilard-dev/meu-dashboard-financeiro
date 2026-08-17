@@ -1995,7 +1995,7 @@
         }
 
         /* ==========================================================
-           LÓGICA DE FATURAS COM SISTEMA DE SEMENTES E BLINDAGEM DE DUPLICATAS
+           LÓGICA DE FATURAS COM SISTEMA DE SEMENTES E BOTÃO DE EXCLUSÃO
            ========================================================== */
         function renderParcelasTab() {
             setupFaturaMonthSelector();
@@ -2175,8 +2175,9 @@
                     <td style="font-weight:600;">${item.parcelaExibida}</td>
                     <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
                     <td style="font-weight:700; color:${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
-                    <td style="text-align: center;">
-                        <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(tr);

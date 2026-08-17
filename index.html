@@ -563,6 +563,14 @@
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
+                                <label>Destino da Fatura</label>
+                                <select id="i_fatura_destino" class="input-field">
+                                    <option value="ATUAL" selected>Fatura Atual (Salário deste mês)</option>
+                                    <option value="PROXIMA">Próxima Fatura (Salário do próximo mês)</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group card-only-field" style="display: none;">
                                 <label>Parcela / Recorrência</label>
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
                                     <option value="À vista">À vista / Sem parcela</option>
@@ -670,6 +678,14 @@
             <div class="input-group m-card-field" style="display: none;">
                 <label>Cartão Utilizado</label>
                 <select id="m_cartao" class="input-field"><option value="">-- Selecione --</option></select>
+            </div>
+
+            <div class="input-group m-card-field" style="display: none;">
+                <label>Fatura</label>
+                <select id="m_fatura_destino" class="input-field">
+                    <option value="ATUAL" selected>Fatura Atual (Deste Mês)</option>
+                    <option value="PROXIMA">Próxima Fatura (Mês Que Vem)</option>
+                </select>
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
@@ -899,7 +915,6 @@
                 document.getElementById('dashboard').style.display = 'block';
 
                 setupMonthSelector();
-                setupFaturaMonthSelector();
                 setupInvestSelector();
                 populateFormDropdowns();
                 renderTopCategoryChips();
@@ -959,6 +974,7 @@
                     pagamento: row.pagamento || '',
                     cartao: row.cartao || '',
                     parcela: row.parcela || '',
+                    faturaDestino: row.fatura_destino || 'ATUAL', // Garante que foi extraído corretamente
                     month: d.getMonth(),
                     year: d.getFullYear()
                 };
@@ -1112,6 +1128,7 @@
                 valor: parseFloat(document.getElementById('m_valor').value),
                 pagamento: document.getElementById('m_pagamento').value,
                 cartao: isCard ? document.getElementById('m_cartao').value : '',
+                fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
                 parcela: isCard ? (mParcelaSel === 'RECORRENTE' ? 'RECORRENTE' : '') : '',
                 categoria: document.getElementById('m_categoria').value,
                 subcategoria: document.getElementById('m_subcategoria').value || ''
@@ -1362,7 +1379,7 @@
             else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
             
             if(tabId === 'analise') initAnaliseTab();
-            if(tabId === 'parcelas') renderParcelasTab();
+            if(tabId === 'parcelas') renderParcelasTab(); // Gatilho forte para o recalculo
             if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
             if(tabId === 'gerenciar-listas') renderManageLists();
@@ -1418,6 +1435,7 @@
                 valor: parseFloat(document.getElementById('i_valor').value),
                 pagamento: pagamento,
                 cartao: isCard ? document.getElementById('i_cartao').value : '',
+                fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
                 parcela: valorParcelaFinal,
                 categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
                 subcategoria: document.getElementById('i_subcategoria').value || '',
@@ -1463,6 +1481,7 @@
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
+            document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
 
             const pSel = document.getElementById('i_parcela_select');
             const pCustom = document.getElementById('i_parcela_custom');
@@ -1576,13 +1595,11 @@
             const now = new Date();
             const currentYmKey = `${now.getFullYear()}-${now.getMonth()}`;
 
-            // Coleta meses reais que tem compras ou gera projeções para até 12 meses no futuro
             const monthKeysSet = new Set();
             globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito')).forEach(d => {
                 monthKeysSet.add(`${d.year}-${d.month}`);
             });
 
-            // Adiciona meses futuros no calendário
             for(let i = -3; i <= 12; i++) {
                 const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 monthKeysSet.add(`${futureDate.getFullYear()}-${futureDate.getMonth()}`);
@@ -1978,12 +1995,14 @@
             });
         }
 
-        /* LÓGICA DE FATURAS BASEADA EM MESES REAIS DO CALENDÁRIO */
+        /* ==========================================================
+           LÓGICA DE FATURAS COM SISTEMA DE SEMENTES PARA DEDUPLICAÇÃO
+           ========================================================== */
         function renderParcelasTab() {
             setupFaturaMonthSelector();
 
             const monthSelector = document.getElementById('faturaMonthSelector');
-            if (!monthSelector.value) return;
+            if (!monthSelector || !monthSelector.value) return;
 
             const [targetYear, targetMonth] = monthSelector.value.split('-').map(Number);
 
@@ -1994,11 +2013,11 @@
 
             const despesasCartao = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
 
-            let totalFaturaSelecionada = 0;
-            let totalFaturaSeguinte = 0;
-            let totalRestanteFuturo = 0;
-
-            const itemsNoMes = [];
+            // PASSO 1: DEDUPLICAÇÃO INTELIGENTE (Correção do Erro do Passado)
+            // Agrupa compras idênticas lançadas manualmente mês a mês, mantendo apenas 
+            // a "semente" original (primeiro lançamento) para projetar o futuro.
+            const purchasesMap = new Map();
+            const avistaItems = [];
 
             despesasCartao.forEach(item => {
                 const pDate = new Date(item.rawDate + 'T12:00:00');
@@ -2016,22 +2035,77 @@
                     isParcelado = true;
                 }
 
-                // Quantidade de meses entre a data de realização da compra e a fatura selecionada
+                if (isParcelado || isRecorrente) {
+                    const descNorm = item.desc.trim().toLowerCase();
+                    const cartaoNorm = item.cartao || '';
+
+                    let key = '';
+                    if (isRecorrente) {
+                        // Para assinaturas, agrupamos por nome, cartao e valor.
+                        key = `${descNorm}_${cartaoNorm}_${item.value}_REC`;
+                    } else {
+                        // Descobre o mês e ano "Original" da compra (Mês 1) para gerar uma chave única
+                        let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
+                        let baseMonth = pMonth + faturaOffset;
+                        let baseYear = pYear;
+                        
+                        let originalMonth = baseMonth - (initAtual - 1);
+                        let originalYear = baseYear;
+                        while (originalMonth < 0) {
+                            originalMonth += 12;
+                            originalYear -= 1;
+                        }
+                        key = `${descNorm}_${cartaoNorm}_${item.value}_${total}_${originalYear}_${originalMonth}`;
+                    }
+
+                    if (!purchasesMap.has(key)) {
+                        purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
+                    } else {
+                        const existing = purchasesMap.get(key);
+                        // Mantém sempre o lançamento mais antigo como SEMENTE da projeção
+                        if (pDate < existing.seedDate) {
+                            purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
+                        }
+                    }
+                } else {
+                    avistaItems.push({ ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
+                }
+            });
+
+            // Base filtrada sem as duplicações manuais do passado
+            const baseItemsToProject = [...Array.from(purchasesMap.values()), ...avistaItems];
+
+            // PASSO 2: CÁLCULO E PROJEÇÃO TEMPORAL PARA O MÊS SELECIONADO
+            let totalFaturaSelecionada = 0;
+            let totalFaturaSeguinte = 0;
+            let totalRestanteFuturo = 0;
+            const itemsNoMes = [];
+
+            baseItemsToProject.forEach(item => {
+                const pDate = new Date(item.rawDate + 'T12:00:00');
+                const pYear = pDate.getFullYear();
+                let pMonth = pDate.getMonth();
+
+                // Se for próxima fatura, a semente avança 1 mês no calendário base
+                if (item.faturaDestino === 'PROXIMA') {
+                    pMonth += 1;
+                }
+
                 const deltaTarget = (targetYear * 12 + targetMonth) - (pYear * 12 + pMonth);
                 const deltaNext = (nextYear * 12 + nextMonth) - (pYear * 12 + pMonth);
 
-                const parcelaNoMesTarget = initAtual + deltaTarget;
-                const parcelaNoMesNext = initAtual + deltaNext;
+                const parcelaNoMesTarget = item.initAtual + deltaTarget;
+                const parcelaNoMesNext = item.initAtual + deltaNext;
 
-                const pertenceNoMesTarget = isRecorrente ? (deltaTarget >= 0) : (parcelaNoMesTarget >= 1 && parcelaNoMesTarget <= total);
-                const pertenceNoMesNext = isRecorrente ? (deltaNext >= 0) : (parcelaNoMesNext >= 1 && parcelaNoMesNext <= total);
+                const pertenceNoMesTarget = item.isRecorrente ? (deltaTarget >= 0) : (parcelaNoMesTarget >= 1 && parcelaNoMesTarget <= item.total);
+                const pertenceNoMesNext = item.isRecorrente ? (deltaNext >= 0) : (parcelaNoMesNext >= 1 && parcelaNoMesNext <= item.total);
 
                 if (pertenceNoMesTarget) {
                     totalFaturaSelecionada += item.value;
                     itemsNoMes.push({
                         ...item,
-                        parcelaExibida: isRecorrente ? '🔄 Recorrente' : (isParcelado ? `${parcelaNoMesTarget}/${total}` : 'À vista'),
-                        restanteAposEsteMes: isRecorrente ? 0 : Math.max(0, total - parcelaNoMesTarget) * item.value
+                        parcelaExibida: item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${parcelaNoMesTarget}/${item.total}` : 'À vista'),
+                        restanteAposEsteMes: item.isRecorrente ? 0 : Math.max(0, item.total - parcelaNoMesTarget) * item.value
                     });
                 }
 
@@ -2039,19 +2113,18 @@
                     totalFaturaSeguinte += item.value;
                 }
 
-                // Cálculo das pendências para faturas posteriores a este mês
-                if (!isRecorrente) {
+                if (!item.isRecorrente) {
                     let parcelasAposEsteMes = 0;
                     if (deltaTarget < 0) {
-                        parcelasAposEsteMes = total; // Compra futura
-                    } else if (parcelaNoMesTarget <= total) {
-                        parcelasAposEsteMes = Math.max(0, total - parcelaNoMesTarget);
+                        parcelasAposEsteMes = item.total; // Nem começou a cobrar ainda
+                    } else if (parcelaNoMesTarget <= item.total) {
+                        parcelasAposEsteMes = Math.max(0, item.total - parcelaNoMesTarget);
                     }
                     totalRestanteFuturo += (parcelasAposEsteMes * item.value);
                 }
             });
 
-            // Atualização dos títulos e valores dos KPIs
+            // PASSO 3: RENDERIZAÇÃO NA TELA
             document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
             document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
 
@@ -2059,7 +2132,6 @@
             document.getElementById('kpi-fatura-proxima').innerText = fmt(totalFaturaSeguinte);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteFuturo);
 
-            // Totais por Cartão do Mês Selecionado
             const cartoesMap = {};
             itemsNoMes.forEach(item => {
                 const nomeCartao = item.cartao || 'Cartão';
@@ -2106,7 +2178,7 @@
 
             itemsNoMes.forEach(item => {
                 const tr = document.createElement('tr');
-                const restanteTexto = item.parcela === 'RECORRENTE' ? '♾️ Contínuo' : fmt(item.restanteAposEsteMes);
+                const restanteTexto = item.isRecorrente ? '♾️ Contínuo' : fmt(item.restanteAposEsteMes);
 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
@@ -2115,7 +2187,7 @@
                     <td><span class="tag-status tag-open">📅 Fatura ${monthNamesBR[targetMonth]}/${targetYear}</span></td>
                     <td style="font-weight:600;">${item.parcelaExibida}</td>
                     <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
-                    <td style="font-weight:700; color:${item.parcela === 'RECORRENTE' ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
+                    <td style="font-weight:700; color:${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar Lançamento" onclick="editTransaction('${item.id}')">✏️</button>
                     </td>

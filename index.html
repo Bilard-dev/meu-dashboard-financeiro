@@ -1087,12 +1087,12 @@
             subSelect.appendChild(newOpt);
         }
 
-        /* GERADOR DINÂMICO DE OPÇÕES DE FATURA (EX: AGOSTO 2026, SETEMBRO 2026...) */
-        function populateFaturaDropdown(selectElementId, selectedValue = 'ATUAL') {
+        /* GERADOR DINÂMICO DE OPÇÕES DE FATURA (100% DINÂMICO A PARTIR DA DATA DA COMPRA) */
+        function populateFaturaDropdown(selectElementId, selectedValue = null) {
             const selectEl = document.getElementById(selectElementId);
             if (!selectEl) return;
 
-            const currVal = selectEl.value || selectedValue;
+            const currVal = selectedValue || selectEl.value || 'ATUAL';
             selectEl.innerHTML = '';
 
             const dateInputId = selectElementId.startsWith('m_') ? 'm_data' : 'i_data';
@@ -1102,21 +1102,36 @@
             const baseYear = baseDate.getFullYear();
             const baseMonth = baseDate.getMonth();
 
-            // Opções relativas baseadas na data da compra selecionada
+            // 1. Opções relativas inteligentes (calculam o ano e mês exatos da compra e do mês seguinte)
+            const nextDate = new Date(baseYear, baseMonth + 1, 1);
             const options = [
                 { val: 'ATUAL', label: `Fatura do Mês da Compra (${monthNamesBR[baseMonth]}/${baseYear})` },
-                { val: 'PROXIMA', label: `Fatura do Mês Seguinte (${monthNamesBR[(baseMonth + 1) % 12]}/${baseMonth === 11 ? baseYear + 1 : baseYear})` }
+                { val: 'PROXIMA', label: `Fatura do Mês Seguinte (${monthNamesBR[nextDate.getMonth()]}/${nextDate.getFullYear()})` }
             ];
 
-            // Adiciona também opções absolutas para garantir liberdade total de lançamento (Agosto 2026 em diante)
-            for (let i = 0; i < 12; i++) {
-                const targetDate = new Date(2026, 7 + i, 1); // Começando de Agosto/2026 (Mês 7 no JS)
+            // 2. Opções absolutas dinâmicas (do mês anterior até 12 meses após a data da compra)
+            const addedKeys = new Set(['ATUAL', 'PROXIMA']);
+            for (let i = -1; i <= 12; i++) {
+                const targetDate = new Date(baseYear, baseMonth + i, 1);
                 const y = targetDate.getFullYear();
                 const m = targetDate.getMonth();
                 const key = `${y}-${m}`;
-                options.push({ val: key, label: `Fatura Específica: ${monthNamesBR[m]}/${y}` });
+                if (!addedKeys.has(key)) {
+                    addedKeys.add(key);
+                    options.push({ val: key, label: `Fatura Específica: ${monthNamesBR[m]}/${y}` });
+                }
             }
 
+            // 3. Proteção para edições antigas: se o registro já tinha uma fatura fora da faixa, mantém a opção
+            if (currVal && !addedKeys.has(currVal) && currVal.includes('-')) {
+                const [oldY, oldM] = currVal.split('-').map(Number);
+                if (!isNaN(oldY) && !isNaN(oldM) && monthNamesBR[oldM] !== undefined) {
+                    options.push({ val: currVal, label: `Fatura Específica: ${monthNamesBR[oldM]}/${oldY}` });
+                    addedKeys.add(currVal);
+                }
+            }
+
+            // 4. Preenchimento do seletor
             options.forEach(optData => {
                 const opt = document.createElement('option');
                 opt.value = optData.val;
@@ -1124,17 +1139,19 @@
                 selectEl.appendChild(opt);
             });
 
-            if (currVal) {
+            if (currVal && (addedKeys.has(currVal) || currVal === 'ATUAL' || currVal === 'PROXIMA')) {
                 selectEl.value = currVal;
+            } else {
+                selectEl.value = 'ATUAL';
             }
         }
 
-        function updateDynamicFaturaDropdown() {
-            populateFaturaDropdown('i_fatura_destino');
+        function updateDynamicFaturaDropdown(selectedValue = null) {
+            populateFaturaDropdown('i_fatura_destino', selectedValue);
         }
 
-        function updateMobileDynamicFaturaDropdown() {
-            populateFaturaDropdown('m_fatura_destino');
+        function updateMobileDynamicFaturaDropdown(selectedValue = null) {
+            populateFaturaDropdown('m_fatura_destino', selectedValue);
         }
 
         function openMobileQuickView() {
@@ -1444,11 +1461,11 @@
             if(tabId === 'novo') {
                 if(!document.getElementById('edit_id').value) {
                     document.getElementById('i_data').valueAsDate = new Date();
+                    populateFormDropdowns();
+                    renderTopCategoryChips();
+                    togglePaymentFields();
+                    updateDynamicFaturaDropdown();
                 }
-                populateFormDropdowns();
-                renderTopCategoryChips();
-                togglePaymentFields();
-                updateDynamicFaturaDropdown();
             }
         }
 
@@ -1537,8 +1554,7 @@
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
             
-            updateDynamicFaturaDropdown();
-            document.getElementById('i_fatura_destino').value = item.faturaDestino || 'ATUAL';
+            updateDynamicFaturaDropdown(item.faturaDestino || 'ATUAL');
 
             const pSel = document.getElementById('i_parcela_select');
             const pCustom = document.getElementById('i_parcela_custom');

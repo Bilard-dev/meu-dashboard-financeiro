@@ -82,6 +82,7 @@ async function setupAuthenticatedApp(page, {
                         id: item.id || `tx-created-${Date.now()}-${idx}`,
                         created_at: new Date().toISOString(),
                         gasto_compartilhado_id: item.gasto_compartilhado_id || null,
+                        grupo_parcela_id: item.grupo_parcela_id || null,
                         ...item
                     }));
                     inMemoryTransactions.unshift(...createdItems);

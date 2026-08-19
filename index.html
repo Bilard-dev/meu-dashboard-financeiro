@@ -967,6 +967,7 @@
                     id: row.id,
                     user_id: row.user_id,
                     gasto_compartilhado_id: row.gasto_compartilhado_id || null,
+                    grupo_parcela_id: row.grupo_parcela_id || null,
                     type: row.tipo ? row.tipo.toUpperCase() : 'DESPESA',
                     rawTipo: row.tipo || 'Despesa',
                     date: d,
@@ -1196,6 +1197,7 @@
 
             const payload = {
                 user_id: currentUser.id,
+                grupo_parcela_id: null,
                 tipo: 'Despesa',
                 data: document.getElementById('m_data').value,
                 descricao: descWithTags,
@@ -1392,6 +1394,7 @@
                 const lancamento = {
                     user_id: currentUser.id,
                     gasto_compartilhado_id: id,
+                    grupo_parcela_id: null,
                     tipo: 'Despesa',
                     data: conta.data,
                     descricao: `${conta.descricao} (Divisão)`,
@@ -1608,10 +1611,23 @@
                 }
             }
 
+            let grupoParcelaId = null;
+            if (editId) {
+                const existingItem = globalData.find(d => d.id === editId);
+                // Preserva estritamente o grupo_parcela_id já existente (ou null se for legado)
+                grupoParcelaId = existingItem ? (existingItem.grupo_parcela_id || null) : null;
+            } else {
+                // Nova transação: gera UUID exclusivo SOMENTE se for um parcelamento finito válido (ex: 1/3, 2/10)
+                if (isCard && valorParcelaFinal && /^\d+\/\d+$/.test(valorParcelaFinal)) {
+                    grupoParcelaId = crypto.randomUUID();
+                }
+            }
+
             const descWithTags = buildDescWithTags(document.getElementById('i_descricao').value, document.getElementById('i_tags').value);
 
             const payload = {
                 user_id: currentUser.id,
+                grupo_parcela_id: grupoParcelaId,
                 tipo: tipo,
                 data: document.getElementById('i_data').value,
                 descricao: descWithTags,
@@ -2220,9 +2236,13 @@
                     const safeValue = Math.round(item.value);
 
                     let key = '';
-                    if (isRecorrente) {
+                    if (item.grupo_parcela_id) {
+                        // Parcelamentos 2.0: Agrupamento exato e infalível por UUID
+                        key = `GROUP_${item.grupo_parcela_id}`;
+                    } else if (isRecorrente) {
                         key = `${safeDesc}_${safeCartao}_${safeValue}_REC`;
                     } else {
+                        // Legado: fallback para agrupamento heurístico anterior
                         let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
                         
                         // Tratamento caso a fatura destino seja uma chave fixa absoluta (ex: '2026-7' para Agosto 2026)

@@ -62,9 +62,25 @@ async function setupAuthenticatedApp(page, options = {}) {
                 if (method === 'POST') {
                     const postData = route.request().postDataJSON();
                     const newItems = Array.isArray(postData) ? postData : [postData];
+
+                    // Simulação da trava UNIQUE do PostgreSQL em gasto_compartilhado_id
+                    for (const item of newItems) {
+                        if (item.gasto_compartilhado_id) {
+                            const duplicate = inMemoryTransactions.some(t => t.gasto_compartilhado_id === item.gasto_compartilhado_id);
+                            if (duplicate) {
+                                return route.fulfill({
+                                    status: 409,
+                                    contentType: 'application/json',
+                                    body: JSON.stringify({ message: 'duplicate key value violates unique constraint "unique_transacao_por_gasto_compartilhado"' })
+                                });
+                            }
+                        }
+                    }
+
                     const createdItems = newItems.map((item, idx) => ({
                         id: item.id || `tx-created-${Date.now()}-${idx}`,
                         created_at: new Date().toISOString(),
+                        gasto_compartilhado_id: item.gasto_compartilhado_id || null,
                         ...item
                     }));
                     inMemoryTransactions.unshift(...createdItems);

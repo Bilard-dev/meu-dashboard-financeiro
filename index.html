@@ -964,6 +964,7 @@
                 return {
                     id: row.id,
                     user_id: row.user_id,
+                    gasto_compartilhado_id: row.gasto_compartilhado_id || null,
                     type: row.tipo ? row.tipo.toUpperCase() : 'DESPESA',
                     rawTipo: row.tipo || 'Despesa',
                     date: d,
@@ -1283,11 +1284,19 @@
             const conta = sharedData.find(s => s.id === id);
             if (!conta) return;
 
+            // Verificação defensiva no frontend: já existe transação vinculada?
+            const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
+            if (jaLancado) {
+                alert("Este gasto compartilhado já foi lançado no seu extrato!");
+                return;
+            }
+
             const targetVal = target === 'meu' ? conta.valor_meu : conta.valor_parceiro;
 
             if (confirm(`Lançar R$ ${targetVal.toFixed(2)} no seu painel?`)) {
                 const lancamento = {
                     user_id: currentUser.id,
+                    gasto_compartilhado_id: id,
                     tipo: 'Despesa',
                     data: conta.data,
                     descricao: `${conta.descricao} (Divisão)`,
@@ -1342,6 +1351,11 @@
                 totalMeu += valMeu;
                 totalParceiro += valParceiro;
 
+                const jaLancado = globalData.some(d => d.gasto_compartilhado_id === item.id);
+                const btnLancamento = jaLancado
+                    ? `<button class="reset-btn" disabled style="opacity:0.65; cursor:not-allowed; background:var(--bg-color); color:var(--success); border-color:var(--border);">✅ Já Lançado</button>`
+                    : `<button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Lançar Meu Valor</button>`;
+
                 tr.innerHTML = `
                     <td>${d.toLocaleDateString('pt-BR')}</td>
                     <td style="font-weight:600;">${item.descricao}</td>
@@ -1354,7 +1368,7 @@
                         </button>
                     </td>
                     <td style="text-align:center; white-space:nowrap;">
-                        <button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Lançar Meu Valor</button>
+                        ${btnLancamento}
                     </td>
                 `;
                 tbody.appendChild(tr);

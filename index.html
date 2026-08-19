@@ -404,8 +404,9 @@
                 </div>
 
                 <div class="chart-card">
-                    <h2 class="chart-title" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
+                    <h2 class="chart-title" id="sharedFormTitle" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
                     <form id="sharedForm" onsubmit="addSharedTransaction(event)">
+                        <input type="hidden" id="edit_shared_id" value="">
                         <div class="form-grid">
                             <div class="input-group">
                                 <label>Data *</label>
@@ -441,6 +442,7 @@
                         </div>
                         <div style="margin-top: 1.5rem;">
                             <button type="submit" class="btn-primary" id="btnSalvarShared">Salvar Gastos Divididos</button>
+                            <button type="button" class="btn-secondary" id="btnCancelarEdicaoShared" style="display:none; margin-left: 0.5rem;" onclick="cancelSharedEdit()">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -456,7 +458,7 @@
                                 <th>Sua Parte</th>
                                 <th>Parte Dela</th>
                                 <th>Status</th>
-                                <th style="text-align:center;">Ações de Lançamento</th>
+                                <th style="text-align:center;">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="sharedTableBody"></tbody>
@@ -1252,32 +1254,125 @@
         }
 
         async function addSharedTransaction(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const btn = document.getElementById('btnSalvarShared');
-            btn.innerText = 'Salvando...';
+            const editId = document.getElementById('edit_shared_id').value;
+            btn.innerText = editId ? 'Atualizando...' : 'Salvando...';
 
-            const novaConta = {
-                created_by: currentUser.id,
+            const payload = {
                 data: document.getElementById('s_data').value,
                 descricao: document.getElementById('s_descricao').value,
                 valor_total: parseFloat(document.getElementById('s_valor_total').value),
                 valor_meu: parseFloat(document.getElementById('s_valor_meu').value),
                 valor_parceiro: parseFloat(document.getElementById('s_valor_parceiro').value),
-                categoria: document.getElementById('s_categoria').value || 'Gastos Compartilhados',
-                pagamento: 'Compartilhado',
-                status: 'PENDENTE'
+                categoria: document.getElementById('s_categoria').value || 'Gastos Compartilhados'
             };
 
-            const { error } = await _supabase.from('gastos_compartilhados').insert([novaConta]);
+            let error = null;
+
+            if (editId) {
+                const res = await _supabase
+                    .from('gastos_compartilhados')
+                    .update(payload)
+                    .eq('id', editId)
+                    .eq('created_by', currentUser.id);
+                error = res.error;
+            } else {
+                const novaConta = {
+                    ...payload,
+                    created_by: currentUser.id,
+                    pagamento: 'Compartilhado',
+                    status: 'PENDENTE'
+                };
+                const res = await _supabase.from('gastos_compartilhados').insert([novaConta]);
+                error = res.error;
+            }
 
             if (error) {
                 alert("Erro ao salvar conta compartilhada: " + error.message);
             } else {
-                document.getElementById('sharedForm').reset();
-                alert("Conta compartilhada registrada com sucesso!");
+                alert(editId ? "Conta compartilhada atualizada com sucesso!" : "Conta compartilhada registrada com sucesso!");
+                cancelSharedEdit();
                 loadSharedData();
             }
-            btn.innerText = 'Salvar Gastos Divididos';
+            btn.innerText = editId ? 'Atualizar Conta' : 'Salvar Gastos Divididos';
+        }
+
+        function editSharedTransaction(id) {
+            const item = sharedData.find(s => s.id === id);
+            if (!item) return;
+
+            // Verificação: se já foi lançado, orienta o usuário e impede edição direta dos campos financeiros
+            const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
+            if (jaLancado) {
+                alert("Este gasto já foi lançado no seu extrato. Para alterar os dados financeiros, exclua primeiro a transação vinculada no extrato. Depois o gasto poderá ser editado e lançado novamente.");
+                return;
+            }
+
+            document.getElementById('edit_shared_id').value = item.id;
+            document.getElementById('s_data').value = item.data;
+            document.getElementById('s_descricao').value = item.descricao;
+            document.getElementById('s_valor_total').value = item.valor_total;
+            document.getElementById('s_valor_meu').value = item.valor_meu;
+            document.getElementById('s_valor_parceiro').value = item.valor_parceiro;
+            document.getElementById('s_categoria').value = item.categoria || '';
+
+            // Se for 50/50 exato, define regra como 50_50, senão CUSTOM
+            const vTotal = parseFloat(item.valor_total) || 0;
+            const vMeu = parseFloat(item.valor_meu) || 0;
+            if (vTotal > 0 && Math.abs(vMeu - (vTotal / 2)) < 0.01) {
+                document.getElementById('s_regra').value = '50_50';
+            } else {
+                document.getElementById('s_regra').value = 'CUSTOM';
+            }
+
+            const titleEl = document.getElementById('sharedFormTitle');
+            if (titleEl) titleEl.innerText = "Editar Conta Compartilhada";
+            const btnSalvar = document.getElementById('btnSalvarShared');
+            if (btnSalvar) btnSalvar.innerText = "Atualizar Conta";
+            const btnCancelar = document.getElementById('btnCancelarEdicaoShared');
+            if (btnCancelar) btnCancelar.style.display = "inline-block";
+
+            document.getElementById('sharedForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelSharedEdit() {
+            document.getElementById('edit_shared_id').value = "";
+            document.getElementById('sharedForm').reset();
+            document.getElementById('s_data').valueAsDate = new Date();
+            const titleEl = document.getElementById('sharedFormTitle');
+            if (titleEl) titleEl.innerText = "Lançar Conta Compartilhada (Divisão do Casal)";
+            const btnSalvar = document.getElementById('btnSalvarShared');
+            if (btnSalvar) btnSalvar.innerText = "Salvar Gastos Divididos";
+            const btnCancelar = document.getElementById('btnCancelarEdicaoShared');
+            if (btnCancelar) btnCancelar.style.display = "none";
+        }
+
+        async function deleteSharedTransaction(id) {
+            const item = sharedData.find(s => s.id === id);
+            if (!item) return;
+
+            const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
+            const msgConfirm = jaLancado
+                ? `Esta conta já possui uma despesa lançada no seu extrato.\n\nExcluir esta conta removerá apenas o controle de divisão.\nA despesa pessoal continuará no extrato.\n\nDeseja continuar?`
+                : `Deseja realmente excluir a conta compartilhada "${item.descricao}"?`;
+
+            if (confirm(msgConfirm)) {
+                const { error } = await _supabase
+                    .from('gastos_compartilhados')
+                    .delete()
+                    .eq('id', id)
+                    .eq('created_by', currentUser.id);
+
+                if (error) {
+                    alert("Erro ao excluir conta compartilhada: " + error.message);
+                } else {
+                    if (document.getElementById('edit_shared_id').value === id) {
+                        cancelSharedEdit();
+                    }
+                    manualSync();
+                }
+            }
         }
 
         async function pushSharedIndividual(id, target) {
@@ -1369,6 +1464,8 @@
                     </td>
                     <td style="text-align:center; white-space:nowrap;">
                         ${btnLancamento}
+                        <button class="action-icon-btn" title="Editar" onclick="editSharedTransaction('${item.id}')">✏️</button>
+                        <button class="action-icon-btn" title="Excluir" onclick="deleteSharedTransaction('${item.id}')">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(tr);

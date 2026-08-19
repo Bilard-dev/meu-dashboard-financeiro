@@ -12,14 +12,15 @@ const { mockUser, mockTransactions, mockSharedExpenses, mockBudgets } = require(
  * @param {boolean} [options.authenticated=true] - Se deve inicializar já logado
  * @param {Array} [options.transactions] - Lista inicial de transações mockadas
  * @param {Array} [options.sharedExpenses] - Lista inicial de gastos compartilhados
+ * @param {boolean} [options.autoAcceptDialogs=true] - Se deve aceitar automaticamente diálogos
  */
-async function setupAuthenticatedApp(page, options = {}) {
-    const {
-        authenticated = true,
-        transactions = JSON.parse(JSON.stringify(mockTransactions)),
-        sharedExpenses = JSON.parse(JSON.stringify(mockSharedExpenses)),
-        budgets = mockBudgets
-    } = options;
+async function setupAuthenticatedApp(page, {
+    authenticated = true,
+    transactions = JSON.parse(JSON.stringify(mockTransactions)),
+    sharedExpenses = JSON.parse(JSON.stringify(mockSharedExpenses)),
+    budgets = mockBudgets,
+    autoAcceptDialogs = true
+} = {}) {
 
     let inMemoryTransactions = [...transactions];
     let inMemoryShared = [...sharedExpenses];
@@ -166,6 +167,13 @@ async function setupAuthenticatedApp(page, options = {}) {
                     const targetId = match ? match[1] : null;
                     if (targetId) {
                         inMemoryShared = inMemoryShared.filter(s => s.id !== targetId);
+                        // Simulação de ON DELETE SET NULL (gasto_compartilhado_id) no Postgres:
+                        inMemoryTransactions = inMemoryTransactions.map(t => {
+                            if (t.gasto_compartilhado_id === targetId) {
+                                return { ...t, gasto_compartilhado_id: null };
+                            }
+                            return t;
+                        });
                     }
                     return route.fulfill({
                         status: 204,
@@ -184,9 +192,15 @@ async function setupAuthenticatedApp(page, options = {}) {
     });
 
     // 2. Manipulação de diálogos (alert/confirm/prompt) para não travar a execução
-    page.on('dialog', async (dialog) => {
-        await dialog.accept();
-    });
+    if (autoAcceptDialogs) {
+        page.on('dialog', async (dialog) => {
+            try {
+                await dialog.accept();
+            } catch (e) {
+                // Diálogo já tratado por listener local
+            }
+        });
+    }
 
     // 3. Injeção de sessão e dados no LocalStorage antes do carregamento da página
     if (authenticated) {

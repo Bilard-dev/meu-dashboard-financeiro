@@ -628,6 +628,26 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFLITO DE SINCRONIZAÇÃO DE METAS -->
+    <div id="metasConflictModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:500px; width:90%; max-height:85vh; overflow-y:auto; margin:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.1rem; color:var(--warning);">⚠️ Sincronização de Metas</h3>
+                <button type="button" class="reset-btn" onclick="closeMetasConflictModal()" style="font-size:1.1rem;">✕</button>
+            </div>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
+                Foram encontradas metas no seu navegador com valores diferentes das metas salvas na nuvem. Escolha qual valor deseja manter para cada uma:
+            </p>
+            <form id="metasConflictForm" onsubmit="submitMetasConflictResolution(event)">
+                <div id="metasConflictList"></div>
+                <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1.5rem;">
+                    <button type="button" class="reset-btn" onclick="closeMetasConflictModal()">Resolver Depois</button>
+                    <button type="submit" class="btn-primary" style="width:auto; padding:0.5rem 1.2rem;">Confirmar e Sincronizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- TELA EXCLUSIVA DE LANÇAMENTO RÁPIDO PARA CELULAR -->
     <div id="mobileQuickView" class="mobile-quick-modal">
         <div class="mobile-quick-header">
@@ -718,10 +738,11 @@
         let rawSupabaseData = [];
         let globalData = [];
         let sharedData = [];
+        let rawMetas = [];
+        let userBudgets = {};
         let currentFilteredExtratoData = [];
         let charts = {};
         let isPrivacyMode = false;
-        let userBudgets = JSON.parse(localStorage.getItem('userBudgets') || '{}');
 
         const monthNamesBR = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -756,6 +777,7 @@
 
                 loadDashboardData();
                 loadSharedData();
+                loadMetasData();
             } else {
                 document.getElementById('loginView').style.display = 'block';
                 document.getElementById('appView').style.display = 'none';
@@ -925,6 +947,7 @@
                 updateDynamicFaturaDropdown();
                 updateMobileDynamicFaturaDropdown();
 
+                await loadMetasData();
                 updateDashboard(document.getElementById('monthSelector').value);
 
             } catch (error) {
@@ -946,6 +969,32 @@
                 }
             } catch (e) {
                 console.error("Tabela compartilhada não carregada.", e);
+            }
+        }
+
+        async function loadMetasData() {
+            if (!currentUser) return;
+            try {
+                const { data, error } = await _supabase
+                    .from('metas')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('categoria', { ascending: true });
+
+                if (!error && data) {
+                    rawMetas = data;
+                    userBudgets = {};
+                    rawMetas.forEach(m => {
+                        userBudgets[m.categoria] = parseFloat(m.valor_limite);
+                    });
+                    renderMetasTab();
+                    checkBudgetAlerts(currentFilteredExtratoData.length > 0 ? currentFilteredExtratoData : globalData);
+                    await checkAndMigrateLocalStorageBudgets();
+                } else if (error) {
+                    console.error("Erro ao buscar metas:", error);
+                }
+            } catch (e) {
+                console.error("Exceção ao buscar metas:", e);
             }
         }
 
@@ -1587,6 +1636,7 @@
             document.getElementById('syncBtnText').innerText = 'Buscando...';
             await loadDashboardData();
             await loadSharedData();
+            await loadMetasData();
             document.getElementById('syncBtnText').innerText = 'Atualizado!';
             setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
         }
@@ -1974,30 +2024,94 @@
             renderPieChart(filtered, selectedYm);
         }
 
-        function saveCategoryBudget(e) {
-            e.preventDefault();
-            const target = document.getElementById('b_target').value.trim();
-            const limit = parseFloat(document.getElementById('b_limit').value) || 0;
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
-            userBudgets[target] = limit;
-            localStorage.setItem('userBudgets', JSON.stringify(userBudgets));
-            alert(`Meta para "${target}" definida em R$ ${limit.toFixed(2)}`);
-            renderMetasTab();
-            updateDashboard(document.getElementById('monthSelector').value);
+        async function saveCategoryBudget(e) {
+            if (e) e.preventDefault();
+            const targetInput = document.getElementById('b_target');
+            const limitInput = document.getElementById('b_limit');
+            const target = (targetInput.value || '').trim();
+            const limit = parseFloat(limitInput.value) || 0;
+
+            if (!target) {
+                alert('Informe uma categoria ou cartão.');
+                return;
+            }
+            if (limit <= 0) {
+                alert('O valor limite deve ser maior que zero.');
+                return;
+            }
+
+            const btn = e.target.querySelector('button[type="submit"]') || e.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Salvando...';
+
+            const payload = {
+                user_id: currentUser.id,
+                categoria: target,
+                valor_limite: limit,
+                updated_at: new Date().toISOString()
+            };
+
+            const { error } = await _supabase.from('metas').upsert(payload, {
+                onConflict: 'user_id,categoria_normalizada'
+            });
+
+            btn.innerText = originalText;
+
+            if (error) {
+                alert('Erro ao salvar meta: ' + error.message);
+            } else {
+                alert(`Meta para "${target}" definida em R$ ${limit.toFixed(2)}`);
+                targetInput.value = '';
+                limitInput.value = '';
+                await loadMetasData();
+                updateDashboard(document.getElementById('monthSelector').value);
+            }
+        }
+
+        async function deleteBudget(id, categoria) {
+            if (!confirm(`Deseja realmente excluir a meta para "${categoria}"?`)) {
+                return;
+            }
+
+            const { error } = await _supabase
+                .from('metas')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                alert('Erro ao excluir meta: ' + error.message);
+            } else {
+                alert('Meta excluída com sucesso!');
+                await loadMetasData();
+                updateDashboard(document.getElementById('monthSelector').value);
+            }
         }
 
         function checkBudgetAlerts(filteredData) {
             const alertContainer = document.getElementById('alertsContainer');
+            if (!alertContainer) return;
             alertContainer.innerHTML = '';
 
             const totalsByCat = {};
-            filteredData.filter(d => d.type === 'DESPESA').forEach(d => {
-                totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
+            (filteredData || []).filter(d => d.type === 'DESPESA').forEach(d => {
+                if (d.category) totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
                 if (d.cartao) totalsByCat[d.cartao] = (totalsByCat[d.cartao] || 0) + d.value;
             });
 
             Object.keys(userBudgets).forEach(target => {
                 const limit = userBudgets[target];
+                if (!limit || limit <= 0) return;
                 const spent = totalsByCat[target] || 0;
                 const pct = (spent / limit) * 100;
 
@@ -2005,7 +2119,7 @@
                     const isOver = pct >= 100;
                     const div = document.createElement('div');
                     div.className = `alert-mini-box ${isOver ? 'alert-mini-danger' : ''}`;
-                    div.innerHTML = `<span>⚠️ <b>Aviso de Limite:</b> "${target}" atingiu <b>${pct.toFixed(0)}%</b> da meta (${fmt(spent)} de ${fmt(limit)})</span>`;
+                    div.innerHTML = `<span>⚠️ <b>Aviso de Limite:</b> "${escapeHtml(target)}" atingiu <b>${pct.toFixed(0)}%</b> da meta (${fmt(spent)} de ${fmt(limit)})</span>`;
                     alertContainer.appendChild(div);
                 }
             });
@@ -2013,6 +2127,7 @@
 
         function renderMetasTab() {
             const container = document.getElementById('budgetsListContainer');
+            if (!container) return;
             container.innerHTML = '';
 
             const selectedYm = document.getElementById('monthSelector').value;
@@ -2020,27 +2135,36 @@
 
             const totalsByCat = {};
             filtered.filter(d => d.type === 'DESPESA').forEach(d => {
-                totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
+                if (d.category) totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
                 if (d.cartao) totalsByCat[d.cartao] = (totalsByCat[d.cartao] || 0) + d.value;
             });
 
-            if (Object.keys(userBudgets).length === 0) {
+            if (rawMetas.length === 0) {
                 container.innerHTML = '<p style="color:var(--text-muted);">Nenhuma meta ou limite configurado ainda.</p>';
                 return;
             }
 
-            Object.keys(userBudgets).forEach(target => {
-                const limit = userBudgets[target];
+            rawMetas.forEach(meta => {
+                const target = meta.categoria;
+                const limit = parseFloat(meta.valor_limite) || 0;
                 const spent = totalsByCat[target] || 0;
-                const pct = Math.min(100, (spent / limit) * 100);
-                const color = pct >= 100 ? 'var(--danger)' : pct >= 80 ? 'var(--warning)' : 'var(--primary)';
+                const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
+                const pctReal = limit > 0 ? (spent / limit) * 100 : 0;
+                const color = pctReal >= 100 ? 'var(--danger)' : pctReal >= 80 ? 'var(--warning)' : 'var(--primary)';
 
                 const card = document.createElement('div');
                 card.style.marginBottom = '1rem';
+                card.style.background = 'var(--card-bg)';
+                card.style.padding = '0.75rem 1rem';
+                card.style.borderRadius = '8px';
+                card.style.border = '1px solid var(--border)';
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">
-                        <b>${target}</b>
-                        <span>${fmt(spent)} de ${fmt(limit)} (${pct.toFixed(0)}%)</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <b>${escapeHtml(target)}</b>
+                            <button onclick="deleteBudget('${meta.id}', '${escapeHtml(target)}')" title="Excluir Meta" class="btn-delete-meta" style="background:none; border:none; cursor:pointer; font-size:0.9rem; opacity:0.7; padding:0 2px;">🗑️</button>
+                        </div>
+                        <span style="font-size:0.9rem;">${fmt(spent)} de ${fmt(limit)} (${pctReal.toFixed(0)}%)</span>
                     </div>
                     <div class="progress-bar-bg">
                         <div class="progress-bar-fill" style="width: ${pct}%; background-color: ${color};"></div>
@@ -2048,6 +2172,204 @@
                 `;
                 container.appendChild(card);
             });
+        }
+
+        let isMigratingMetas = false;
+        let pendingConflicts = [];
+
+        async function checkAndMigrateLocalStorageBudgets() {
+            if (isMigratingMetas || !currentUser) return;
+            const localRaw = localStorage.getItem('userBudgets');
+            if (!localRaw) return;
+
+            let localBudgets = {};
+            try {
+                localBudgets = JSON.parse(localRaw);
+            } catch (e) {
+                console.error("Erro ao analisar userBudgets:", e);
+                return;
+            }
+
+            if (!localBudgets || typeof localBudgets !== 'object') return;
+
+            const norm = s => String(s || '').trim().toLowerCase();
+            const validLocalItems = [];
+            Object.entries(localBudgets).forEach(([target, limit]) => {
+                const cleanTarget = String(target || '').trim();
+                const numLimit = parseFloat(limit);
+                if (cleanTarget.length > 0 && numLimit > 0) {
+                    validLocalItems.push({
+                        categoria: cleanTarget,
+                        categoria_normalizada: norm(cleanTarget),
+                        valor_limite: numLimit
+                    });
+                }
+            });
+
+            if (validLocalItems.length === 0) {
+                localStorage.removeItem('userBudgets');
+                return;
+            }
+
+            isMigratingMetas = true;
+            try {
+                const cloudMap = new Map();
+                rawMetas.forEach(m => cloudMap.set(norm(m.categoria), m));
+
+                // CENÁRIO A: Nuvem vazia + Local existe
+                if (rawMetas.length === 0) {
+                    const payloads = validLocalItems.map(item => ({
+                        user_id: currentUser.id,
+                        categoria: item.categoria,
+                        valor_limite: item.valor_limite,
+                        updated_at: new Date().toISOString()
+                    }));
+
+                    const { error } = await _supabase.from('metas').insert(payloads);
+                    if (!error) {
+                        const { data: reFetched, error: refError } = await _supabase
+                            .from('metas')
+                            .select('*')
+                            .eq('user_id', currentUser.id);
+
+                        if (!refError && reFetched && reFetched.length >= payloads.length) {
+                            localStorage.removeItem('userBudgets');
+                            rawMetas = reFetched;
+                            userBudgets = {};
+                            rawMetas.forEach(m => { userBudgets[m.categoria] = parseFloat(m.valor_limite); });
+                            renderMetasTab();
+                            checkBudgetAlerts(currentFilteredExtratoData.length > 0 ? currentFilteredExtratoData : globalData);
+                        }
+                    } else {
+                        console.error("Erro ao migrar metas locais para nuvem vazia:", error);
+                    }
+                    return;
+                }
+
+                // CENÁRIO C: Ambos possuem metas
+                const localOnly = [];
+                const conflicts = [];
+
+                validLocalItems.forEach(item => {
+                    const cloudItem = cloudMap.get(item.categoria_normalizada);
+                    if (!cloudItem) {
+                        localOnly.push(item);
+                    } else {
+                        const cloudVal = parseFloat(cloudItem.valor_limite);
+                        if (Math.abs(cloudVal - item.valor_limite) >= 0.01) {
+                            conflicts.push({
+                                categoria: cloudItem.categoria,
+                                categoria_normalizada: item.categoria_normalizada,
+                                localLimit: item.valor_limite,
+                                cloudLimit: cloudVal,
+                                cloudId: cloudItem.id
+                            });
+                        }
+                    }
+                });
+
+                if (localOnly.length > 0) {
+                    const payloads = localOnly.map(item => ({
+                        user_id: currentUser.id,
+                        categoria: item.categoria,
+                        valor_limite: item.valor_limite,
+                        updated_at: new Date().toISOString()
+                    }));
+                    const { error: insErr } = await _supabase.from('metas').insert(payloads);
+                    if (!insErr) {
+                        const { data: updatedCloud } = await _supabase.from('metas').select('*').eq('user_id', currentUser.id);
+                        if (updatedCloud) {
+                            rawMetas = updatedCloud;
+                            userBudgets = {};
+                            rawMetas.forEach(m => { userBudgets[m.categoria] = parseFloat(m.valor_limite); });
+                            renderMetasTab();
+                        }
+                    }
+                }
+
+                if (conflicts.length > 0) {
+                    pendingConflicts = conflicts;
+                    renderMetasConflictModal(conflicts);
+                } else {
+                    localStorage.removeItem('userBudgets');
+                }
+
+            } catch (err) {
+                console.error("Erro durante checkAndMigrateLocalStorageBudgets:", err);
+            } finally {
+                isMigratingMetas = false;
+            }
+        }
+
+        function renderMetasConflictModal(conflicts) {
+            const list = document.getElementById('metasConflictList');
+            const modal = document.getElementById('metasConflictModal');
+            if (!list || !modal) return;
+            list.innerHTML = '';
+
+            conflicts.forEach((c, idx) => {
+                const group = document.createElement('div');
+                group.style.marginBottom = '1rem';
+                group.style.padding = '0.75rem';
+                group.style.background = 'var(--bg-main)';
+                group.style.borderRadius = '6px';
+                group.style.border = '1px solid var(--border)';
+                group.innerHTML = `
+                    <div style="font-weight:700; margin-bottom:0.4rem; color:var(--text-main);">${escapeHtml(c.categoria)}</div>
+                    <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem;">
+                        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="radio" name="conflict_${idx}" value="cloud" checked>
+                            <span>Manter Nuvem: <b>${fmt(c.cloudLimit)}</b></span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="radio" name="conflict_${idx}" value="local">
+                            <span>Usar Este Dispositivo: <b>${fmt(c.localLimit)}</b></span>
+                        </label>
+                    </div>
+                `;
+                list.appendChild(group);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function closeMetasConflictModal() {
+            const modal = document.getElementById('metasConflictModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function submitMetasConflictResolution(e) {
+            if (e) e.preventDefault();
+            const modal = document.getElementById('metasConflictModal');
+            let hasError = false;
+
+            for (let i = 0; i < pendingConflicts.length; i++) {
+                const c = pendingConflicts[i];
+                const selected = document.querySelector(`input[name="conflict_${i}"]:checked`);
+                if (selected && selected.value === 'local') {
+                    const payload = {
+                        user_id: currentUser.id,
+                        categoria: c.categoria,
+                        valor_limite: c.localLimit,
+                        updated_at: new Date().toISOString()
+                    };
+                    const { error } = await _supabase.from('metas').upsert(payload, {
+                        onConflict: 'user_id,categoria_normalizada'
+                    });
+                    if (error) {
+                        hasError = true;
+                        alert('Erro ao atualizar meta "' + c.categoria + '": ' + error.message);
+                    }
+                }
+            }
+
+            if (!hasError) {
+                localStorage.removeItem('userBudgets');
+                if (modal) modal.style.display = 'none';
+                pendingConflicts = [];
+                await loadMetasData();
+                alert('Metas sincronizadas com sucesso!');
+            }
         }
 
         function renderReceitasDetalhes(receitasArr) {

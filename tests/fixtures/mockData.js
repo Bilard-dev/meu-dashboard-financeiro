@@ -209,6 +209,36 @@ const mockSharedExpenses = [
     }
 ];
 
+const mockMetas = [
+    {
+        id: 'meta-001-alimentacao',
+        user_id: 'test-user-uuid-1234',
+        categoria: 'Alimentação',
+        categoria_normalizada: 'alimentação',
+        valor_limite: 1000.00,
+        created_at: '2026-08-01T10:00:00.000Z',
+        updated_at: '2026-08-01T10:00:00.000Z'
+    },
+    {
+        id: 'meta-002-saude',
+        user_id: 'test-user-uuid-1234',
+        categoria: 'Saúde',
+        categoria_normalizada: 'saúde',
+        valor_limite: 300.00,
+        created_at: '2026-08-01T10:00:00.000Z',
+        updated_at: '2026-08-01T10:00:00.000Z'
+    },
+    {
+        id: 'meta-003-lazer',
+        user_id: 'test-user-uuid-1234',
+        categoria: 'Lazer',
+        categoria_normalizada: 'lazer',
+        valor_limite: 200.00,
+        created_at: '2026-08-01T10:00:00.000Z',
+        updated_at: '2026-08-01T10:00:00.000Z'
+    }
+];
+
 const mockBudgets = {
     'Alimentação': 1000,
     'Saúde': 300,
@@ -219,5 +249,6 @@ module.exports = {
     mockUser,
     mockTransactions,
     mockSharedExpenses,
+    mockMetas,
     mockBudgets
 };

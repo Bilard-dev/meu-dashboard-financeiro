@@ -3,7 +3,7 @@
  * Implementa PROTEÇÃO TOTAL contra acesso ao Supabase de produção.
  */
 
-const { mockUser, mockTransactions, mockSharedExpenses, mockBudgets } = require('../fixtures/mockData');
+const { mockUser, mockTransactions, mockSharedExpenses, mockMetas, mockBudgets } = require('../fixtures/mockData');
 
 /**
  * Configura o ambiente seguro do navegador com bloqueio e simulação do Supabase.
@@ -12,18 +12,22 @@ const { mockUser, mockTransactions, mockSharedExpenses, mockBudgets } = require(
  * @param {boolean} [options.authenticated=true] - Se deve inicializar já logado
  * @param {Array} [options.transactions] - Lista inicial de transações mockadas
  * @param {Array} [options.sharedExpenses] - Lista inicial de gastos compartilhados
+ * @param {Array} [options.metas] - Lista inicial de metas mockadas
+ * @param {Object|null} [options.budgets=null] - Dados legados de userBudgets no LocalStorage
  * @param {boolean} [options.autoAcceptDialogs=true] - Se deve aceitar automaticamente diálogos
  */
 async function setupAuthenticatedApp(page, {
     authenticated = true,
     transactions = JSON.parse(JSON.stringify(mockTransactions)),
     sharedExpenses = JSON.parse(JSON.stringify(mockSharedExpenses)),
-    budgets = mockBudgets,
+    metas = JSON.parse(JSON.stringify(mockMetas)),
+    budgets = null,
     autoAcceptDialogs = true
 } = {}) {
 
     let inMemoryTransactions = [...transactions];
     let inMemoryShared = [...sharedExpenses];
+    let inMemoryMetas = [...metas];
 
     // 1. Interceptação e proteção absoluta de chamadas de rede para o Supabase
     await page.route('**/*', async (route) => {
@@ -183,6 +187,75 @@ async function setupAuthenticatedApp(page, {
                 }
             }
 
+            // Mock de Metas 2.0 (REST)
+            if (pathname.includes('/rest/v1/metas')) {
+                if (method === 'GET') {
+                    let filteredMetas = inMemoryMetas;
+                    const userMatch = urlObj.search.match(/user_id=eq\.([^&]+)/);
+                    if (userMatch) {
+                        filteredMetas = filteredMetas.filter(m => m.user_id === userMatch[1]);
+                    }
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        headers: { 'content-range': `0-${filteredMetas.length - 1}/${filteredMetas.length}` },
+                        body: JSON.stringify(filteredMetas)
+                    });
+                }
+                if (method === 'POST') {
+                    const postData = route.request().postDataJSON();
+                    const newItems = Array.isArray(postData) ? postData : [postData];
+                    const resultItems = [];
+
+                    for (let idx = 0; idx < newItems.length; idx++) {
+                        const item = newItems[idx];
+                        const normCat = (item.categoria || '').trim().toLowerCase();
+                        const existingIndex = inMemoryMetas.findIndex(m => m.user_id === item.user_id && m.categoria_normalizada === normCat);
+
+                        if (existingIndex !== -1) {
+                            // Upsert: atualiza valor limite e categoria original
+                            inMemoryMetas[existingIndex] = {
+                                ...inMemoryMetas[existingIndex],
+                                categoria: item.categoria,
+                                valor_limite: item.valor_limite,
+                                updated_at: item.updated_at || new Date().toISOString()
+                            };
+                            resultItems.push(inMemoryMetas[existingIndex]);
+                        } else {
+                            // Insert
+                            const created = {
+                                id: item.id || `meta-created-${Date.now()}-${idx}`,
+                                user_id: item.user_id,
+                                categoria: item.categoria,
+                                categoria_normalizada: normCat,
+                                valor_limite: item.valor_limite,
+                                created_at: item.created_at || new Date().toISOString(),
+                                updated_at: item.updated_at || new Date().toISOString()
+                            };
+                            inMemoryMetas.push(created);
+                            resultItems.push(created);
+                        }
+                    }
+
+                    return route.fulfill({
+                        status: 201,
+                        contentType: 'application/json',
+                        body: JSON.stringify(resultItems)
+                    });
+                }
+                if (method === 'DELETE') {
+                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
+                    const targetId = match ? match[1] : null;
+                    if (targetId) {
+                        inMemoryMetas = inMemoryMetas.filter(m => m.id !== targetId);
+                    }
+                    return route.fulfill({
+                        status: 204,
+                        body: ''
+                    });
+                }
+            }
+
             // Qualquer outra chamada Supabase não prevista é abortada com erro para segurança
             console.warn(`[TESTE-PROTEÇÃO] Chamada não mockada interceptada: ${method} ${url}`);
             return route.abort('failed');
@@ -232,7 +305,8 @@ async function setupAuthenticatedApp(page, {
 
     return {
         getTransactions: () => inMemoryTransactions,
-        getShared: () => inMemoryShared
+        getShared: () => inMemoryShared,
+        getMetas: () => inMemoryMetas
     };
 }
 

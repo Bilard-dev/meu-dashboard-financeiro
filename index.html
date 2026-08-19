@@ -2002,14 +2002,17 @@
             const saldo = receitas - despesas - invest;
             
             const totalSaques = globalData.filter(d => d.type === 'SAQUE').reduce((a, b) => a + b.value, 0);
-            const totalGastoEspecie = globalData.filter(d => d.pagamento === 'Dinheiro' || d.pagamento === 'Dinheiro Vivo (Espécie)').reduce((a, b) => a + b.value, 0);
-            const saldoDinheiroVivo = Math.max(0, totalSaques - totalGastoEspecie);
+            const totalGastoEspecie = globalData.filter(d => d.type === 'DESPESA' && (d.pagamento === 'Dinheiro' || d.pagamento === 'Dinheiro Vivo (Espécie)')).reduce((a, b) => a + b.value, 0);
+            const saldoDinheiroVivo = totalSaques - totalGastoEspecie;
 
             document.getElementById('kpi-receitas').innerText = fmt(receitas);
             document.getElementById('kpi-despesas').innerText = fmt(despesas);
             document.getElementById('kpi-investimentos').innerText = fmt(invest);
-            document.getElementById('kpi-dinheiro-vivo').innerText = fmt(saldoDinheiroVivo);
-            
+
+            const kpiDinheiroVivoEl = document.getElementById('kpi-dinheiro-vivo');
+            kpiDinheiroVivoEl.innerText = fmt(saldoDinheiroVivo);
+            kpiDinheiroVivoEl.style.color = saldoDinheiroVivo >= 0 ? 'var(--warning)' : 'var(--danger)';
+
             const saldoEl = document.getElementById('kpi-saldo');
             saldoEl.innerText = fmt(saldo);
             saldoEl.style.color = saldo >= 0 ? 'var(--text-main)' : 'var(--danger)';

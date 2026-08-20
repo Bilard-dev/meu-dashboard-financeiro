@@ -35,7 +35,7 @@ const mockTransactions = [
         user_id: 'test-user-uuid-1234',
         tipo: 'Despesa',
         data: '2026-08-12',
-        descricao: 'Almoço Restaurante em Espécie',
+        descricao: '[Viagem] Almoço Restaurante em Espécie',
         valor: 60.00,
         pagamento: 'Dinheiro',
         cartao: null,
@@ -245,10 +245,45 @@ const mockBudgets = {
     'Lazer': 200
 };
 
+const mockCategorias = [
+    { id: 'cat-001-uuid', user_id: 'test-user-uuid-1234', nome: 'Alimentação', nome_normalizado: 'alimentação', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-002-uuid', user_id: 'test-user-uuid-1234', nome: 'Transporte', nome_normalizado: 'transporte', ativo: true, ordem: 1, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-003-uuid', user_id: 'test-user-uuid-1234', nome: 'Moradia', nome_normalizado: 'moradia', ativo: true, ordem: 2, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-004-uuid', user_id: 'test-user-uuid-1234', nome: 'Lazer', nome_normalizado: 'lazer', ativo: true, ordem: 3, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-005-uuid', user_id: 'test-user-uuid-1234', nome: 'Saúde', nome_normalizado: 'saúde', ativo: true, ordem: 4, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-006-uuid', user_id: 'test-user-uuid-1234', nome: 'Trabalho', nome_normalizado: 'trabalho', ativo: true, ordem: 5, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-007-uuid', user_id: 'test-user-uuid-1234', nome: 'Educação', nome_normalizado: 'educação', ativo: true, ordem: 6, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-008-uuid', user_id: 'test-user-uuid-1234', nome: 'Outros', nome_normalizado: 'outros', ativo: true, ordem: 7, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-009-uuid', user_id: 'test-user-uuid-1234', nome: 'Salário', nome_normalizado: 'salário', ativo: true, ordem: 8, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'cat-010-uuid', user_id: 'test-user-uuid-1234', nome: 'Rendimentos', nome_normalizado: 'rendimentos', ativo: true, ordem: 9, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' }
+];
+
+const mockSubcategorias = [
+    { id: 'sub-001-uuid', user_id: 'test-user-uuid-1234', categoria_id: 'cat-001-uuid', nome: 'Supermercado', nome_normalizado: 'supermercado', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'sub-002-uuid', user_id: 'test-user-uuid-1234', categoria_id: 'cat-001-uuid', nome: 'Restaurante', nome_normalizado: 'restaurante', ativo: true, ordem: 1, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'sub-003-uuid', user_id: 'test-user-uuid-1234', categoria_id: 'cat-002-uuid', nome: 'Combustível', nome_normalizado: 'combustível', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'sub-004-uuid', user_id: 'test-user-uuid-1234', categoria_id: 'cat-006-uuid', nome: 'Equipamentos', nome_normalizado: 'equipamentos', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'sub-005-uuid', user_id: 'test-user-uuid-1234', categoria_id: 'cat-005-uuid', nome: 'Farmácia', nome_normalizado: 'farmácia', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' }
+];
+
+const mockCartoes = [
+    { id: 'card-001-uuid', user_id: 'test-user-uuid-1234', nome: 'Nubank', nome_normalizado: 'nubank', dia_fechamento: 25, dia_vencimento: 5, cor: '#820ad1', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'card-002-uuid', user_id: 'test-user-uuid-1234', nome: 'Inter Black', nome_normalizado: 'inter black', dia_fechamento: 10, dia_vencimento: 20, cor: '#ff7a00', ativo: true, ordem: 1, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' }
+];
+
+const mockTags = [
+    { id: 'tag-001-uuid', user_id: 'test-user-uuid-1234', nome: 'Viagem', nome_normalizado: 'viagem', cor: '#0ea5e9', ativo: true, ordem: 0, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' },
+    { id: 'tag-002-uuid', user_id: 'test-user-uuid-1234', nome: 'Família', nome_normalizado: 'família', cor: '#10b981', ativo: true, ordem: 1, created_at: '2026-08-01T10:00:00.000Z', updated_at: '2026-08-01T10:00:00.000Z' }
+];
+
 module.exports = {
     mockUser,
     mockTransactions,
     mockSharedExpenses,
     mockMetas,
-    mockBudgets
+    mockBudgets,
+    mockCategorias,
+    mockSubcategorias,
+    mockCartoes,
+    mockTags
 };

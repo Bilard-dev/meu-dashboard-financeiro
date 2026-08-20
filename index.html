@@ -468,22 +468,63 @@
 
             <!-- ABA GERENCIAR CATEGORIAS E LISTAS -->
             <div id="tab-gerenciar-listas" class="tab-content">
+                <!-- BANNER DO ASSISTENTE DE IMPORTAÇÃO (QUANDO CATÁLOGOS VAZIOS OU ACIONADO PELO USUÁRIO) -->
+                <div id="assistedImportBanner" style="display: none; background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.08)); border: 1px solid var(--primary); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.1rem; color: var(--primary);">✨ Organizar Meus Catálogos 2.0</h3>
+                            <p style="margin: 0.35rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
+                                Encontramos valores no seu histórico. Escolha quais deseja disponibilizar para novos lançamentos. Seu histórico não será alterado.
+                            </p>
+                        </div>
+                        <button type="button" class="btn-primary" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;" onclick="openAssistedImportModal()">Organizar Catálogos</button>
+                    </div>
+                </div>
+
                 <div class="chart-card">
-                    <h2 class="chart-title">⚙️ Gerenciar Categorias, Subcategorias e Formas de Pagamento</h2>
-                    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Ao editar o nome de uma categoria ou subcategoria, todas as transações associadas serão atualizadas automaticamente.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem;">
+                        <div>
+                            <h2 class="chart-title" style="margin-bottom: 0.2rem;">⚙️ Gerenciador de Catálogos 2.0</h2>
+                            <p style="color:var(--text-muted); font-size:0.85rem;">Gerencie Categorias, Subcategorias, Cartões e Tags dinamicamente.</p>
+                        </div>
+                        <button type="button" class="action-btn" style="color: var(--primary);" onclick="openAssistedImportModal()">✨ Assistente de Importação</button>
+                    </div>
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
-                        <div>
-                            <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Categorias Existentes</h3>
-                            <div id="manageCategoriesList"></div>
+                        <!-- 1. CATEGORIAS -->
+                        <div class="kpi-card" style="padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <h3 style="font-size:1rem; color:var(--primary); margin:0;">📂 Categorias</h3>
+                                <button id="btnNewCategory" type="button" class="reset-btn" onclick="openCatalogModal({ type: 'categoria' })" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: var(--primary); color: #fff; border: none;">➕ Nova</button>
+                            </div>
+                            <div id="manageCategoriesList" style="max-height: 400px; overflow-y: auto;"></div>
                         </div>
-                        <div>
-                            <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Subcategorias Existentes</h3>
-                            <div id="manageSubcategoriesList"></div>
+
+                        <!-- 2. SUBCATEGORIAS -->
+                        <div class="kpi-card" style="padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <h3 style="font-size:1rem; color:var(--primary); margin:0;">🏷️ Subcategorias</h3>
+                                <button id="btnNewSubcategory" type="button" class="reset-btn" onclick="openCatalogModal({ type: 'subcategoria' })" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: var(--primary); color: #fff; border: none;">➕ Nova</button>
+                            </div>
+                            <div id="manageSubcategoriesList" style="max-height: 400px; overflow-y: auto;"></div>
                         </div>
-                        <div>
-                            <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Formas de Pagamento / Cartões</h3>
-                            <div id="managePaymentsList"></div>
+
+                        <!-- 3. CARTÕES DE CRÉDITO -->
+                        <div class="kpi-card" style="padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <h3 style="font-size:1rem; color:var(--primary); margin:0;">💳 Cartões de Crédito</h3>
+                                <button id="btnNewCard" type="button" class="reset-btn" onclick="openCatalogModal({ type: 'cartao' })" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: var(--primary); color: #fff; border: none;">➕ Novo</button>
+                            </div>
+                            <div id="managePaymentsList" style="max-height: 400px; overflow-y: auto;"></div>
+                        </div>
+
+                        <!-- 4. TAGS -->
+                        <div class="kpi-card" style="padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                                <h3 style="font-size:1rem; color:var(--primary); margin:0;">🔖 Tags</h3>
+                                <button id="btnNewTag" type="button" class="reset-btn" onclick="openCatalogModal({ type: 'tag' })" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: var(--primary); color: #fff; border: none;">➕ Nova</button>
+                            </div>
+                            <div id="manageTagsList" style="max-height: 400px; overflow-y: auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -648,6 +689,112 @@
         </div>
     </div>
 
+    <!-- MODAL REUTILIZÁVEL DE CATÁLOGOS (CATEGORIA, SUBCATEGORIA, CARTÃO, TAG) -->
+    <div id="catalogModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:480px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 id="catalogModalTitle" style="margin:0; font-size:1.15rem; color:var(--primary);">Novo Item</h3>
+                <button type="button" class="reset-btn" onclick="closeCatalogModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+            </div>
+            <form id="catalogModalForm" onsubmit="saveCatalogModalItem(event)">
+                <input type="hidden" id="cat_modal_type" value="">
+                <input type="hidden" id="cat_modal_id" value="">
+                <input type="hidden" id="cat_modal_source_select" value="">
+
+                <div class="input-group">
+                    <label id="cat_modal_name_label">Nome *</label>
+                    <input type="text" id="cat_modal_name" class="input-field" placeholder="Ex: Supermercado" required>
+                </div>
+
+                <!-- Campo específico de Subcategoria: Categoria Pai -->
+                <div class="input-group" id="cat_modal_parent_group" style="display:none;">
+                    <label>Categoria Pai *</label>
+                    <select id="cat_modal_parent_id" class="input-field"></select>
+                </div>
+
+                <!-- Campos específicos de Cartão -->
+                <div id="cat_modal_card_fields" style="display:none;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+                        <div class="input-group">
+                            <label>Dia Fechamento (1-31)</label>
+                            <input type="number" id="cat_modal_fechamento" min="1" max="31" class="input-field" placeholder="Ex: 25">
+                        </div>
+                        <div class="input-group">
+                            <label>Dia Vencimento (1-31)</label>
+                            <input type="number" id="cat_modal_vencimento" min="1" max="31" class="input-field" placeholder="Ex: 5">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Cor do Cartão</label>
+                        <input type="color" id="cat_modal_cor_cartao" class="input-field" value="#2563eb" style="height:42px; padding:2px; cursor:pointer;">
+                    </div>
+                </div>
+
+                <!-- Campos específicos de Tag -->
+                <div id="cat_modal_tag_fields" style="display:none;">
+                    <div class="input-group">
+                        <label>Cor da Tag</label>
+                        <input type="color" id="cat_modal_cor_tag" class="input-field" value="#64748b" style="height:42px; padding:2px; cursor:pointer;">
+                    </div>
+                </div>
+
+                <div id="catalogModalError" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:0.4rem; padding:0.5rem; background:rgba(239,68,68,0.1); border-radius:6px;"></div>
+
+                <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="closeCatalogModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSaveCatalogModal" style="width:auto; padding:0.6rem 1.5rem;">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DO ASSISTENTE DE IMPORTAÇÃO (CATÁLOGOS 2.0) -->
+    <div id="assistedImportModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:600px; width:92%; max-height:88vh; overflow-y:auto; margin:auto; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--primary);">✨ Organizar Meus Catálogos</h3>
+                <button type="button" class="reset-btn" onclick="closeAssistedImportModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+            </div>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
+                Encontramos valores no seu histórico financeiro. Selecione quais deseja transformar em catálogos oficiais para novos lançamentos. <b>Seu histórico financeiro não será alterado.</b>
+            </p>
+
+            <form id="assistedImportForm" onsubmit="submitAssistedImport(event)">
+                <!-- CATEGORIAS -->
+                <div style="margin-bottom:1.5rem; background:var(--bg-color); padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                        <h4 style="margin:0; font-size:0.95rem; color:var(--text-main);">📂 Categorias Detectadas</h4>
+                        <button type="button" class="reset-btn" onclick="toggleAllImportCheckboxes('import_cat', true)" style="font-size:0.75rem;">Marcar Todas</button>
+                    </div>
+                    <div id="assistedCategoriesList" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:0.4rem;"></div>
+                </div>
+
+                <!-- CARTÕES -->
+                <div style="margin-bottom:1.5rem; background:var(--bg-color); padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                        <h4 style="margin:0; font-size:0.95rem; color:var(--text-main);">💳 Cartões Detectados</h4>
+                        <small style="color:var(--text-muted);">Apenas cartões reais pré-selecionados</small>
+                    </div>
+                    <div id="assistedCardsList" style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:0.4rem;"></div>
+                </div>
+
+                <!-- SUBCATEGORIAS -->
+                <div style="margin-bottom:1.5rem; background:var(--bg-color); padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                        <h4 style="margin:0; font-size:0.95rem; color:var(--text-main);">🏷️ Subcategorias Detectadas</h4>
+                        <small style="color:var(--text-muted);">Vinculadas às categorias selecionadas</small>
+                    </div>
+                    <div id="assistedSubcategoriesList" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:0.4rem;"></div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="closeAssistedImportModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSubmitAssistedImport" style="width:auto; padding:0.6rem 1.5rem;">Importar Selecionados</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- TELA EXCLUSIVA DE LANÇAMENTO RÁPIDO PARA CELULAR -->
     <div id="mobileQuickView" class="mobile-quick-modal">
         <div class="mobile-quick-header">
@@ -673,12 +820,12 @@
 
             <div class="input-group">
                 <label>Categoria</label>
-                <select id="m_categoria" class="input-field" onchange="onCategoryChange('m_categoria', 'm_subcategoria')"><option value="">-- Selecione --</option></select>
+                <select id="m_categoria" class="input-field" onchange="onCategoryChange('m_categoria', 'm_subcategoria'); handleDynamicSelect(this, 'Categoria')"><option value="">-- Selecione --</option></select>
             </div>
 
             <div class="input-group">
                 <label>Subcategoria</label>
-                <select id="m_subcategoria" class="input-field"><option value="">-- Selecione a Categoria Primeiro --</option></select>
+                <select id="m_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')"><option value="">-- Selecione a Categoria Primeiro --</option></select>
             </div>
 
             <div class="input-group">
@@ -698,7 +845,7 @@
 
             <div class="input-group m-card-field" style="display: none;">
                 <label>Cartão Utilizado</label>
-                <select id="m_cartao" class="input-field"><option value="">-- Selecione --</option></select>
+                <select id="m_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')"><option value="">-- Selecione --</option></select>
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
@@ -744,6 +891,30 @@
         let charts = {};
         let isPrivacyMode = false;
 
+        // ESTADO GLOBAL: Catálogos Gerenciados 2.0
+        let globalCategorias = [];
+        let globalSubcategorias = [];
+        let globalCartoes = [];
+        let globalTags = [];
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function normalizeCatalogName(str) {
+            if (!str || typeof str !== 'string') return '';
+            return str
+                .replace(/[\u00a0\s]+/g, ' ')
+                .trim()
+                .toLowerCase();
+        }
+
         const monthNamesBR = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         function initTheme() {
@@ -778,6 +949,7 @@
                 loadDashboardData();
                 loadSharedData();
                 loadMetasData();
+                loadCatalogsData();
             } else {
                 document.getElementById('loginView').style.display = 'block';
                 document.getElementById('appView').style.display = 'none';
@@ -938,21 +1110,43 @@
 
                 setupMonthSelector();
                 setupInvestSelector();
-                populateFormDropdowns();
-                renderTopCategoryChips();
                 togglePaymentFields();
-                renderManageLists();
 
                 // Preenche os seletores de fatura com base na data padrão atual
                 updateDynamicFaturaDropdown();
                 updateMobileDynamicFaturaDropdown();
 
+                await loadCatalogsData();
                 await loadMetasData();
                 updateDashboard(document.getElementById('monthSelector').value);
 
             } catch (error) {
                 console.error(error);
                 document.getElementById('loading').innerText = "Erro ao buscar dados: " + error.message;
+            }
+        }
+
+        async function loadCatalogsData() {
+            if (!currentUser) return;
+            try {
+                const [catsRes, subcatsRes, cardsRes, tagsRes] = await Promise.all([
+                    _supabase.from('app_categorias').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true }),
+                    _supabase.from('app_subcategorias').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true }),
+                    _supabase.from('app_cartoes').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true }),
+                    _supabase.from('app_tags').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true })
+                ]);
+
+                if (!catsRes.error && catsRes.data) globalCategorias = catsRes.data;
+                if (!subcatsRes.error && subcatsRes.data) globalSubcategorias = subcatsRes.data;
+                if (!cardsRes.error && cardsRes.data) globalCartoes = cardsRes.data;
+                if (!tagsRes.error && tagsRes.data) globalTags = tagsRes.data;
+
+                populateFormDropdowns();
+                renderTopCategoryChips();
+                renderManageLists();
+                checkAndShowAssistedImportPrompt();
+            } catch (e) {
+                console.error("Erro ao carregar catálogos do Supabase:", e);
             }
         }
 
@@ -1102,64 +1296,97 @@
         }
 
         function renderTopCategoryChips() {
-            const despesas = globalData.filter(d => d.type === 'DESPESA');
-            const topCategories = getFrequencySortedOptions(despesas.map(d => d.category)).slice(0, 6);
+            let categoriesList = [];
+            if (globalCategorias.length > 0) {
+                const activeCats = globalCategorias.filter(c => c.ativo).map(c => c.nome);
+                const freq = getFrequencySortedOptions(globalData.filter(d => d.type === 'DESPESA').map(d => d.category));
+                categoriesList = [...activeCats].sort((a, b) => {
+                    const idxA = freq.indexOf(a);
+                    const idxB = freq.indexOf(b);
+                    const scoreA = idxA === -1 ? 9999 : idxA;
+                    const scoreB = idxB === -1 ? 9999 : idxB;
+                    return scoreA - scoreB;
+                }).slice(0, 6);
+            } else {
+                const despesas = globalData.filter(d => d.type === 'DESPESA');
+                categoriesList = getFrequencySortedOptions(despesas.map(d => d.category)).slice(0, 6);
+            }
 
             const desktopContainer = document.getElementById('topCategoriesChips');
             const mobileContainer = document.getElementById('mobileTopCategoriesChips');
 
-            desktopContainer.innerHTML = '';
-            mobileContainer.innerHTML = '';
+            if (desktopContainer) desktopContainer.innerHTML = '';
+            if (mobileContainer) mobileContainer.innerHTML = '';
 
-            if (topCategories.length === 0) {
-                desktopContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Nenhuma categoria cadastrada ainda.</span>';
-                mobileContainer.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Nenhuma categoria cadastrada ainda.</span>';
+            if (categoriesList.length === 0) {
+                const emptyMsg = '<span style="font-size:0.8rem; color:var(--text-muted);">Nenhuma categoria cadastrada ainda.</span>';
+                if (desktopContainer) desktopContainer.innerHTML = emptyMsg;
+                if (mobileContainer) mobileContainer.innerHTML = emptyMsg;
                 return;
             }
 
-            topCategories.forEach(cat => {
-                const btn1 = document.createElement('button');
-                btn1.type = 'button';
-                btn1.className = 'chip-btn';
-                btn1.innerText = cat;
-                btn1.onclick = () => quickSelectCategory(cat);
-                desktopContainer.appendChild(btn1);
+            categoriesList.forEach(cat => {
+                if (desktopContainer) {
+                    const btn1 = document.createElement('button');
+                    btn1.type = 'button';
+                    btn1.className = 'chip-btn';
+                    btn1.innerText = cat;
+                    btn1.onclick = () => quickSelectCategory(cat);
+                    desktopContainer.appendChild(btn1);
+                }
 
-                const btn2 = document.createElement('button');
-                btn2.type = 'button';
-                btn2.className = 'chip-btn';
-                btn2.innerText = cat;
-                btn2.onclick = () => quickSelectCategory(cat);
-                mobileContainer.appendChild(btn2);
+                if (mobileContainer) {
+                    const btn2 = document.createElement('button');
+                    btn2.type = 'button';
+                    btn2.className = 'chip-btn';
+                    btn2.innerText = cat;
+                    btn2.onclick = () => quickSelectCategory(cat);
+                    mobileContainer.appendChild(btn2);
+                }
             });
         }
 
         function quickSelectCategory(catName) {
-            document.getElementById('i_categoria').value = catName;
-            document.getElementById('m_categoria').value = catName;
+            const iCat = document.getElementById('i_categoria');
+            const mCat = document.getElementById('m_categoria');
+            if (iCat) iCat.value = catName;
+            if (mCat) mCat.value = catName;
             onCategoryChange('i_categoria', 'i_subcategoria');
             onCategoryChange('m_categoria', 'm_subcategoria');
         }
 
         function onCategoryChange(catSelectId, subSelectId) {
-            const selectedCat = document.getElementById(catSelectId).value;
+            const selectedCat = document.getElementById(catSelectId)?.value;
             const subSelect = document.getElementById(subSelectId);
+            if (!subSelect) return;
 
             if (!selectedCat || selectedCat === '' || selectedCat === '__NEW__') {
                 subSelect.innerHTML = '<option value="">-- Selecione a Categoria Primeiro --</option>';
                 return;
             }
 
-            const relatedSubcats = getFrequencySortedOptions(
-                globalData
-                    .filter(d => d.category === selectedCat)
-                    .map(d => d.subCat)
-            );
-
             subSelect.innerHTML = '<option value="">-- Selecione --</option>';
 
-            relatedSubcats.forEach(sub => {
-                if (sub) {
+            const catObj = globalCategorias.find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(selectedCat));
+            let subList = [];
+
+            if (catObj) {
+                subList = globalSubcategorias
+                    .filter(s => s.ativo && s.categoria_id === catObj.id)
+                    .map(s => s.nome);
+            }
+
+            if (subList.length === 0 && globalCategorias.length === 0) {
+                // Fallback legado antes do usuário criar/importar catálogos
+                subList = getFrequencySortedOptions(
+                    globalData
+                        .filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(selectedCat))
+                        .map(d => d.subCat)
+                );
+            }
+
+            subList.forEach(sub => {
+                if (sub && sub.trim() !== '') {
                     const opt = document.createElement('option');
                     opt.value = sub;
                     opt.textContent = sub;
@@ -1567,20 +1794,38 @@
         }
 
         function populateFormDropdowns() {
-            const selectedType = (document.getElementById('i_tipo').value || 'Despesa').toUpperCase();
-            const typeFilteredData = globalData.filter(d => d.type === selectedType || d.type === 'DESPESA');
+            let catOptions = [];
+            if (globalCategorias.length > 0) {
+                catOptions = globalCategorias.filter(c => c.ativo).map(c => c.nome);
+            } else {
+                const selectedType = (document.getElementById('i_tipo')?.value || 'Despesa').toUpperCase();
+                const typeFilteredData = globalData.filter(d => d.type === selectedType || d.type === 'DESPESA');
+                catOptions = getFrequencySortedOptions(typeFilteredData.map(d => d.category));
+            }
 
-            populateSelect('i_categoria', typeFilteredData.map(d => d.category));
-            populateSelect('i_cartao', typeFilteredData.map(d => d.cartao));
+            let cardOptions = [];
+            if (globalCartoes.length > 0) {
+                cardOptions = globalCartoes.filter(c => c.ativo).map(c => c.nome);
+            } else {
+                cardOptions = getFrequencySortedOptions(globalData.map(d => d.cartao));
+            }
+
+            populateSelect('i_categoria', catOptions);
+            populateSelect('i_cartao', cardOptions);
+
+            // Sincronização Mobile
+            populateSelect('m_categoria', catOptions);
+            populateSelect('m_cartao', cardOptions);
         }
 
         function populateSelect(elementId, valuesArray) {
             const select = document.getElementById(elementId);
+            if (!select) return;
             const currentValue = select.value;
-            const sortedUniqueValues = getFrequencySortedOptions(valuesArray);
+            const uniqueValues = [...new Set(valuesArray.filter(v => v && v.trim() !== ''))];
 
             select.innerHTML = '<option value="">-- Selecione --</option>';
-            sortedUniqueValues.forEach(val => {
+            uniqueValues.forEach(val => {
                 const opt = document.createElement('option');
                 opt.value = val;
                 opt.textContent = val;
@@ -1593,28 +1838,496 @@
             newOpt.style.fontWeight = "bold";
             select.appendChild(newOpt);
 
-            if (currentValue && sortedUniqueValues.includes(currentValue)) {
+            if (currentValue && (uniqueValues.includes(currentValue) || select.querySelector(`option[value="${currentValue}"]`))) {
                 select.value = currentValue;
             }
         }
 
         function handleDynamicSelect(selectElement, label) {
             if (selectElement.value === '__NEW__') {
-                const newValue = prompt(`Digite o nome do(a) novo(a) ${label}:`);
-                if (newValue && newValue.trim() !== '') {
-                    const cleanValue = newValue.trim();
-                    const opt = document.createElement('option');
-                    opt.value = cleanValue;
-                    opt.textContent = cleanValue;
-                    selectElement.insertBefore(opt, selectElement.lastElementChild);
-                    selectElement.value = cleanValue;
+                let type = 'categoria';
+                if (label === 'Subcategoria') type = 'subcategoria';
+                else if (label === 'Cartão') type = 'cartao';
+                else if (label === 'Tag') type = 'tag';
 
-                    if (label === 'Categoria') {
-                        onCategoryChange(selectElement.id, selectElement.id === 'm_categoria' ? 'm_subcategoria' : 'i_subcategoria');
-                    }
-                } else {
-                    selectElement.value = '';
+                let parentCatId = null;
+                if (type === 'subcategoria') {
+                    const isMobile = selectElement.id.startsWith('m_');
+                    const catSelectId = isMobile ? 'm_categoria' : 'i_categoria';
+                    const selCatName = document.getElementById(catSelectId)?.value;
+                    const catObj = globalCategorias.find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(selCatName));
+                    if (catObj) parentCatId = catObj.id;
                 }
+
+                openCatalogModal({
+                    type: type,
+                    isQuickNew: true,
+                    sourceSelectId: selectElement.id,
+                    parentCatId: parentCatId
+                });
+            }
+        }
+
+        /* MODAL REUTILIZÁVEL DE CATÁLOGOS */
+        function openCatalogModal({ type = 'categoria', itemId = null, isQuickNew = false, sourceSelectId = null, parentCatId = null } = {}) {
+            const modal = document.getElementById('catalogModal');
+            const form = document.getElementById('catalogModalForm');
+            const titleEl = document.getElementById('catalogModalTitle');
+            const errEl = document.getElementById('catalogModalError');
+
+            if (!modal || !form) return;
+            errEl.style.display = 'none';
+            errEl.innerText = '';
+            form.reset();
+
+            document.getElementById('cat_modal_type').value = type;
+            document.getElementById('cat_modal_id').value = itemId || '';
+            document.getElementById('cat_modal_source_select').value = sourceSelectId || '';
+
+            // Exibir/ocultar campos específicos
+            document.getElementById('cat_modal_parent_group').style.display = type === 'subcategoria' ? 'block' : 'none';
+            document.getElementById('cat_modal_card_fields').style.display = type === 'cartao' ? 'block' : 'none';
+            document.getElementById('cat_modal_tag_fields').style.display = type === 'tag' ? 'block' : 'none';
+
+            // Popula seletor de Categoria Pai para Subcategoria
+            if (type === 'subcategoria') {
+                const parentSelect = document.getElementById('cat_modal_parent_id');
+                parentSelect.innerHTML = '<option value="">-- Selecione a Categoria Pai --</option>';
+                globalCategorias.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.nome + (c.ativo ? '' : ' (Inativa)');
+                    parentSelect.appendChild(opt);
+                });
+                if (parentCatId) parentSelect.value = parentCatId;
+            }
+
+            const typeLabels = { categoria: 'Categoria', subcategoria: 'Subcategoria', cartao: 'Cartão de Crédito', tag: 'Tag' };
+            const label = typeLabels[type] || 'Item';
+
+            if (itemId) {
+                titleEl.innerText = `Editar ${label}`;
+                let item = null;
+                if (type === 'categoria') item = globalCategorias.find(c => c.id === itemId);
+                if (type === 'subcategoria') item = globalSubcategorias.find(s => s.id === itemId);
+                if (type === 'cartao') item = globalCartoes.find(c => c.id === itemId);
+                if (type === 'tag') item = globalTags.find(t => t.id === itemId);
+
+                if (item) {
+                    document.getElementById('cat_modal_name').value = item.nome;
+                    if (type === 'subcategoria' && item.categoria_id) {
+                        document.getElementById('cat_modal_parent_id').value = item.categoria_id;
+                    }
+                    if (type === 'cartao') {
+                        document.getElementById('cat_modal_fechamento').value = item.dia_fechamento || '';
+                        document.getElementById('cat_modal_vencimento').value = item.dia_vencimento || '';
+                        document.getElementById('cat_modal_cor_cartao').value = item.cor || '#2563eb';
+                    }
+                    if (type === 'tag') {
+                        document.getElementById('cat_modal_cor_tag').value = item.cor || '#64748b';
+                    }
+                }
+            } else {
+                titleEl.innerText = type === 'cartao' ? 'Novo Cartão de Crédito' : `Nova ${label}`;
+            }
+
+            modal.style.display = 'flex';
+            setTimeout(() => document.getElementById('cat_modal_name')?.focus(), 50);
+        }
+
+        function closeCatalogModal() {
+            const modal = document.getElementById('catalogModal');
+            if (modal) modal.style.display = 'none';
+
+            // Se aberto via __NEW__ de um seletor e cancelado, reseta o seletor
+            const sourceSelectId = document.getElementById('cat_modal_source_select')?.value;
+            if (sourceSelectId) {
+                const sourceSelect = document.getElementById(sourceSelectId);
+                if (sourceSelect && sourceSelect.value === '__NEW__') {
+                    sourceSelect.value = '';
+                }
+            }
+        }
+
+        async function saveCatalogModalItem(e) {
+            if (e) e.preventDefault();
+            const type = document.getElementById('cat_modal_type').value;
+            const itemId = document.getElementById('cat_modal_id').value;
+            const sourceSelectId = document.getElementById('cat_modal_source_select').value;
+            const rawName = document.getElementById('cat_modal_name').value;
+            const cleanName = (rawName || '').trim();
+            const normName = normalizeCatalogName(cleanName);
+            const errEl = document.getElementById('catalogModalError');
+            const btn = document.getElementById('btnSaveCatalogModal');
+
+            if (!cleanName) {
+                errEl.innerText = 'Por favor, informe o nome do item.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            let tableName = 'app_categorias';
+            let payload = { user_id: currentUser.id, nome: cleanName };
+
+            if (type === 'categoria') {
+                tableName = 'app_categorias';
+                const duplicate = globalCategorias.some(c => c.id !== itemId && normalizeCatalogName(c.nome) === normName);
+                if (duplicate) {
+                    errEl.innerText = `Já existe uma categoria cadastrada com o nome "${cleanName}".`;
+                    errEl.style.display = 'block';
+                    return;
+                }
+            } else if (type === 'subcategoria') {
+                tableName = 'app_subcategorias';
+                const parentId = document.getElementById('cat_modal_parent_id').value;
+                if (!parentId) {
+                    errEl.innerText = 'Por favor, selecione a categoria pai para esta subcategoria.';
+                    errEl.style.display = 'block';
+                    return;
+                }
+                payload.categoria_id = parentId;
+                const duplicate = globalSubcategorias.some(s => s.id !== itemId && s.categoria_id === parentId && normalizeCatalogName(s.nome) === normName);
+                if (duplicate) {
+                    errEl.innerText = `Já existe uma subcategoria com este nome para a categoria selecionada.`;
+                    errEl.style.display = 'block';
+                    return;
+                }
+            } else if (type === 'cartao') {
+                tableName = 'app_cartoes';
+                const duplicate = globalCartoes.some(c => c.id !== itemId && normalizeCatalogName(c.nome) === normName);
+                if (duplicate) {
+                    errEl.innerText = `Já existe um cartão cadastrado com o nome "${cleanName}".`;
+                    errEl.style.display = 'block';
+                    return;
+                }
+                const fechamento = parseInt(document.getElementById('cat_modal_fechamento').value) || null;
+                const vencimento = parseInt(document.getElementById('cat_modal_vencimento').value) || null;
+                const cor = document.getElementById('cat_modal_cor_cartao').value || '#2563eb';
+                payload.dia_fechamento = fechamento;
+                payload.dia_vencimento = vencimento;
+                payload.cor = cor;
+            } else if (type === 'tag') {
+                tableName = 'app_tags';
+                const duplicate = globalTags.some(t => t.id !== itemId && normalizeCatalogName(t.nome) === normName);
+                if (duplicate) {
+                    errEl.innerText = `Já existe uma tag cadastrada com o nome "${cleanName}".`;
+                    errEl.style.display = 'block';
+                    return;
+                }
+                const cor = document.getElementById('cat_modal_cor_tag').value || '#64748b';
+                payload.cor = cor;
+            }
+
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            try {
+                let res;
+                if (itemId) {
+                    res = await _supabase.from(tableName).update(payload).eq('id', itemId);
+                } else {
+                    res = await _supabase.from(tableName).insert([payload]).select();
+                }
+
+                if (res.error) {
+                    errEl.innerText = 'Erro ao salvar no banco: ' + res.error.message;
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                await loadCatalogsData();
+                closeCatalogModal();
+
+                // Se acionado a partir de um select de formulário, seleciona automaticamente o item
+                if (sourceSelectId) {
+                    const selectEl = document.getElementById(sourceSelectId);
+                    if (selectEl) {
+                        selectEl.value = cleanName;
+                        if (type === 'categoria') {
+                            const isMobile = sourceSelectId.startsWith('m_');
+                            const subId = isMobile ? 'm_subcategoria' : 'i_subcategoria';
+                            onCategoryChange(sourceSelectId, subId);
+                        }
+                    }
+                }
+            } catch (err) {
+                errEl.innerText = 'Exceção ao salvar: ' + err.message;
+                errEl.style.display = 'block';
+            } finally {
+                btn.innerText = 'Salvar';
+                btn.disabled = false;
+            }
+        }
+
+        async function toggleCatalogItemActive(type, id, currentActive) {
+            const tableMap = { categoria: 'app_categorias', subcategoria: 'app_subcategorias', cartao: 'app_cartoes', tag: 'app_tags' };
+            const tableName = tableMap[type];
+            if (!tableName) return;
+
+            const newActive = !currentActive;
+            const { error } = await _supabase.from(tableName).update({ ativo: newActive }).eq('id', id);
+
+            if (error) {
+                alert('Erro ao alterar status: ' + error.message);
+            } else {
+                await loadCatalogsData();
+            }
+        }
+
+        async function deleteCatalogItem(type, id) {
+            const tableMap = { categoria: 'app_categorias', subcategoria: 'app_subcategorias', cartao: 'app_cartoes', tag: 'app_tags' };
+            const tableName = tableMap[type];
+            if (!tableName) return;
+
+            let item = null;
+            let uses = 0;
+
+            if (type === 'categoria') {
+                item = globalCategorias.find(c => c.id === id);
+                if (item) uses = globalData.filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(item.nome)).length;
+            } else if (type === 'subcategoria') {
+                item = globalSubcategorias.find(s => s.id === id);
+                if (item) {
+                    const parentCat = globalCategorias.find(c => c.id === item.categoria_id);
+                    const normCat = parentCat ? normalizeCatalogName(parentCat.nome) : null;
+                    uses = globalData.filter(d => {
+                        const matchSub = normalizeCatalogName(d.subCat) === normalizeCatalogName(item.nome);
+                        if (normCat) return matchSub && normalizeCatalogName(d.category) === normCat;
+                        return matchSub;
+                    }).length;
+                }
+            } else if (type === 'cartao') {
+                item = globalCartoes.find(c => c.id === id);
+                if (item) uses = globalData.filter(d => normalizeCatalogName(d.cartao) === normalizeCatalogName(item.nome)).length;
+            } else if (type === 'tag') {
+                item = globalTags.find(t => t.id === id);
+                if (item) uses = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normalizeCatalogName(item.nome))).length;
+            }
+
+            if (!item) return;
+
+            if (uses > 0) {
+                const msg = `Este item possui ${uses} ${uses === 1 ? 'lançamento vinculado' : 'lançamentos vinculados'} no seu histórico financeiro.\n\nPara proteger seus relatórios e extratos, a exclusão física é bloqueada.\n\nDeseja DESATIVAR o item em vez de excluir? Desativar oculta o item para novos lançamentos mas preserva o histórico.`;
+                if (confirm(msg)) {
+                    await toggleCatalogItemActive(type, id, true);
+                }
+                return;
+            }
+
+            if (confirm(`Deseja realmente excluir permanentemente "${item.nome}"? Esta ação não pode ser desfeita.`)) {
+                const { error } = await _supabase.from(tableName).delete().eq('id', id);
+                if (error) {
+                    alert('Erro ao excluir: ' + error.message);
+                } else {
+                    await loadCatalogsData();
+                }
+            }
+        }
+
+        /* ASSISTENTE DE IMPORTAÇÃO (CATÁLOGOS 2.0) */
+        function checkAndShowAssistedImportPrompt() {
+            const banner = document.getElementById('assistedImportBanner');
+            if (!banner) return;
+            const isEmpty = globalCategorias.length === 0 && globalCartoes.length === 0;
+            banner.style.display = isEmpty ? 'block' : 'none';
+        }
+
+        function openAssistedImportModal() {
+            const modal = document.getElementById('assistedImportModal');
+            if (!modal) return;
+
+            const catContainer = document.getElementById('assistedCategoriesList');
+            const cardContainer = document.getElementById('assistedCardsList');
+            const subContainer = document.getElementById('assistedSubcategoriesList');
+
+            // 1. Extração de Categorias Históricas
+            const catMap = new Map();
+            globalData.forEach(d => {
+                const raw = (d.category || '').trim();
+                if (raw && raw !== 'Outros' && raw !== 'null' && raw !== 'undefined') {
+                    const norm = normalizeCatalogName(raw);
+                    if (!catMap.has(norm)) {
+                        catMap.set(norm, { nome: raw, count: 1 });
+                    } else {
+                        catMap.get(norm).count += 1;
+                    }
+                }
+            });
+
+            const catList = Array.from(catMap.values()).sort((a, b) => b.count - a.count);
+            if (catList.length === 0) {
+                catContainer.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem;">Nenhuma categoria encontrada no histórico.</span>';
+            } else {
+                catContainer.innerHTML = catList.map((c) => `
+                    <label style="display:flex; align-items:center; justify-content:space-between; background:var(--card-bg); padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; cursor:pointer;">
+                        <span style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="checkbox" name="import_cat" value="${escapeHtml(c.nome)}" checked>
+                            <b>${escapeHtml(c.nome)}</b>
+                        </span>
+                        <span style="color:var(--text-muted); font-size:0.75rem;">${c.count} ${c.count === 1 ? 'uso' : 'usos'}</span>
+                    </label>
+                `).join('');
+            }
+
+            // 2. Extração de Cartões Históricos
+            const cardMap = new Map();
+            const nonCardSet = new Set(['pix parcelado', 'boleto', 'empre ml', 'null', 'undefined', '']);
+            globalData.forEach(d => {
+                const raw = (d.cartao || '').trim();
+                if (raw) {
+                    const norm = normalizeCatalogName(raw);
+                    if (!cardMap.has(norm)) {
+                        cardMap.set(norm, { nome: raw, norm: norm, count: 1 });
+                    } else {
+                        cardMap.get(norm).count += 1;
+                    }
+                }
+            });
+
+            const cardList = Array.from(cardMap.values()).sort((a, b) => b.count - a.count);
+            if (cardList.length === 0) {
+                cardContainer.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem;">Nenhum cartão encontrado no histórico.</span>';
+            } else {
+                cardContainer.innerHTML = cardList.map((c) => {
+                    const isGenuineCard = !nonCardSet.has(c.norm);
+                    return `
+                        <label style="display:flex; align-items:center; justify-content:space-between; background:var(--card-bg); padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; cursor:pointer;">
+                            <span style="display:flex; align-items:center; gap:0.5rem;">
+                                <input type="checkbox" name="import_card" value="${escapeHtml(c.nome)}" ${isGenuineCard ? 'checked' : ''}>
+                                <b>${escapeHtml(c.nome)}</b>
+                            </span>
+                            <span style="color:var(--text-muted); font-size:0.75rem;">${c.count} ${c.count === 1 ? 'uso' : 'usos'}</span>
+                        </label>
+                    `;
+                }).join('');
+            }
+
+            // 3. Extração de Subcategorias Históricas
+            const subMap = new Map();
+            globalData.forEach(d => {
+                const rawSub = (d.subCat || '').trim();
+                const rawCat = (d.category || '').trim();
+                if (rawSub && rawCat && rawSub !== 'null' && rawSub !== 'undefined') {
+                    const key = `${normalizeCatalogName(rawCat)}:::${normalizeCatalogName(rawSub)}`;
+                    if (!subMap.has(key)) {
+                        subMap.set(key, { catNome: rawCat, subNome: rawSub, count: 1 });
+                    } else {
+                        subMap.get(key).count += 1;
+                    }
+                }
+            });
+
+            const subList = Array.from(subMap.values()).sort((a, b) => b.count - a.count);
+            if (subList.length === 0) {
+                subContainer.innerHTML = '<span style="color:var(--text-muted); font-size:0.85rem;">Nenhuma subcategoria encontrada no histórico.</span>';
+            } else {
+                subContainer.innerHTML = subList.map((s) => `
+                    <label style="display:flex; align-items:center; justify-content:space-between; background:var(--card-bg); padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border); font-size:0.85rem; cursor:pointer;">
+                        <span style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="checkbox" name="import_sub" data-cat="${escapeHtml(s.catNome)}" value="${escapeHtml(s.subNome)}" checked>
+                            <span><b>${escapeHtml(s.subNome)}</b> <small style="color:var(--primary);">(${escapeHtml(s.catNome)})</small></span>
+                        </span>
+                        <span style="color:var(--text-muted); font-size:0.75rem;">${s.count} ${s.count === 1 ? 'uso' : 'usos'}</span>
+                    </label>
+                `).join('');
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeAssistedImportModal() {
+            const modal = document.getElementById('assistedImportModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function toggleAllImportCheckboxes(name, checked) {
+            document.querySelectorAll(`input[name="${name}"]`).forEach(cb => cb.checked = checked);
+        }
+
+        async function submitAssistedImport(e) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('btnSubmitAssistedImport');
+            btn.innerText = 'Importando...';
+            btn.disabled = true;
+
+            try {
+                // 1. Categorias selecionadas
+                const selectedCatNodes = Array.from(document.querySelectorAll('input[name="import_cat"]:checked'));
+                const selectedCatNames = selectedCatNodes.map(cb => cb.value.trim());
+
+                const existingCatNorms = new Set(globalCategorias.map(c => normalizeCatalogName(c.nome)));
+                const catPayloads = [];
+
+                selectedCatNames.forEach(name => {
+                    const norm = normalizeCatalogName(name);
+                    if (!existingCatNorms.has(norm)) {
+                        existingCatNorms.add(norm);
+                        catPayloads.push({ user_id: currentUser.id, nome: name, ativo: true });
+                    }
+                });
+
+                if (catPayloads.length > 0) {
+                    const { error: catErr } = await _supabase.from('app_categorias').insert(catPayloads);
+                    if (catErr) console.error("Erro ao importar categorias:", catErr);
+                }
+
+                // Re-fetch categories para obter IDs atualizados para vincular subcategorias
+                const { data: updatedCats } = await _supabase.from('app_categorias').select('*').eq('user_id', currentUser.id);
+                if (updatedCats) globalCategorias = updatedCats;
+
+                // 2. Cartões selecionados
+                const selectedCardNodes = Array.from(document.querySelectorAll('input[name="import_card"]:checked'));
+                const selectedCardNames = selectedCardNodes.map(cb => cb.value.trim());
+
+                const existingCardNorms = new Set(globalCartoes.map(c => normalizeCatalogName(c.nome)));
+                const cardPayloads = [];
+
+                selectedCardNames.forEach(name => {
+                    const norm = normalizeCatalogName(name);
+                    if (!existingCardNorms.has(norm)) {
+                        existingCardNorms.add(norm);
+                        cardPayloads.push({ user_id: currentUser.id, nome: name, ativo: true, cor: '#2563eb' });
+                    }
+                });
+
+                if (cardPayloads.length > 0) {
+                    const { error: cardErr } = await _supabase.from('app_cartoes').insert(cardPayloads);
+                    if (cardErr) console.error("Erro ao importar cartões:", cardErr);
+                }
+
+                // 3. Subcategorias selecionadas
+                const selectedSubNodes = Array.from(document.querySelectorAll('input[name="import_sub"]:checked'));
+                const existingSubKeys = new Set(globalSubcategorias.map(s => `${s.categoria_id}:::${normalizeCatalogName(s.nome)}`));
+                const subPayloads = [];
+
+                selectedSubNodes.forEach(cb => {
+                    const subName = cb.value.trim();
+                    const parentCatName = cb.getAttribute('data-cat') || '';
+                    const parentObj = globalCategorias.find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(parentCatName));
+
+                    if (parentObj) {
+                        const key = `${parentObj.id}:::${normalizeCatalogName(subName)}`;
+                        if (!existingSubKeys.has(key)) {
+                            existingSubKeys.add(key);
+                            subPayloads.push({ user_id: currentUser.id, categoria_id: parentObj.id, nome: subName, ativo: true });
+                        }
+                    }
+                });
+
+                if (subPayloads.length > 0) {
+                    const { error: subErr } = await _supabase.from('app_subcategorias').insert(subPayloads);
+                    if (subErr) console.error("Erro ao importar subcategorias:", subErr);
+                }
+
+                await loadCatalogsData();
+                closeAssistedImportModal();
+                alert('Catálogos importados com sucesso! Seu histórico financeiro permanece 100% intacto.');
+            } catch (err) {
+                console.error("Exceção durante submitAssistedImport:", err);
+                alert('Erro ao importar catálogos: ' + err.message);
+            } finally {
+                btn.innerText = 'Importar Selecionados';
+                btn.disabled = false;
             }
         }
 
@@ -1671,6 +2384,7 @@
             await loadDashboardData();
             await loadSharedData();
             await loadMetasData();
+            await loadCatalogsData();
             document.getElementById('syncBtnText').innerText = 'Atualizado!';
             setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
         }
@@ -1784,10 +2498,44 @@
             populateFormDropdowns();
             togglePaymentFields();
 
-            document.getElementById('i_categoria').value = item.category;
+            // Preservação de valores históricos não catalogados ou inativos
+            const catSelect = document.getElementById('i_categoria');
+            if (item.category && item.category.trim() !== '') {
+                const hasCatOption = Array.from(catSelect.options).some(opt => opt.value === item.category);
+                if (!hasCatOption) {
+                    const histOpt = document.createElement('option');
+                    histOpt.value = item.category;
+                    histOpt.textContent = `${item.category} (Histórico)`;
+                    catSelect.insertBefore(histOpt, catSelect.lastElementChild);
+                }
+                catSelect.value = item.category;
+            }
+
             onCategoryChange('i_categoria', 'i_subcategoria');
-            document.getElementById('i_subcategoria').value = item.subCat;
-            document.getElementById('i_cartao').value = item.cartao;
+
+            const subSelect = document.getElementById('i_subcategoria');
+            if (item.subCat && item.subCat.trim() !== '') {
+                const hasSubOption = Array.from(subSelect.options).some(opt => opt.value === item.subCat);
+                if (!hasSubOption) {
+                    const histSubOpt = document.createElement('option');
+                    histSubOpt.value = item.subCat;
+                    histSubOpt.textContent = `${item.subCat} (Histórico)`;
+                    subSelect.insertBefore(histSubOpt, subSelect.lastElementChild);
+                }
+                subSelect.value = item.subCat;
+            }
+
+            const cardSelect = document.getElementById('i_cartao');
+            if (item.cartao && item.cartao.trim() !== '') {
+                const hasCardOption = Array.from(cardSelect.options).some(opt => opt.value === item.cartao);
+                if (!hasCardOption) {
+                    const histCardOpt = document.createElement('option');
+                    histCardOpt.value = item.cartao;
+                    histCardOpt.textContent = `${item.cartao} (Histórico)`;
+                    cardSelect.insertBefore(histCardOpt, cardSelect.lastElementChild);
+                }
+                cardSelect.value = item.cartao;
+            }
 
             document.getElementById('formTitle').innerText = "Editar Transação";
             document.getElementById('btnSalvar').innerText = "Atualizar Registro";
@@ -1983,7 +2731,11 @@
 
             const selCat = document.getElementById('an_categoria');
             selCat.innerHTML = '<option value="all">Todas as Categorias</option>';
-            getFrequencySortedOptions(globalData.map(d => d.category)).forEach(c => {
+            const allCatNames = [...new Set([
+                ...globalCategorias.map(c => c.nome),
+                ...globalData.map(d => d.category)
+            ])].filter(Boolean);
+            allCatNames.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c; opt.textContent = c;
                 selCat.appendChild(opt);
@@ -1991,8 +2743,11 @@
 
             const selTag = document.getElementById('an_tag');
             selTag.innerHTML = '<option value="all">Todas as TAGs</option>';
-            const allTags = globalData.flatMap(d => d.tags);
-            getFrequencySortedOptions(allTags).forEach(t => {
+            const allTagNames = [...new Set([
+                ...globalTags.map(t => t.nome),
+                ...globalData.flatMap(d => d.tags || [])
+            ])].filter(Boolean);
+            allTagNames.forEach(t => {
                 const opt = document.createElement('option');
                 opt.value = t; opt.textContent = t;
                 selTag.appendChild(opt);
@@ -2000,8 +2755,12 @@
 
             const selPay = document.getElementById('an_pagamento');
             selPay.innerHTML = '<option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>';
-            const allPays = globalData.map(d => d.cartao || d.pagamento);
-            getFrequencySortedOptions(allPays).forEach(p => {
+            const allPayNames = [...new Set([
+                ...globalCartoes.map(c => c.nome),
+                ...globalData.map(d => d.cartao),
+                ...globalData.map(d => d.pagamento)
+            ])].filter(Boolean);
+            allPayNames.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p; opt.textContent = p;
                 selPay.appendChild(opt);
@@ -2940,55 +3699,153 @@
             const catContainer = document.getElementById('manageCategoriesList');
             const subContainer = document.getElementById('manageSubcategoriesList');
             const payContainer = document.getElementById('managePaymentsList');
+            const tagContainer = document.getElementById('manageTagsList');
 
-            const categories = getFrequencySortedOptions(globalData.map(d => d.category));
-            const subcategories = getFrequencySortedOptions(globalData.map(d => d.subCat));
-            const payments = getFrequencySortedOptions(globalData.map(d => d.cartao || d.pagamento));
+            if (!catContainer) return;
 
-            catContainer.innerHTML = categories.map(cat => `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.5rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
-                    <span style="font-weight:600; font-size:0.9rem;">${cat}</span>
-                    <button class="action-icon-btn" onclick="renameGlobalItem('category', '${cat}')">✏️ Editar</button>
-                </div>
-            `).join('') || '<p style="color:var(--text-muted);">Nenhuma categoria registrada.</p>';
+            // Auxiliares de cálculo de uso no histórico
+            const getCatUsage = (name) => {
+                const norm = normalizeCatalogName(name);
+                return globalData.filter(d => normalizeCatalogName(d.category) === norm).length;
+            };
+            const getSubUsage = (subName, catId) => {
+                const normSub = normalizeCatalogName(subName);
+                const parentCat = globalCategorias.find(c => c.id === catId);
+                const normCat = parentCat ? normalizeCatalogName(parentCat.nome) : null;
+                return globalData.filter(d => {
+                    const matchSub = normalizeCatalogName(d.subCat) === normSub;
+                    if (normCat) return matchSub && normalizeCatalogName(d.category) === normCat;
+                    return matchSub;
+                }).length;
+            };
+            const getCardUsage = (name) => {
+                const norm = normalizeCatalogName(name);
+                return globalData.filter(d => normalizeCatalogName(d.cartao) === norm).length;
+            };
+            const getTagUsage = (name) => {
+                const norm = normalizeCatalogName(name);
+                return globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === norm)).length;
+            };
 
-            subContainer.innerHTML = subcategories.map(sub => `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.5rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
-                    <span style="font-size:0.85rem;">${sub}</span>
-                    <button class="action-icon-btn" onclick="renameGlobalItem('subcategoria', '${sub}')">✏️ Editar</button>
-                </div>
-            `).join('') || '<p style="color:var(--text-muted);">Nenhuma subcategoria registrada.</p>';
-
-            payContainer.innerHTML = payments.map(pay => `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.5rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
-                    <span style="font-size:0.85rem;">${pay}</span>
-                    <button class="action-icon-btn" onclick="renameGlobalItem('cartao', '${pay}')">✏️ Editar</button>
-                </div>
-            `).join('') || '<p style="color:var(--text-muted);">Nenhuma forma registrada.</p>';
-        }
-
-        async function renameGlobalItem(type, oldValue) {
-            const newValue = prompt(`Digite o novo nome para "${oldValue}":`, oldValue);
-            if (!newValue || newValue.trim() === '' || newValue.trim() === oldValue) return;
-
-            const cleanValue = newValue.trim();
-            let updatePayload = {};
-
-            if (type === 'category') updatePayload = { categoria: cleanValue };
-            if (type === 'subcategoria') updatePayload = { subcategoria: cleanValue };
-            if (type === 'cartao') updatePayload = { cartao: cleanValue };
-
-            const { error } = await _supabase
-                .from('transacoes')
-                .update(updatePayload)
-                .eq('user_id', currentUser.id)
-                .eq(type === 'category' ? 'categoria' : type === 'subcategoria' ? 'subcategoria' : 'cartao', oldValue);
-
-            if (error) {
-                alert("Erro ao renomear: " + error.message);
+            // 1. Categorias
+            if (globalCategorias.length === 0) {
+                catContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma categoria cadastrada.</p>';
             } else {
-                alert(`"${oldValue}" alterado com sucesso para "${cleanValue}" em todos os lançamentos!`);
-                manualSync();
+                catContainer.innerHTML = globalCategorias.map(c => {
+                    const uses = getCatUsage(c.nome);
+                    const statusBadge = c.ativo
+                        ? `<span class="tag-status tag-done">Ativo</span>`
+                        : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+                            <div>
+                                <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(c.nome)}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                                    ${statusBadge}
+                                    <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'categoria', itemId: '${c.id}' })">✏️</button>
+                                <button class="action-icon-btn" title="${c.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('categoria', '${c.id}', ${c.ativo})">${c.ativo ? '⏸️' : '▶️'}</button>
+                                <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('categoria', '${c.id}')">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 2. Subcategorias
+            if (globalSubcategorias.length === 0) {
+                subContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma subcategoria cadastrada.</p>';
+            } else {
+                subContainer.innerHTML = globalSubcategorias.map(s => {
+                    const parentCat = globalCategorias.find(c => c.id === s.categoria_id);
+                    const parentName = parentCat ? parentCat.nome : 'Sem categoria';
+                    const uses = getSubUsage(s.nome, s.categoria_id);
+                    const statusBadge = s.ativo
+                        ? `<span class="tag-status tag-done">Ativo</span>`
+                        : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
+                            <div>
+                                <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(s.nome)}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                                    <span style="color:var(--primary); font-weight:500;">📁 ${escapeHtml(parentName)}</span>
+                                    ${statusBadge}
+                                    <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'subcategoria', itemId: '${s.id}' })">✏️</button>
+                                <button class="action-icon-btn" title="${s.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('subcategoria', '${s.id}', ${s.ativo})">${s.ativo ? '⏸️' : '▶️'}</button>
+                                <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('subcategoria', '${s.id}')">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 3. Cartões
+            if (globalCartoes.length === 0) {
+                payContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhum cartão cadastrado.</p>';
+            } else {
+                payContainer.innerHTML = globalCartoes.map(card => {
+                    const uses = getCardUsage(card.nome);
+                    const statusBadge = card.ativo
+                        ? `<span class="tag-status tag-done">Ativo</span>`
+                        : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                    const fechamentoInfo = card.dia_fechamento ? `F: ${card.dia_fechamento}` : '';
+                    const vencimentoInfo = card.dia_vencimento ? `V: ${card.dia_vencimento}` : '';
+                    const datesStr = (fechamentoInfo || vencimentoInfo) ? `(${[fechamentoInfo, vencimentoInfo].filter(Boolean).join(' | ')})` : '';
+
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border); border-left:4px solid ${card.cor || '#2563eb'};">
+                            <div>
+                                <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(card.nome)} <small style="font-size:0.75rem; color:var(--text-muted);">${datesStr}</small></div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                                    ${statusBadge}
+                                    <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:0.3rem;">
+                                <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'cartao', itemId: '${card.id}' })">✏️</button>
+                                <button class="action-icon-btn" title="${card.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('cartao', '${card.id}', ${card.ativo})">${card.ativo ? '⏸️' : '▶️'}</button>
+                                <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('cartao', '${card.id}')">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 4. Tags
+            if (tagContainer) {
+                if (globalTags.length === 0) {
+                    tagContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma tag cadastrada.</p>';
+                } else {
+                    tagContainer.innerHTML = globalTags.map(t => {
+                        const uses = getTagUsage(t.nome);
+                        const statusBadge = t.ativo
+                            ? `<span class="tag-status tag-done">Ativo</span>`
+                            : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                        return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border); border-left:4px solid ${t.cor || '#64748b'};">
+                                <div>
+                                    <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(t.nome)}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                                        ${statusBadge}
+                                        <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:0.3rem;">
+                                    <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'tag', itemId: '${t.id}' })">✏️</button>
+                                    <button class="action-icon-btn" title="${t.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('tag', '${t.id}', ${t.ativo})">${t.ativo ? '⏸️' : '▶️'}</button>
+                                    <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('tag', '${t.id}')">🗑️</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
             }
         }
 

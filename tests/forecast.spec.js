@@ -409,4 +409,101 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         await page.click('#themeToggleBtn');
         await expect(page.locator('body')).not.toHaveClass(/dark-theme/);
     });
+
+    test('17. Virada de ano com horizonte 12 meses projeta corretamente competências do ano seguinte', async ({ page }) => {
+        // Compra iniciada em Outubro/2026 em 6x (termina em Março/2027)
+        const customTxs = [
+            {
+                id: 'tx-virada1',
+                user_id: mockUser.id,
+                data: '2026-10-15',
+                descricao: 'Geladeira Inox',
+                categoria: 'Casa',
+                valor: 500.00,
+                tipo: 'DESPESA',
+                pagamento: 'Cartão de Crédito',
+                cartao: 'Nubank',
+                parcela: '1/6',
+                fatura_destino: 'ATUAL',
+                grupo_parcela_id: 'grp-gela-1'
+            }
+        ];
+
+        await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.click('button:has-text("🔮 Previsão Financeira")');
+        await page.click('#btnHorizon12');
+
+        const cards = page.locator('#forecastMonthGrid .forecast-month-card');
+        await expect(cards).toHaveCount(12);
+
+        // Mês 0 (Ago/26): 0
+        // Mês 1 (Set/26): 0
+        // Mês 2 (Out/26): 500 (1/6)
+        // Mês 3 (Nov/26): 500 (2/6)
+        // Mês 4 (Dez/26): 500 (3/6)
+        // Mês 5 (Jan/27): 500 (4/6) -> Virada de Ano
+        // Mês 6 (Fev/27): 500 (5/6)
+        // Mês 7 (Mar/27): 500 (6/6)
+        // Mês 8 (Abr/27): 0 (Pós-término)
+        await expect(cards.nth(0)).toContainText('R$ 0,00');
+        await expect(cards.nth(2)).toContainText('R$ 500,00');
+        await expect(cards.nth(4)).toContainText('R$ 500,00');
+        await expect(cards.nth(5)).toContainText('R$ 500,00');
+        await expect(cards.nth(7)).toContainText('R$ 500,00');
+        await expect(cards.nth(8)).toContainText('R$ 0,00');
+    });
+
+    test('18. Medição real de performance para 3, 6 e 12 meses com 523 transações mockadas', async ({ page }) => {
+        // Gera 523 transações mockadas representando o histórico real
+        const bigDataset = [];
+        for (let i = 0; i < 523; i++) {
+            const isCard = (i % 3 !== 0);
+            const isParc = isCard && (i % 4 === 0);
+            const isRec = isCard && (i % 10 === 0);
+            const m = (i % 12);
+            const y = 2025 + Math.floor(i / 260);
+            const dStr = `${y}-${String(m+1).padStart(2, '0')}-15`;
+            bigDataset.push({
+                id: `tx-bench-${i}`,
+                user_id: mockUser.id,
+                tipo: (i % 15 === 0) ? 'Receita' : (i % 25 === 0) ? 'Investimento' : 'Despesa',
+                data: dStr,
+                descricao: `Transação Histórica ${i}`,
+                valor: 50 + (i % 200),
+                pagamento: isCard ? 'Cartão de Crédito' : 'PIX',
+                cartao: isCard ? 'Nubank' : '',
+                categoria: `Categoria ${i % 8}`,
+                subcategoria: `Sub ${i % 5}`,
+                parcela: isRec ? 'RECORRENTE' : isParc ? '1/6' : '',
+                fatura_destino: (i % 5 === 0) ? 'PROXIMA' : 'ATUAL',
+                grupo_parcela_id: isParc ? `grp-bench-${i % 20}` : null
+            });
+        }
+
+        await setupAuthenticatedApp(page, { transactions: bigDataset });
+
+        const perfTimes = await page.evaluate(() => {
+            const measure = (h) => {
+                const iters = 50;
+                const t0 = performance.now();
+                for (let k = 0; k < iters; k++) {
+                    getFinancialForecast('2026-7', h);
+                }
+                const t1 = performance.now();
+                return (t1 - t0) / iters;
+            };
+            return {
+                h3: measure(3),
+                h6: measure(6),
+                h12: measure(12)
+            };
+        });
+
+        // Esperado: execução muito rápida (< 50ms mesmo sem cache)
+        expect(perfTimes.h3).toBeLessThan(50);
+        expect(perfTimes.h6).toBeLessThan(50);
+        expect(perfTimes.h12).toBeLessThan(50);
+
+        console.log(`Performance medida no navegador (523 txs): 3M=${perfTimes.h3.toFixed(2)}ms, 6M=${perfTimes.h6.toFixed(2)}ms, 12M=${perfTimes.h12.toFixed(2)}ms`);
+    });
 });

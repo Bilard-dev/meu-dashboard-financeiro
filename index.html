@@ -7,45 +7,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <style>
-        :root { 
-            --bg-color: #f8fafc; 
-            --card-bg: #ffffff; 
-            --text-main: #0f172a; 
-            --text-muted: #64748b; 
-            --primary: #2563eb; 
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #2563eb;
             --primary-light: #eff6ff;
-            --success: #10b981; 
+            --success: #10b981;
             --success-btn: #059669;
-            --danger: #ef4444; 
-            --warning: #f59e0b; 
-            --invest: #8b5cf6; 
-            --border: #e2e8f0; 
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --invest: #8b5cf6;
+            --border: #e2e8f0;
             --input-bg: #ffffff;
             --table-hover: #f1f5f9;
         }
 
         body.dark-theme {
-            --bg-color: #0f172a; 
-            --card-bg: #1e293b; 
-            --text-main: #f8fafc; 
-            --text-muted: #94a3b8; 
-            --primary: #3b82f6; 
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
             --primary-light: #1e3a8a;
-            --success: #10b981; 
+            --success: #10b981;
             --success-btn: #059669;
-            --danger: #ef4444; 
-            --warning: #f59e0b; 
-            --invest: #a78bfa; 
-            --border: #334155; 
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --invest: #a78bfa;
+            --border: #334155;
             --input-bg: #1e293b;
             --table-hover: #334155;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
-        
+
         /* HEADER E TABS */
         header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
         header h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
@@ -59,7 +59,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
-        
+
         /* CARDS E KPI */
         .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
         .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
@@ -98,7 +98,7 @@
         .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
         .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
         .input-field:focus { border-color: var(--primary); }
-        
+
         .password-wrapper { position: relative; display: flex; align-items: center; }
         .toggle-password-btn { position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted); padding: 0 4px; }
 
@@ -122,7 +122,7 @@
 
         .mobile-quick-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 9999; padding: 1.2rem; overflow-y: auto; }
         .mobile-quick-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
-        
+
         .password-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.2; }
         .forgot-link { font-size: 0.8rem; color: var(--primary); text-align: right; display: block; margin-top: 0.4rem; cursor: pointer; text-decoration: underline; }
     </style>
@@ -134,13 +134,13 @@
         <div class="auth-container">
             <h2 style="margin-bottom: 0.5rem; text-align: center;">Área de Acesso</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Organize suas finanças com segurança total</p>
-            
+
             <form id="loginForm">
                 <div class="input-group">
                     <label>E-mail *</label>
                     <input type="email" id="email" class="input-field" placeholder="seu@email.com" required>
                 </div>
-                
+
                 <div class="input-group">
                     <label>Senha *</label>
                     <div class="password-wrapper">
@@ -150,7 +150,7 @@
                     <span class="forgot-link" onclick="handleForgotPassword()">Esqueci minha senha</span>
                     <p class="password-hint">Para novas contas: Mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).</p>
                 </div>
-                
+
                 <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
                     <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
                     <button type="button" onclick="handleSignUp()" class="btn-secondary" id="signUpBtnText" style="width: 100%; text-align: center;">Criar Nova Conta</button>
@@ -195,7 +195,7 @@
         <div id="loading" class="loading" style="display: none;">Conectando ao Supabase...</div>
 
         <div id="dashboard">
-            
+
             <!-- ABA 1: RESUMO GERAL -->
             <div id="tab-resumo" class="tab-content active">
 
@@ -234,7 +234,7 @@
                 <div class="chart-card">
                     <div class="chart-title">Composição de Gastos (Clique em uma fatia para destrinchar)</div>
                     <div style="width:100%; max-width:400px; margin: 0 auto;"><canvas id="categoryChart" height="220"></canvas></div>
-                    
+
                     <div id="categoryDetailsSection">
                         <h3 id="catDetailTitle" style="margin-bottom: 1rem; color: var(--primary);">Análise: Categoria</h3>
                         <div class="kpi-container">
@@ -255,7 +255,7 @@
                 <div class="chart-card">
                     <h2 class="chart-title" style="font-size: 1.2rem;">📊 Painel Avançado de Análise Multi-Filtros</h2>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Filtre seu histórico completo por período, categorias, TAGs customizadas e meios de pagamento.</p>
-                    
+
                     <div class="form-grid" style="margin-bottom: 1rem;">
                         <div class="input-group">
                             <label>Filtrar Período</label>
@@ -378,7 +378,7 @@
                      <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria:</label>
                      <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
                  </div>
-                 
+
                  <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title">Total Investido (Filtro)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">Maior Aporte Único</div><div class="kpi-value" id="kpi-maior-aporte" style="color: var(--primary);">R$ 0,00</div></div></div>
@@ -471,7 +471,7 @@
                 <div class="chart-card">
                     <h2 class="chart-title">⚙️ Gerenciar Categorias, Subcategorias e Formas de Pagamento</h2>
                     <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Ao editar o nome de uma categoria ou subcategoria, todas as transações associadas serão atualizadas automaticamente.</p>
-                    
+
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
                         <div>
                             <h3 style="font-size:1rem; margin-bottom:0.8rem; color:var(--primary);">Categorias Existentes</h3>
@@ -502,7 +502,7 @@
                     <form id="insertForm" onsubmit="addOrUpdateTransaction(event, false)">
                         <input type="hidden" id="edit_id">
                         <div class="form-grid">
-                            
+
                             <div class="input-group">
                                 <label>1. Tipo *</label>
                                 <select id="i_tipo" class="input-field" onchange="onTypeChange()" required>
@@ -524,7 +524,7 @@
                             </div>
 
                             <div class="input-group">
-                                <label>4. Valor (R$) *</label>
+                                <label id="i_valor_label">4. Valor (R$) *</label>
                                 <input type="number" id="i_valor" step="0.01" class="input-field" placeholder="Ex: 150.50" required>
                             </div>
 
@@ -565,7 +565,7 @@
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
-                                <label>Destino da Fatura (Competência exata)</label>
+                                <label id="i_fatura_destino_label">Destino da Fatura (Competência exata)</label>
                                 <select id="i_fatura_destino" class="input-field">
                                     <!-- Preenchido dinamicamente via JS com Agosto/2026, Setembro/2026, etc. -->
                                 </select>
@@ -731,7 +731,7 @@
     <script>
         const SUPABASE_URL = 'https://zrlkexqogahoeryqkeyr.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
-        
+
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
@@ -758,8 +758,8 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            document.getElementById('themeToggleBtn').innerHTML = isDark 
-                ? '☀️ <span id="themeBtnText">Modo Claro</span>' 
+            document.getElementById('themeToggleBtn').innerHTML = isDark
+                ? '☀️ <span id="themeBtnText">Modo Claro</span>'
                 : '🌙 <span id="themeBtnText">Modo Escuro</span>';
         }
 
@@ -900,11 +900,11 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('senha').value;
             const btn = document.getElementById('loginBtnText');
-            
+
             btn.innerText = 'Entrando...';
 
             const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            
+
             if (error) {
                 showMessage("Erro de login: " + error.message);
                 btn.innerText = 'Entrar';
@@ -942,7 +942,7 @@
                 renderTopCategoryChips();
                 togglePaymentFields();
                 renderManageLists();
-                
+
                 // Preenche os seletores de fatura com base na data padrão atual
                 updateDynamicFaturaDropdown();
                 updateMobileDynamicFaturaDropdown();
@@ -1038,13 +1038,45 @@
             });
         }
 
+        function updateFormCardLabels() {
+            const isCard = document.getElementById('i_pagamento').value === 'Cartão de Crédito';
+            const pSel = document.getElementById('i_parcela_select').value;
+            const valorLabel = document.getElementById('i_valor_label');
+            const faturaLabel = document.getElementById('i_fatura_destino_label');
+
+            if (valorLabel) {
+                if (isCard) {
+                    if (pSel === 'RECORRENTE') {
+                        valorLabel.innerText = '4. Valor Mensal (R$) *';
+                    } else if (pSel === 'CUSTOM') {
+                        valorLabel.innerText = '4. Valor da Parcela (R$) *';
+                    } else {
+                        valorLabel.innerText = '4. Valor da Compra (R$) *';
+                    }
+                } else {
+                    valorLabel.innerText = '4. Valor (R$) *';
+                }
+            }
+
+            if (faturaLabel) {
+                if (pSel === 'RECORRENTE') {
+                    faturaLabel.innerText = 'Primeira Fatura de Cobrança *';
+                } else if (pSel === 'CUSTOM') {
+                    faturaLabel.innerText = 'Primeira Parcela na Fatura *';
+                } else {
+                    faturaLabel.innerText = 'Fatura de Pagamento *';
+                }
+            }
+        }
+
         function togglePaymentFields() {
             const pagamento = document.getElementById('i_pagamento').value;
             const isCard = pagamento === 'Cartão de Crédito';
-            
+
             document.querySelectorAll('.card-only-field').forEach(el => {
                 el.style.display = isCard ? 'block' : 'none';
             });
+            updateFormCardLabels();
         }
 
         function handleParcelaSelectChange(selectEl, customInputId) {
@@ -1056,6 +1088,7 @@
                 customInput.style.display = 'none';
                 customInput.value = '';
             }
+            updateFormCardLabels();
         }
 
         function getFrequencySortedOptions(arrayValues) {
@@ -1124,7 +1157,7 @@
             );
 
             subSelect.innerHTML = '<option value="">-- Selecione --</option>';
-            
+
             relatedSubcats.forEach(sub => {
                 if (sub) {
                     const opt = document.createElement('option');
@@ -1159,8 +1192,8 @@
             // 1. Opções relativas inteligentes (calculam o ano e mês exatos da compra e do mês seguinte)
             const nextDate = new Date(baseYear, baseMonth + 1, 1);
             const options = [
-                { val: 'ATUAL', label: `Fatura do Mês da Compra (${monthNamesBR[baseMonth]}/${baseYear})` },
-                { val: 'PROXIMA', label: `Fatura do Mês Seguinte (${monthNamesBR[nextDate.getMonth()]}/${nextDate.getFullYear()})` }
+                { val: 'ATUAL', label: `Fatura de ${monthNamesBR[baseMonth]}/${baseYear} (Mês da Compra)` },
+                { val: 'PROXIMA', label: `Fatura de ${monthNamesBR[nextDate.getMonth()]}/${nextDate.getFullYear()} (Mês Seguinte)` }
             ];
 
             // 2. Opções absolutas dinâmicas (do mês anterior até 12 meses após a data da compra)
@@ -1172,7 +1205,7 @@
                 const key = `${y}-${m}`;
                 if (!addedKeys.has(key)) {
                     addedKeys.add(key);
-                    options.push({ val: key, label: `Fatura Específica: ${monthNamesBR[m]}/${y}` });
+                    options.push({ val: key, label: `Fatura de ${monthNamesBR[m]}/${y}` });
                 }
             }
 
@@ -1180,7 +1213,7 @@
             if (currVal && !addedKeys.has(currVal) && currVal.includes('-')) {
                 const [oldY, oldM] = currVal.split('-').map(Number);
                 if (!isNaN(oldY) && !isNaN(oldM) && monthNamesBR[oldM] !== undefined) {
-                    options.push({ val: currVal, label: `Fatura Específica: ${monthNamesBR[oldM]}/${oldY}` });
+                    options.push({ val: currVal, label: `Fatura de ${monthNamesBR[oldM]}/${oldY}` });
                     addedKeys.add(currVal);
                 }
             }
@@ -1229,7 +1262,7 @@
         function buildDescWithTags(baseDesc, tagsInput) {
             let cleanDesc = (baseDesc || '').replace(/^\s*\[(.*?)\]\s*/, '').trim();
             if (!tagsInput || tagsInput.trim() === '') return cleanDesc;
-            
+
             const formattedTags = tagsInput.split(',')
                 .map(t => t.trim())
                 .filter(t => t.length > 0)
@@ -1295,7 +1328,7 @@
         function onCustomSplitChange(changedField) {
             document.getElementById('s_regra').value = 'CUSTOM';
             const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
-            
+
             if (changedField === 'meu') {
                 const meuVal = parseFloat(document.getElementById('s_valor_meu').value) || 0;
                 document.getElementById('s_valor_parceiro').value = Math.max(0, total - meuVal).toFixed(2);
@@ -1454,7 +1487,7 @@
                 };
 
                 const { error } = await _supabase.from('transacoes').insert([lancamento]);
-                
+
                 if (error) {
                     alert("Erro ao lançar no dashboard: " + error.message);
                 } else {
@@ -1467,7 +1500,7 @@
         async function toggleSharedPaidStatus(id, currentStatus) {
             const newStatus = currentStatus === 'PAGO' ? 'PENDENTE' : 'PAGO';
             const { error } = await _supabase.from('gastos_compartilhados').update({ status: newStatus }).eq('id', id);
-            
+
             if (error) {
                 alert("Erro ao alterar status: " + error.message);
             } else {
@@ -1545,7 +1578,7 @@
             const select = document.getElementById(elementId);
             const currentValue = select.value;
             const sortedUniqueValues = getFrequencySortedOptions(valuesArray);
-            
+
             select.innerHTML = '<option value="">-- Selecione --</option>';
             sortedUniqueValues.forEach(val => {
                 const opt = document.createElement('option');
@@ -1605,14 +1638,14 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
+
             const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
             if (activeBtn) activeBtn.classList.add('active');
-            
+
             document.getElementById(`tab-${tabId}`).classList.add('active');
-            if (tabId === 'resumo') { document.getElementById('filterContainer').style.visibility = 'visible'; } 
+            if (tabId === 'resumo') { document.getElementById('filterContainer').style.visibility = 'visible'; }
             else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
-            
+
             if(tabId === 'analise') initAnaliseTab();
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'metas') renderMetasTab();
@@ -1724,14 +1757,14 @@
             document.getElementById('edit_id').value = item.id;
             document.getElementById('i_tipo').value = item.rawTipo;
             document.getElementById('i_data').value = item.rawDate;
-            
+
             document.getElementById('i_descricao').value = (item.desc || '').replace(/^\s*\[(.*?)\]\s*/, '').trim();
             document.getElementById('i_tags').value = (item.tags || []).join(', ');
-            
+
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
             document.getElementById('i_custo').value = item.custo;
-            
+
             updateDynamicFaturaDropdown(item.faturaDestino || 'ATUAL');
 
             const pSel = document.getElementById('i_parcela_select');
@@ -1803,7 +1836,7 @@
             }
 
             if (searchText) {
-                filtered = filtered.filter(d => 
+                filtered = filtered.filter(d =>
                     normalizeText(d.desc).includes(searchText) ||
                     normalizeText(d.category).includes(searchText) ||
                     normalizeText(d.subCat).includes(searchText) ||
@@ -1819,20 +1852,66 @@
 
         function setupMonthSelector() {
             const select = document.getElementById('monthSelector');
+            if (!select) return;
+            const currVal = select.value;
             select.innerHTML = '<option value="all">Todo o Histórico</option>';
-            
-            const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
-            activeMonths.forEach(ym => {
-                const [y, m] = ym.split('-');
+
+            const monthKeysSet = new Set();
+
+            // 1. Meses de transações físicas e suas faturas financeiras
+            globalData.forEach(d => {
+                monthKeysSet.add(`${d.year}-${d.month}`);
+
+                if (d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito')) {
+                    let faturaOffset = d.faturaDestino === 'PROXIMA' ? 1 : 0;
+                    if (d.faturaDestino && d.faturaDestino.includes('-')) {
+                        const [absY, absM] = d.faturaDestino.split('-').map(Number);
+                        faturaOffset = (absY * 12 + absM) - (d.year * 12 + d.month);
+                    }
+                    const startYear = d.year;
+                    const startMonth = d.month + faturaOffset;
+
+                    let totalParcelas = 1;
+                    if (d.parcela && d.parcela.includes('/')) {
+                        totalParcelas = parseInt(d.parcela.split('/')[1]) || 1;
+                    }
+
+                    for (let p = 0; p < totalParcelas; p++) {
+                        const pDate = new Date(startYear, startMonth + p, 1);
+                        monthKeysSet.add(`${pDate.getFullYear()}-${pDate.getMonth()}`);
+                    }
+                }
+            });
+
+            // 2. Inclui o mês atual e meses próximos para navegação natural
+            const now = new Date();
+            for (let i = -1; i <= 6; i++) {
+                const nearDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                monthKeysSet.add(`${nearDate.getFullYear()}-${nearDate.getMonth()}`);
+            }
+
+            const sortedKeys = Array.from(monthKeysSet).sort((a, b) => {
+                const [y1, m1] = a.split('-').map(Number);
+                const [y2, m2] = b.split('-').map(Number);
+                return (y1 * 12 + m1) - (y2 * 12 + m2);
+            });
+
+            sortedKeys.forEach(ym => {
+                const [y, m] = ym.split('-').map(Number);
                 const opt = document.createElement('option');
-                opt.value = ym; opt.textContent = `${monthNamesBR[parseInt(m)].substring(0,3)} ${y}`;
+                opt.value = ym;
+                opt.textContent = `${monthNamesBR[m].substring(0, 3)} ${y}`;
                 select.appendChild(opt);
             });
-            
-            const currYm = `${new Date().getFullYear()}-${new Date().getMonth()}`;
-            if (activeMonths.includes(currYm)) select.value = currYm;
-            
-            select.addEventListener('change', (e) => updateDashboard(e.target.value));
+
+            const currYm = `${now.getFullYear()}-${now.getMonth()}`;
+            if (currVal && sortedKeys.includes(currVal)) {
+                select.value = currVal;
+            } else if (sortedKeys.includes(currYm)) {
+                select.value = currYm;
+            }
+
+            select.onchange = (e) => updateDashboard(e.target.value);
         }
 
         function setupFaturaMonthSelector() {
@@ -1879,10 +1958,10 @@
         function setupInvestSelector() {
             const select = document.getElementById('investTypeSelector');
             select.innerHTML = '<option value="todos">Todas as Subcategorias</option>';
-            
+
             const investData = globalData.filter(d => d.type === 'INVESTIMENTO');
             const subcats = getFrequencySortedOptions(investData.map(d => d.subCat));
-            
+
             subcats.forEach(sub => {
                 const opt = document.createElement('option');
                 opt.value = sub;
@@ -1986,22 +2065,152 @@
             });
         }
 
+        function formatFaturaBadge(item) {
+            if (item.pagamento !== 'Cartão de Crédito' && !item.cartao) return '';
+            const pDate = new Date(item.rawDate + 'T12:00:00');
+            const pYear = pDate.getFullYear();
+            const pMonth = pDate.getMonth();
+            let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
+            if (item.faturaDestino && item.faturaDestino.includes('-')) {
+                const [absY, absM] = item.faturaDestino.split('-').map(Number);
+                faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
+            }
+            const fDate = new Date(pYear, pMonth + faturaOffset, 1);
+            return `Fatura ${monthNamesBR[fDate.getMonth()]}/${fDate.getFullYear()}`;
+        }
+
+        function getFinancialExpensesForMonth(selectedYm) {
+            if (selectedYm === 'all') {
+                return globalData.filter(d => d.type === 'DESPESA');
+            }
+
+            const [targetYear, targetMonth] = selectedYm.split('-').map(Number);
+
+            // 1. Despesas imediatas (não-cartão) que ocorreram no mês selecionado
+            const immediate = globalData.filter(d =>
+                d.type === 'DESPESA' &&
+                d.pagamento !== 'Cartão de Crédito' &&
+                !d.cartao &&
+                `${d.year}-${d.month}` === selectedYm
+            );
+
+            // 2. Despesas em cartão de crédito (À vista, Parceladas, Recorrentes)
+            const despesasCartao = globalData.filter(d =>
+                d.type === 'DESPESA' &&
+                (d.cartao || d.pagamento === 'Cartão de Crédito')
+            );
+
+            const purchasesMap = new Map();
+            const avistaItems = [];
+
+            despesasCartao.forEach(item => {
+                const pDate = new Date(item.rawDate + 'T12:00:00');
+                const pYear = pDate.getFullYear();
+                const pMonth = pDate.getMonth();
+
+                let initAtual = 1, total = 1;
+                let isParcelado = false;
+                let isRecorrente = item.parcela === 'RECORRENTE';
+
+                if (!isRecorrente && item.parcela && item.parcela.includes('/')) {
+                    const parts = item.parcela.split('/');
+                    initAtual = parseInt(parts[0]) || 1;
+                    total = parseInt(parts[1]) || 1;
+                    isParcelado = true;
+                }
+
+                if (isParcelado || isRecorrente) {
+                    const safeDesc = (item.desc || '').replace(/\[.*?\]/g, '').trim().toLowerCase().replace(/\s+/g, '');
+                    const safeCartao = (item.cartao || item.pagamento || '').trim().toLowerCase().replace(/\s+/g, '');
+                    const safeValue = Math.round(item.value);
+
+                    let key = '';
+                    if (item.grupo_parcela_id) {
+                        key = `GROUP_${item.grupo_parcela_id}`;
+                    } else if (isRecorrente) {
+                        key = `${safeDesc}_${safeCartao}_${safeValue}_REC`;
+                    } else {
+                        let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
+                        if (item.faturaDestino && item.faturaDestino.includes('-')) {
+                            const [absY, absM] = item.faturaDestino.split('-').map(Number);
+                            faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
+                        }
+
+                        let baseMonth = pMonth + faturaOffset;
+                        let baseYear = pYear;
+                        let originalMonth = baseMonth - (initAtual - 1);
+                        let originalYear = baseYear;
+                        while (originalMonth < 0) {
+                            originalMonth += 12;
+                            originalYear -= 1;
+                        }
+                        key = `${safeDesc}_${safeCartao}_${safeValue}_${total}_${originalYear}_${originalMonth}`;
+                    }
+
+                    if (!purchasesMap.has(key)) {
+                        purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
+                    } else {
+                        const existing = purchasesMap.get(key);
+                        if (pDate < existing.seedDate) {
+                            purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
+                        }
+                    }
+                } else {
+                    avistaItems.push({ ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
+                }
+            });
+
+            const baseItemsToProject = [...Array.from(purchasesMap.values()), ...avistaItems];
+            const cardExpensesInMonth = [];
+
+            baseItemsToProject.forEach(item => {
+                const pDate = new Date(item.rawDate + 'T12:00:00');
+                const pYear = pDate.getFullYear();
+                let pMonth = pDate.getMonth();
+
+                let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
+                if (item.faturaDestino && item.faturaDestino.includes('-')) {
+                    const [absY, absM] = item.faturaDestino.split('-').map(Number);
+                    faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
+                }
+
+                pMonth += faturaOffset;
+
+                const deltaTarget = (targetYear * 12 + targetMonth) - (pYear * 12 + pMonth);
+                const parcelaNoMesTarget = item.initAtual + deltaTarget;
+
+                const pertenceNoMesTarget = item.isRecorrente
+                    ? (deltaTarget >= 0)
+                    : (item.isParcelado ? (parcelaNoMesTarget >= 1 && parcelaNoMesTarget <= item.total) : (deltaTarget === 0));
+
+                if (pertenceNoMesTarget) {
+                    cardExpensesInMonth.push({
+                        ...item,
+                        parcelaExibida: item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${parcelaNoMesTarget}/${item.total}` : 'À vista'),
+                        parcelaNoMes: parcelaNoMesTarget
+                    });
+                }
+            });
+
+            return [...immediate, ...cardExpensesInMonth];
+        }
+
         function updateDashboard(selectedYm) {
-            document.getElementById('categoryDetailsSection').style.display = 'none'; 
+            document.getElementById('categoryDetailsSection').style.display = 'none';
 
             const filtered = selectedYm === 'all' ? globalData : globalData.filter(d => `${d.year}-${d.month}` === selectedYm);
 
             const receitasArr = filtered.filter(d => d.type === 'RECEITA');
             const receitas = receitasArr.reduce((a, b) => a + b.value, 0);
-            
-            const despesasArr = filtered.filter(d => d.type === 'DESPESA');
+
+            const despesasArr = getFinancialExpensesForMonth(selectedYm);
             const despesas = despesasArr.reduce((a, b) => a + b.value, 0);
-            
+
             const investArr = filtered.filter(d => d.type === 'INVESTIMENTO');
             const invest = investArr.reduce((a, b) => a + b.value, 0);
-            
+
             const saldo = receitas - despesas - invest;
-            
+
             const totalSaques = globalData.filter(d => d.type === 'SAQUE').reduce((a, b) => a + b.value, 0);
             const totalGastoEspecie = globalData.filter(d => d.type === 'DESPESA' && (d.pagamento === 'Dinheiro' || d.pagamento === 'Dinheiro Vivo (Espécie)')).reduce((a, b) => a + b.value, 0);
             const saldoDinheiroVivo = totalSaques - totalGastoEspecie;
@@ -2024,8 +2233,8 @@
             renderSaldoDetalhes(saldo, receitas);
 
             applyExtratoFilters();
-            checkBudgetAlerts(filtered);
-            renderPieChart(filtered, selectedYm);
+            checkBudgetAlerts(despesasArr);
+            renderPieChart(despesasArr, selectedYm);
         }
 
         function escapeHtml(str) {
@@ -2102,13 +2311,13 @@
             }
         }
 
-        function checkBudgetAlerts(filteredData) {
+        function checkBudgetAlerts(despesasArr) {
             const alertContainer = document.getElementById('alertsContainer');
             if (!alertContainer) return;
             alertContainer.innerHTML = '';
 
             const totalsByCat = {};
-            (filteredData || []).filter(d => d.type === 'DESPESA').forEach(d => {
+            (despesasArr || []).forEach(d => {
                 if (d.category) totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
                 if (d.cartao) totalsByCat[d.cartao] = (totalsByCat[d.cartao] || 0) + d.value;
             });
@@ -2135,10 +2344,10 @@
             container.innerHTML = '';
 
             const selectedYm = document.getElementById('monthSelector').value;
-            const filtered = selectedYm === 'all' ? globalData : globalData.filter(d => `${d.year}-${d.month}` === selectedYm);
+            const despesasArr = getFinancialExpensesForMonth(selectedYm);
 
             const totalsByCat = {};
-            filtered.filter(d => d.type === 'DESPESA').forEach(d => {
+            despesasArr.forEach(d => {
                 if (d.category) totalsByCat[d.category] = (totalsByCat[d.category] || 0) + d.value;
                 if (d.cartao) totalsByCat[d.cartao] = (totalsByCat[d.cartao] || 0) + d.value;
             });
@@ -2433,7 +2642,7 @@
             const tbody = document.getElementById('resumoExtratoTableBody');
             tbody.innerHTML = '';
             let list = [...dataArr].sort((a, b) => b.date - a.date);
-            
+
             if (list.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
                 return;
@@ -2442,8 +2651,9 @@
             list.forEach(item => {
                 const tr = document.createElement('tr');
                 let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : item.type === 'SAQUE' ? 'var(--warning)' : 'var(--invest)';
-                let meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
-                
+                let fBadge = (item.pagamento === 'Cartão de Crédito' || item.cartao) ? ` • <span style="color:var(--primary); font-weight:600;">${formatFaturaBadge(item)}</span>` : '';
+                let meioInfo = (item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento) + fBadge;
+
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td><span style="font-size:0.7rem; background:var(--border); padding:2px 5px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
@@ -2459,11 +2669,10 @@
             });
         }
 
-        function renderPieChart(filteredData, selectedYm) {
+        function renderPieChart(despesasArr, selectedYm) {
             if (charts.category) charts.category.destroy();
-            const despesas = filteredData.filter(d => d.type === 'DESPESA');
             const catMap = {};
-            despesas.forEach(d => { catMap[d.category] = (catMap[d.category] || 0) + d.value; });
+            (despesasArr || []).forEach(d => { catMap[d.category] = (catMap[d.category] || 0) + d.value; });
 
             charts.category = new Chart(document.getElementById('categoryChart'), {
                 type: 'doughnut',
@@ -2471,7 +2680,7 @@
                     labels: Object.keys(catMap),
                     datasets: [{ data: Object.values(catMap), backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'] }]
                 },
-                options: { 
+                options: {
                     responsive: true,
                     onClick: (e, active) => {
                         if (active.length > 0) {
@@ -2486,22 +2695,21 @@
         function showCategoryDetails(catName, selectedYm) {
             document.getElementById('categoryDetailsSection').style.display = 'block';
             document.getElementById('catDetailTitle').innerText = `Análise de Categoria: ${catName}`;
-            
-            const catDataAtual = selectedYm === 'all' 
-                ? globalData.filter(d => d.type === 'DESPESA' && d.category === catName)
-                : globalData.filter(d => d.type === 'DESPESA' && d.category === catName && `${d.year}-${d.month}` === selectedYm);
-                
+
+            const financialExpenses = getFinancialExpensesForMonth(selectedYm);
+            const catDataAtual = financialExpenses.filter(d => d.category === catName);
+
             const catDataTotal = globalData.filter(d => d.type === 'DESPESA' && d.category === catName);
-            
+
             const gastoAtual = catDataAtual.reduce((a,b)=>a+b.value, 0);
-            const activeMonths = [...new Set(catDataTotal.map(d => `${d.year}-${d.month}`))].length || 1;
+            const activeMonths = [...new Set(globalData.filter(d => d.type === 'DESPESA').map(d => `${d.year}-${d.month}`))].length || 1;
             const mediaMensal = catDataTotal.reduce((a,b)=>a+b.value, 0) / activeMonths;
-            
+
             let percentual = mediaMensal > 0 ? ((gastoAtual / mediaMensal) - 1) * 100 : 0;
 
             document.getElementById('kpi-cat-atual').innerText = fmt(gastoAtual);
             document.getElementById('kpi-cat-media').innerText = fmt(mediaMensal);
-            
+
             const varEl = document.getElementById('kpi-cat-var');
             varEl.innerText = percentual > 0 ? `+${percentual.toFixed(1)}%` : `${percentual.toFixed(1)}%`;
             varEl.style.color = percentual > 0 ? 'var(--danger)' : 'var(--success)';
@@ -2510,10 +2718,11 @@
             tbody.innerHTML = '';
             catDataAtual.sort((a,b) => b.date - a.date).forEach(item => {
                 const tr = document.createElement('tr');
+                const parcelaTag = item.parcelaExibida && item.parcelaExibida !== 'À vista' ? ` <small style="color:var(--text-muted);">(${item.parcelaExibida})</small>` : '';
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td>${item.subCat || '-'}</td>
-                    <td>${item.desc}</td>
+                    <td>${item.desc}${parcelaTag}</td>
                     <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
                 `;
                 tbody.appendChild(tr);
@@ -2570,7 +2779,7 @@
                     } else {
                         // Legado: fallback para agrupamento heurístico anterior
                         let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
-                        
+
                         // Tratamento caso a fatura destino seja uma chave fixa absoluta (ex: '2026-7' para Agosto 2026)
                         if (item.faturaDestino && item.faturaDestino.includes('-')) {
                             const [absY, absM] = item.faturaDestino.split('-').map(Number);
@@ -2579,7 +2788,7 @@
 
                         let baseMonth = pMonth + faturaOffset;
                         let baseYear = pYear;
-                        
+
                         let originalMonth = baseMonth - (initAtual - 1);
                         let originalYear = baseYear;
                         while (originalMonth < 0) {
@@ -2677,7 +2886,7 @@
                 Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
                     const val = cartoesMap[nome];
                     const pct = totalFaturaSelecionada > 0 ? ((val / totalFaturaSelecionada) * 100).toFixed(1) : 0;
-                    
+
                     const card = document.createElement('div');
                     card.className = 'kpi-card';
                     card.innerHTML = `
@@ -2786,7 +2995,7 @@
         function renderInvestmentsTab() {
             const perfil = document.getElementById('investTypeSelector').value;
             let dataInvest = globalData.filter(d => d.type === 'INVESTIMENTO');
-            
+
             if (perfil !== 'todos') {
                 dataInvest = dataInvest.filter(d => d.subCat === perfil);
             }
@@ -2800,10 +3009,10 @@
             document.getElementById('kpi-maior-aporte').innerText = fmt(maiorAporte);
             document.getElementById('kpi-media-aporte').innerText = fmt(mediaAporte);
             document.getElementById('kpi-qtd-aportes').innerText = qtdAportes;
-            
+
             const tbody = document.getElementById('investTableBody');
             tbody.innerHTML = '';
-            
+
             if (dataInvest.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum investimento registrado.</td></tr>`;
                 return;

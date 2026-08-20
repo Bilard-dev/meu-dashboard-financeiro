@@ -999,7 +999,8 @@
         }
 
         function extractTagsFromDesc(desc) {
-            const match = desc.match(/\[(.*?)\]/);
+            if (!desc) return [];
+            const match = desc.match(/^\s*\[(.*?)\]/);
             if (!match) return [];
             return match[1].split(',').map(t => t.trim()).filter(t => t.length > 0);
         }
@@ -1226,7 +1227,7 @@
         }
 
         function buildDescWithTags(baseDesc, tagsInput) {
-            let cleanDesc = baseDesc.replace(/\[(.*?)\]/, '').trim();
+            let cleanDesc = (baseDesc || '').replace(/^\s*\[(.*?)\]\s*/, '').trim();
             if (!tagsInput || tagsInput.trim() === '') return cleanDesc;
             
             const formattedTags = tagsInput.split(',')
@@ -1724,8 +1725,8 @@
             document.getElementById('i_tipo').value = item.rawTipo;
             document.getElementById('i_data').value = item.rawDate;
             
-            document.getElementById('i_descricao').value = item.desc.replace(/\[(.*?)\]/, '').trim();
-            document.getElementById('i_tags').value = item.tags.join(', ');
+            document.getElementById('i_descricao').value = (item.desc || '').replace(/^\s*\[(.*?)\]\s*/, '').trim();
+            document.getElementById('i_tags').value = (item.tags || []).join(', ');
             
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';

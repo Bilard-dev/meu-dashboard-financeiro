@@ -2064,6 +2064,8 @@
 
         async function logout() {
             await _supabase.auth.signOut();
+            currentUser = null;
+            window.location.hash = '';
             window.location.reload();
         }
 
@@ -2096,6 +2098,28 @@
                 await loadCatalogsData();
                 await loadMetasData();
                 updateDashboard(document.getElementById('monthSelector').value);
+
+                // Resolução inicial de rota após carregamento completo
+                const requestedTab = getRouteFromHash();
+                if (requestedTab) {
+                    switchTab(requestedTab, false);
+                    const canonical = TAB_TO_CANONICAL_ROUTE[requestedTab] || 'dashboard';
+                    const targetHash = `#/${canonical}`;
+                    if (window.location.hash !== targetHash) {
+                        isRoutingSync = true;
+                        window.location.hash = targetHash;
+                    }
+                } else {
+                    if (window.location.hash && window.location.hash !== '#/dashboard' && window.location.hash !== '#dashboard') {
+                        // Rota inválida (ex: #/batata) -> redireciona para #/dashboard
+                        isRoutingSync = true;
+                        window.location.hash = '#/dashboard';
+                        switchTab('resumo', false);
+                    } else if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#/') {
+                        isRoutingSync = true;
+                        window.location.hash = '#/dashboard';
+                    }
+                }
 
             } catch (error) {
                 console.error(error);
@@ -3907,16 +3931,99 @@
             return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        function switchTab(tabId) {
+        /* ==========================================================
+           🌐 BASE 3.0 — SPA HASH ROUTING
+           ========================================================== */
+        const ROUTE_MAP = {
+            'dashboard': 'resumo',
+            'resumo': 'resumo',
+            'extrato': 'analise',
+            'analise': 'analise',
+            'faturas': 'parcelas',
+            'parcelas': 'parcelas',
+            'previsao': 'previsao',
+            'metas': 'metas',
+            'investimentos': 'investimentos',
+            'divisao': 'divisao',
+            'compartilhado': 'divisao',
+            'gastos-compartilhados': 'divisao',
+            'configuracoes': 'gerenciar-listas',
+            'gerenciar-listas': 'gerenciar-listas',
+            'categorias': 'gerenciar-listas',
+            'novo': 'novo',
+            'novo-registro': 'novo',
+            'conta': 'conta',
+            'perfil': 'conta'
+        };
+
+        const TAB_TO_CANONICAL_ROUTE = {
+            'resumo': 'dashboard',
+            'analise': 'extrato',
+            'parcelas': 'parcelas',
+            'previsao': 'previsao',
+            'metas': 'metas',
+            'investimentos': 'investimentos',
+            'divisao': 'divisao',
+            'gerenciar-listas': 'configuracoes',
+            'novo': 'novo',
+            'conta': 'conta'
+        };
+
+        let isRoutingSync = false;
+
+        function getRouteFromHash() {
+            const raw = (window.location.hash || '').replace(/^#\/?/, '').trim().toLowerCase();
+            if (!raw) return null;
+            return ROUTE_MAP[raw] || null;
+        }
+
+        function handleHashChange() {
+            if (!currentUser) return;
+            if (isRoutingSync) {
+                isRoutingSync = false;
+                return;
+            }
+
+            const targetTab = getRouteFromHash();
+            if (targetTab) {
+                switchTab(targetTab, false);
+            } else {
+                switchTab('resumo', false);
+                isRoutingSync = true;
+                window.location.hash = '#/dashboard';
+            }
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        function switchTab(tabId, updateUrl = true) {
+            if (!tabId || !document.getElementById(`tab-${tabId}`)) {
+                tabId = 'resumo';
+            }
+
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
             const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
             if (activeBtn) activeBtn.classList.add('active');
 
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            if (tabId === 'resumo') { document.getElementById('filterContainer').style.visibility = 'visible'; }
-            else { document.getElementById('filterContainer').style.visibility = 'hidden'; }
+            const contentEl = document.getElementById(`tab-${tabId}`);
+            if (contentEl) contentEl.classList.add('active');
+
+            if (tabId === 'resumo') {
+                document.getElementById('filterContainer').style.visibility = 'visible';
+            } else {
+                document.getElementById('filterContainer').style.visibility = 'hidden';
+            }
+
+            if (updateUrl && currentUser) {
+                const canonical = TAB_TO_CANONICAL_ROUTE[tabId] || 'dashboard';
+                const targetHash = `#/${canonical}`;
+                if (window.location.hash !== targetHash) {
+                    isRoutingSync = true;
+                    window.location.hash = targetHash;
+                }
+            }
 
             if(tabId === 'analise') initAnaliseTab();
             if(tabId === 'parcelas') renderParcelasTab();

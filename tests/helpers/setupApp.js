@@ -40,7 +40,8 @@ async function setupAuthenticatedApp(page, {
     cartoes = JSON.parse(JSON.stringify(mockCartoes)),
     tags = JSON.parse(JSON.stringify(mockTags)),
     budgets = null,
-    autoAcceptDialogs = true
+    autoAcceptDialogs = true,
+    initialUrl = '/'
 } = {}) {
 
     let inMemoryTransactions = [...transactions];
@@ -79,6 +80,14 @@ async function setupAuthenticatedApp(page, {
                         refresh_token: 'mock-refresh-token',
                         user: mockUser
                     })
+                });
+            }
+
+            if (pathname.includes('/auth/v1/logout')) {
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({})
                 });
             }
 
@@ -924,7 +933,7 @@ async function setupAuthenticatedApp(page, {
     }
 
     // 4. Navega até a aplicação local
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto(initialUrl, { waitUntil: 'domcontentloaded' });
 
     if (authenticated) {
         // Aguarda exibição do aplicativo principal

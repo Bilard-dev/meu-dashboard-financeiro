@@ -2599,7 +2599,7 @@
 
                 tr.innerHTML = `
                     <td>${d.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:600;">${item.descricao}</td>
+                    <td style="font-weight:600;">${escapeHtml(item.descricao)}</td>
                     <td style="font-weight:700;">${fmt(valTotal)}</td>
                     <td style="color:var(--danger); font-weight:600;">${fmt(valMeu)}</td>
                     <td style="color:var(--warning); font-weight:600;">${fmt(valParceiro)}</td>
@@ -4223,12 +4223,12 @@
 
             filtered.sort((a,b) => b.date - a.date).forEach(item => {
                 const tr = document.createElement('tr');
-                let meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
+                let meioInfo = item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento);
 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:600;">${item.desc}</td>
-                    <td>${item.category} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+item.subCat+')</small>' : ''}</td>
+                    <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                    <td>${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
                     <td><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
                     <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
                     <td style="text-align: center;">
@@ -4409,16 +4409,6 @@
             applyExtratoFilters();
             checkBudgetAlerts(despesasArr);
             renderPieChart(despesasArr, selectedYm);
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
         }
 
         async function saveCategoryBudget(e) {
@@ -4826,13 +4816,13 @@
                 const tr = document.createElement('tr');
                 let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : item.type === 'SAQUE' ? 'var(--warning)' : 'var(--invest)';
                 let fBadge = (item.pagamento === 'Cartão de Crédito' || item.cartao) ? ` • <span style="color:var(--primary); font-weight:600;">${formatFaturaBadge(item)}</span>` : '';
-                let meioInfo = (item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento) + fBadge;
+                let meioInfo = (item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento)) + fBadge;
 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
                     <td><span style="font-size:0.7rem; background:var(--border); padding:2px 5px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
-                    <td style="font-weight:500;">${item.desc || '-'}</td>
-                    <td>${item.category} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+item.subCat+')</small>' : ''}</td>
+                    <td style="font-weight:500;">${escapeHtml(item.desc) || '-'}</td>
+                    <td>${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
                     <td style="font-weight:700; color:${color};">${fmt(item.value)}</td>
                     <td style="text-align: center; white-space: nowrap;">
                         <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
@@ -4892,11 +4882,11 @@
             tbody.innerHTML = '';
             catDataAtual.sort((a,b) => b.date - a.date).forEach(item => {
                 const tr = document.createElement('tr');
-                const parcelaTag = item.parcelaExibida && item.parcelaExibida !== 'À vista' ? ` <small style="color:var(--text-muted);">(${item.parcelaExibida})</small>` : '';
+                const parcelaTag = item.parcelaExibida && item.parcelaExibida !== 'À vista' ? ` <small style="color:var(--text-muted);">(${escapeHtml(item.parcelaExibida)})</small>` : '';
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td>${item.subCat || '-'}</td>
-                    <td>${item.desc}${parcelaTag}</td>
+                    <td>${escapeHtml(item.subCat || '-')}</td>
+                    <td>${escapeHtml(item.desc)}${parcelaTag}</td>
                     <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
                 `;
                 tbody.appendChild(tr);
@@ -5065,7 +5055,7 @@
                     card.className = 'kpi-card';
                     card.innerHTML = `
                         <div>
-                            <div class="kpi-title">${nome}</div>
+                            <div class="kpi-title">${escapeHtml(nome)}</div>
                             <div class="kpi-value" style="font-size:1.25rem; color:var(--danger);">${fmt(val)}</div>
                         </div>
                         <div class="kpi-details">
@@ -5095,10 +5085,10 @@
 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:600;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${item.cartao || 'Cartão'}</span></td>
+                    <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(item.cartao || 'Cartão')}</span></td>
                     <td><span class="tag-status tag-open">📅 Fatura ${monthNamesBR[targetMonth]}/${targetYear}</span></td>
-                    <td style="font-weight:600;">${item.parcelaExibida}</td>
+                    <td style="font-weight:600;">${escapeHtml(item.parcelaExibida)}</td>
                     <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
                     <td style="font-weight:700; color:${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
                     <td style="text-align: center; white-space: nowrap;">
@@ -5300,9 +5290,9 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:500;">${item.desc}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${item.subCat || 'Geral'}</span></td>
-                    <td>${item.category}</td>
+                    <td style="font-weight:500;">${escapeHtml(item.desc)}</td>
+                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${escapeHtml(item.subCat || 'Geral')}</span></td>
+                    <td>${escapeHtml(item.category)}</td>
                     <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
                     <td style="text-align: center;">
                         <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>

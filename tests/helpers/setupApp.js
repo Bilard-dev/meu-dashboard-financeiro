@@ -52,6 +52,10 @@ async function setupAuthenticatedApp(page, {
     let inMemoryTags = [...tags];
 
     const normalize = s => String(s || '').replace(/[\u00a0\s]+/g, ' ').trim().toLowerCase();
+    const getQueryParam = (search, param) => {
+        const match = search.match(new RegExp(`(?:^|[?&])${param}=eq\\.([^&]+)`));
+        return match ? decodeURIComponent(match[1]) : null;
+    };
 
     // 1. Interceptação e proteção absoluta de chamadas de rede para o Supabase
     await page.route('**/*', async (route) => {
@@ -122,13 +126,35 @@ async function setupAuthenticatedApp(page, {
                 }
                 if (method === 'PATCH') {
                     const patchData = route.request().postDataJSON();
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
+                    const targetCat = getQueryParam(urlObj.search, 'categoria');
+                    const targetSub = getQueryParam(urlObj.search, 'subcategoria');
+                    const targetCard = getQueryParam(urlObj.search, 'cartao');
+
+                    let updatedCount = 0;
                     if (targetId) {
                         const index = inMemoryTransactions.findIndex(t => t.id === targetId);
                         if (index !== -1) {
                             inMemoryTransactions[index] = { ...inMemoryTransactions[index], ...patchData };
+                            updatedCount++;
                         }
+                    } else {
+                        const normCat = targetCat ? normalize(targetCat) : null;
+                        const normSub = targetSub ? normalize(targetSub) : null;
+                        const normCard = targetCard ? normalize(targetCard) : null;
+
+                        inMemoryTransactions.forEach(t => {
+                            if (t.user_id === mockUser.id) {
+                                let match = true;
+                                if (normCat && normalize(t.categoria) !== normCat) match = false;
+                                if (normSub && normalize(t.subcategoria) !== normSub) match = false;
+                                if (normCard && normalize(t.cartao) !== normCard) match = false;
+                                if (match) {
+                                    Object.assign(t, patchData);
+                                    updatedCount++;
+                                }
+                            }
+                        });
                     }
                     return route.fulfill({
                         status: 200,
@@ -137,8 +163,7 @@ async function setupAuthenticatedApp(page, {
                     });
                 }
                 if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         inMemoryTransactions = inMemoryTransactions.filter(t => t.id !== targetId);
                     }
@@ -263,9 +288,33 @@ async function setupAuthenticatedApp(page, {
                         body: JSON.stringify(resultItems)
                     });
                 }
+                if (method === 'PATCH') {
+                    const patchData = route.request().postDataJSON();
+                    const targetId = getQueryParam(urlObj.search, 'id');
+                    const targetCat = getQueryParam(urlObj.search, 'categoria');
+
+                    if (targetId) {
+                        const index = inMemoryMetas.findIndex(m => m.id === targetId);
+                        if (index !== -1) {
+                            inMemoryMetas[index] = { ...inMemoryMetas[index], ...patchData, updated_at: new Date().toISOString() };
+                        }
+                    } else if (targetCat) {
+                        const normCat = normalize(targetCat);
+                        inMemoryMetas.forEach(m => {
+                            if (m.user_id === mockUser.id && (m.categoria === targetCat || normalize(m.categoria) === normCat)) {
+                                Object.assign(m, patchData, { updated_at: new Date().toISOString() });
+                            }
+                        });
+                    }
+
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify(patchData)
+                    });
+                }
                 if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         inMemoryMetas = inMemoryMetas.filter(m => m.id !== targetId);
                     }
@@ -323,8 +372,7 @@ async function setupAuthenticatedApp(page, {
                 }
                 if (method === 'PATCH') {
                     const patchData = route.request().postDataJSON();
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         const index = inMemoryCategorias.findIndex(c => c.id === targetId);
                         if (index !== -1) {
@@ -350,8 +398,7 @@ async function setupAuthenticatedApp(page, {
                     });
                 }
                 if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         inMemoryCategorias = inMemoryCategorias.filter(c => c.id !== targetId);
                     }
@@ -410,8 +457,7 @@ async function setupAuthenticatedApp(page, {
                 }
                 if (method === 'PATCH') {
                     const patchData = route.request().postDataJSON();
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         const index = inMemorySubcategorias.findIndex(s => s.id === targetId);
                         if (index !== -1) {
@@ -438,8 +484,7 @@ async function setupAuthenticatedApp(page, {
                     });
                 }
                 if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         inMemorySubcategorias = inMemorySubcategorias.filter(s => s.id !== targetId);
                     }
@@ -500,8 +545,7 @@ async function setupAuthenticatedApp(page, {
                 }
                 if (method === 'PATCH') {
                     const patchData = route.request().postDataJSON();
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         const index = inMemoryCartoes.findIndex(c => c.id === targetId);
                         if (index !== -1) {
@@ -527,8 +571,7 @@ async function setupAuthenticatedApp(page, {
                     });
                 }
                 if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         inMemoryCartoes = inMemoryCartoes.filter(c => c.id !== targetId);
                     }
@@ -587,8 +630,7 @@ async function setupAuthenticatedApp(page, {
                 }
                 if (method === 'PATCH') {
                     const patchData = route.request().postDataJSON();
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         const index = inMemoryTags.findIndex(t => t.id === targetId);
                         if (index !== -1) {
@@ -614,8 +656,7 @@ async function setupAuthenticatedApp(page, {
                     });
                 }
                 if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
+                    const targetId = getQueryParam(urlObj.search, 'id');
                     if (targetId) {
                         inMemoryTags = inMemoryTags.filter(t => t.id !== targetId);
                     }
@@ -624,6 +665,223 @@ async function setupAuthenticatedApp(page, {
                         body: ''
                     });
                 }
+            }
+
+            // ==========================================
+            // MOCKS DAS RPCs (CATÁLOGOS 2.0 - MERGE)
+            // ==========================================
+
+            // 1. RPC merge_categories
+            if (pathname.includes('/rest/v1/rpc/merge_categories')) {
+                const { p_source_id, p_target_id, p_meta_action } = route.request().postDataJSON() || {};
+                const sourceCat = inMemoryCategorias.find(c => c.id === p_source_id);
+                const targetCat = inMemoryCategorias.find(c => c.id === p_target_id);
+                if (!sourceCat || !targetCat || p_source_id === p_target_id) {
+                    return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: 'Categorias inválidas para mesclagem' }) });
+                }
+
+                const normSource = normalize(sourceCat.nome);
+                const normTarget = normalize(targetCat.nome);
+
+                // Atualizar transações
+                let updatedTxCount = 0;
+                inMemoryTransactions.forEach(t => {
+                    if (t.user_id === mockUser.id && normalize(t.categoria) === normSource) {
+                        t.categoria = targetCat.nome;
+                        updatedTxCount++;
+                    }
+                });
+
+                // Tratar subcategorias
+                let movedSubs = 0;
+                let consolidatedSubs = 0;
+                inMemorySubcategorias.forEach(s => {
+                    if (s.user_id === mockUser.id && s.categoria_id === p_source_id) {
+                        const normSub = normalize(s.nome);
+                        const targetHasSub = inMemorySubcategorias.some(ts => ts.user_id === mockUser.id && ts.categoria_id === p_target_id && normalize(ts.nome) === normSub);
+                        if (targetHasSub) {
+                            s.ativo = false;
+                            consolidatedSubs++;
+                        } else {
+                            s.categoria_id = p_target_id;
+                            movedSubs++;
+                        }
+                    }
+                });
+
+                // Tratar metas
+                let metaResult = 'Nenhuma meta alterada';
+                const sourceMetaIndex = inMemoryMetas.findIndex(m => m.user_id === mockUser.id && normalize(m.categoria) === normSource);
+                const targetMetaIndex = inMemoryMetas.findIndex(m => m.user_id === mockUser.id && normalize(m.categoria) === normTarget);
+
+                if (sourceMetaIndex !== -1 && targetMetaIndex !== -1) {
+                    const srcVal = parseFloat(inMemoryMetas[sourceMetaIndex].valor_limite) || 0;
+                    const tgtVal = parseFloat(inMemoryMetas[targetMetaIndex].valor_limite) || 0;
+                    if (p_meta_action === 'KEEP_TARGET') {
+                        inMemoryMetas.splice(sourceMetaIndex, 1);
+                        metaResult = `Limite do destino preservado (R$ ${tgtVal.toFixed(2)})`;
+                    } else if (p_meta_action === 'KEEP_SOURCE') {
+                        inMemoryMetas[targetMetaIndex].valor_limite = srcVal;
+                        inMemoryMetas.splice(sourceMetaIndex, 1);
+                        metaResult = `Limite da origem adotado (R$ ${srcVal.toFixed(2)})`;
+                    } else if (p_meta_action === 'SUM') {
+                        inMemoryMetas[targetMetaIndex].valor_limite = tgtVal + srcVal;
+                        inMemoryMetas.splice(sourceMetaIndex, 1);
+                        metaResult = `Limites somados (R$ ${(tgtVal + srcVal).toFixed(2)})`;
+                    }
+                } else if (sourceMetaIndex !== -1) {
+                    inMemoryMetas[sourceMetaIndex].categoria = targetCat.nome;
+                    inMemoryMetas[sourceMetaIndex].categoria_normalizada = normTarget;
+                    metaResult = `Meta transferida para ${targetCat.nome}`;
+                }
+
+                // Inativar origem e ativar destino
+                sourceCat.ativo = false;
+                sourceCat.updated_at = new Date().toISOString();
+                targetCat.ativo = true;
+                targetCat.updated_at = new Date().toISOString();
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        success: true,
+                        updated_transactions: updatedTxCount,
+                        moved_subcategories: movedSubs,
+                        consolidated_subcategories: consolidatedSubs,
+                        meta_result: metaResult
+                    })
+                });
+            }
+
+            // 2. RPC merge_subcategories
+            if (pathname.includes('/rest/v1/rpc/merge_subcategories')) {
+                const { p_source_id, p_target_id } = route.request().postDataJSON() || {};
+                const sourceSub = inMemorySubcategorias.find(s => s.id === p_source_id);
+                const targetSub = inMemorySubcategorias.find(s => s.id === p_target_id);
+                if (!sourceSub || !targetSub || p_source_id === p_target_id) {
+                    return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: 'Subcategorias inválidas para mesclagem' }) });
+                }
+
+                const sourceParentCat = inMemoryCategorias.find(c => c.id === sourceSub.categoria_id);
+                const targetParentCat = inMemoryCategorias.find(c => c.id === targetSub.categoria_id);
+                const normSourceCat = sourceParentCat ? normalize(sourceParentCat.nome) : '';
+                const normSourceSub = normalize(sourceSub.nome);
+                const catChanged = sourceSub.categoria_id !== targetSub.categoria_id;
+
+                let updatedTxCount = 0;
+                inMemoryTransactions.forEach(t => {
+                    if (t.user_id === mockUser.id && normalize(t.subcategoria) === normSourceSub && (!normSourceCat || normalize(t.categoria) === normSourceCat)) {
+                        t.subcategoria = targetSub.nome;
+                        if (catChanged && targetParentCat) {
+                            t.categoria = targetParentCat.nome;
+                        }
+                        updatedTxCount++;
+                    }
+                });
+
+                sourceSub.ativo = false;
+                sourceSub.updated_at = new Date().toISOString();
+                targetSub.ativo = true;
+                targetSub.updated_at = new Date().toISOString();
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        success: true,
+                        updated_transactions: updatedTxCount,
+                        category_changed: catChanged
+                    })
+                });
+            }
+
+            // 3. RPC merge_cards
+            if (pathname.includes('/rest/v1/rpc/merge_cards')) {
+                const { p_source_id, p_target_id } = route.request().postDataJSON() || {};
+                const sourceCard = inMemoryCartoes.find(c => c.id === p_source_id);
+                const targetCard = inMemoryCartoes.find(c => c.id === p_target_id);
+                if (!sourceCard || !targetCard || p_source_id === p_target_id) {
+                    return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: 'Cartões inválidos para mesclagem' }) });
+                }
+
+                const normSource = normalize(sourceCard.nome);
+                let updatedTxCount = 0;
+                inMemoryTransactions.forEach(t => {
+                    if (t.user_id === mockUser.id && normalize(t.cartao) === normSource) {
+                        t.cartao = targetCard.nome;
+                        updatedTxCount++;
+                    }
+                });
+
+                sourceCard.ativo = false;
+                sourceCard.updated_at = new Date().toISOString();
+                targetCard.ativo = true;
+                targetCard.updated_at = new Date().toISOString();
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        success: true,
+                        updated_transactions: updatedTxCount
+                    })
+                });
+            }
+
+            // 4. RPC merge_tags
+            if (pathname.includes('/rest/v1/rpc/merge_tags')) {
+                const { p_source_id, p_target_id } = route.request().postDataJSON() || {};
+                const sourceTag = inMemoryTags.find(t => t.id === p_source_id);
+                const targetTag = inMemoryTags.find(t => t.id === p_target_id);
+                if (!sourceTag || !targetTag || p_source_id === p_target_id) {
+                    return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ message: 'Tags inválidas para mesclagem' }) });
+                }
+
+                const normSource = normalize(sourceTag.nome);
+                let updatedTxCount = 0;
+                let dedupCount = 0;
+
+                inMemoryTransactions.forEach(t => {
+                    if (t.user_id === mockUser.id && t.descricao) {
+                        const match = t.descricao.match(/^\s*\[(.*?)\]\s*(.*)$/);
+                        if (match) {
+                            const tagsList = match[1].split(',').map(tag => tag.trim()).filter(Boolean);
+                            const hasSource = tagsList.some(tag => normalize(tag) === normSource);
+                            if (hasSource) {
+                                const replacedTags = tagsList.map(tag => normalize(tag) === normSource ? targetTag.nome : tag);
+                                const seen = new Set();
+                                const uniqueTags = [];
+                                for (const rTag of replacedTags) {
+                                    const n = normalize(rTag);
+                                    if (!seen.has(n)) {
+                                        seen.add(n);
+                                        uniqueTags.push(rTag);
+                                    } else {
+                                        dedupCount++;
+                                    }
+                                }
+                                t.descricao = `[${uniqueTags.join(', ')}] ${match[2]}`;
+                                updatedTxCount++;
+                            }
+                        }
+                    }
+                });
+
+                sourceTag.ativo = false;
+                sourceTag.updated_at = new Date().toISOString();
+                targetTag.ativo = true;
+                targetTag.updated_at = new Date().toISOString();
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        success: true,
+                        updated_transactions: updatedTxCount,
+                        deduplicated_count: dedupCount
+                    })
+                });
             }
 
             // Qualquer outra chamada Supabase não prevista é abortada com erro para segurança

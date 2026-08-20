@@ -738,11 +738,112 @@
                     </div>
                 </div>
 
+                <!-- Checkbox Opcional de Atualização de Histórico (Visível apenas em edição de itens com uso) -->
+                <div class="input-group" id="cat_modal_history_group" style="display:none; margin-top:0.8rem; background:rgba(37,99,235,0.06); padding:0.6rem 0.8rem; border-radius:6px; border:1px solid rgba(37,99,235,0.2);">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin:0; font-size:0.85rem; color:var(--text-main); font-weight:500;">
+                        <input type="checkbox" id="cat_modal_update_history">
+                        <span>Atualizar também lançamentos anteriores (<span id="cat_modal_history_count">0</span> usos)</span>
+                    </label>
+                </div>
+
                 <div id="catalogModalError" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:0.4rem; padding:0.5rem; background:rgba(239,68,68,0.1); border-radius:6px;"></div>
 
                 <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.5rem;">
                     <button type="button" class="btn-secondary" onclick="closeCatalogModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
                     <button type="submit" class="btn-primary" id="btnSaveCatalogModal" style="width:auto; padding:0.6rem 1.5rem;">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE PREVIEW DE RENOMEAÇÃO COM HISTÓRICO -->
+    <div id="renamePreviewModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:550px; width:92%; max-height:88vh; overflow-y:auto; margin:auto; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--primary);" id="renamePreviewTitle">⚠️ Confirmar Atualização do Histórico</h3>
+                <button type="button" class="reset-btn" onclick="closeRenamePreviewModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+            </div>
+
+            <div id="renamePreviewContent" style="font-size:0.9rem; color:var(--text-main); margin-bottom:1.2rem;"></div>
+
+            <div id="renameMetaConflictSection" style="display:none; margin-bottom:1.2rem; background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border);">
+                <label style="font-weight:600; font-size:0.85rem; color:var(--text-main); display:block; margin-bottom:0.5rem;">Meta de Gastos Detectada:</label>
+                <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.85rem;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="radio" name="rename_meta_action" value="UPDATE" checked>
+                        <span><b>Atualizar Meta</b> (renomear limite para o novo nome)</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="radio" name="rename_meta_action" value="KEEP_OLD">
+                        <span><b>Manter Meta Antiga</b> (não alterar registro de metas)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="renamePreviewError" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:0.4rem; margin-bottom:0.8rem; padding:0.5rem; background:rgba(239,68,68,0.1); border-radius:6px;"></div>
+
+            <div style="display:flex; justify-content:flex-end; gap:0.6rem;">
+                <button type="button" class="btn-secondary" onclick="closeRenamePreviewModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                <button type="button" class="btn-primary" id="btnConfirmRenameWithHistory" onclick="confirmRenameWithHistory()" style="width:auto; padding:0.6rem 1.5rem; background:var(--primary);">Confirmar e Atualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE MESCLAGEM (MERGE 2.0 VIA RPCs) -->
+    <div id="mergeModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:600px; width:92%; max-height:88vh; overflow-y:auto; margin:auto; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--primary);" id="mergeModalTitle">🔀 Mesclar Itens</h3>
+                <button type="button" class="reset-btn" onclick="closeMergeModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+            </div>
+
+            <form id="mergeForm" onsubmit="submitMerge(event)">
+                <input type="hidden" id="merge_type" value="">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem;">
+                    <div class="input-group">
+                        <label style="font-size:0.85rem; font-weight:600;">1. Origem (será desativada) *</label>
+                        <select id="merge_source_id" class="input-field" required onchange="renderMergePreview()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label style="font-size:0.85rem; font-weight:600;">2. Destino (receberá o histórico) *</label>
+                        <select id="merge_target_id" class="input-field" required onchange="renderMergePreview()"></select>
+                    </div>
+                </div>
+
+                <!-- PREVIEW DE IMPACTO 100% READ-ONLY -->
+                <div id="mergePreviewContainer" style="display:none; margin-bottom:1.5rem; background:var(--bg-color); padding:1rem; border-radius:8px; border:1px solid var(--border);">
+                    <h4 style="margin:0 0 0.6rem 0; font-size:0.9rem; color:var(--text-main); display:flex; align-items:center; gap:0.4rem;">
+                        <span>📊 Preview de Impacto</span>
+                        <small style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(Leitura sem alteração de dados)</small>
+                    </h4>
+                    <div id="mergePreviewDetails" style="font-size:0.85rem; line-height:1.5; color:var(--text-main);"></div>
+
+                    <!-- RESOLUÇÃO DE CONFLITO DE METAS -->
+                    <div id="mergeMetaConflictSection" style="display:none; margin-top:1rem; padding-top:0.8rem; border-top:1px dashed var(--border);">
+                        <label style="font-weight:600; font-size:0.85rem; color:var(--danger); display:block; margin-bottom:0.5rem;">⚠️ Conflito de Metas Detectado (Ambas possuem limites):</label>
+                        <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem;">
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                <input type="radio" name="merge_meta_action" value="KEEP_TARGET" checked>
+                                <span><b>Manter limite do destino</b> (<span id="metaTargetValText">R$ 0,00</span>)</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                <input type="radio" name="merge_meta_action" value="KEEP_SOURCE">
+                                <span><b>Manter limite da origem</b> (<span id="metaSourceValText">R$ 0,00</span>)</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                <input type="radio" name="merge_meta_action" value="SUM">
+                                <span><b>Somar limites</b> (<span id="metaSumValText">R$ 0,00</span>)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="mergeModalError" style="display:none; color:var(--danger); font-size:0.85rem; margin-top:0.4rem; margin-bottom:0.8rem; padding:0.5rem; background:rgba(239,68,68,0.1); border-radius:6px;"></div>
+
+                <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="closeMergeModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnConfirmMerge" style="width:auto; padding:0.6rem 1.5rem; background:var(--primary);" disabled>Confirmar Mesclagem</button>
                 </div>
             </form>
         </div>
@@ -1904,14 +2005,34 @@
 
             const typeLabels = { categoria: 'Categoria', subcategoria: 'Subcategoria', cartao: 'Cartão de Crédito', tag: 'Tag' };
             const label = typeLabels[type] || 'Item';
+            const histGroup = document.getElementById('cat_modal_history_group');
+            const histCheck = document.getElementById('cat_modal_update_history');
+            const histCount = document.getElementById('cat_modal_history_count');
 
             if (itemId) {
                 titleEl.innerText = `Editar ${label}`;
                 let item = null;
-                if (type === 'categoria') item = globalCategorias.find(c => c.id === itemId);
-                if (type === 'subcategoria') item = globalSubcategorias.find(s => s.id === itemId);
-                if (type === 'cartao') item = globalCartoes.find(c => c.id === itemId);
-                if (type === 'tag') item = globalTags.find(t => t.id === itemId);
+                let uses = 0;
+                if (type === 'categoria') {
+                    item = globalCategorias.find(c => c.id === itemId);
+                    if (item) uses = globalData.filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(item.nome)).length;
+                }
+                if (type === 'subcategoria') {
+                    item = globalSubcategorias.find(s => s.id === itemId);
+                    if (item) {
+                        const parentCat = globalCategorias.find(c => c.id === item.categoria_id);
+                        const normCat = parentCat ? normalizeCatalogName(parentCat.nome) : null;
+                        uses = globalData.filter(d => normalizeCatalogName(d.subCat) === normalizeCatalogName(item.nome) && (!normCat || normalizeCatalogName(d.category) === normCat)).length;
+                    }
+                }
+                if (type === 'cartao') {
+                    item = globalCartoes.find(c => c.id === itemId);
+                    if (item) uses = globalData.filter(d => normalizeCatalogName(d.cartao) === normalizeCatalogName(item.nome)).length;
+                }
+                if (type === 'tag') {
+                    item = globalTags.find(t => t.id === itemId);
+                    if (item) uses = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normalizeCatalogName(item.nome))).length;
+                }
 
                 if (item) {
                     document.getElementById('cat_modal_name').value = item.nome;
@@ -1927,8 +2048,23 @@
                         document.getElementById('cat_modal_cor_tag').value = item.cor || '#64748b';
                     }
                 }
+
+                if (histGroup) {
+                    if (uses > 0) {
+                        histGroup.style.display = 'block';
+                        if (histCount) histCount.innerText = uses;
+                        if (histCheck) histCheck.checked = false;
+                    } else {
+                        histGroup.style.display = 'none';
+                        if (histCheck) histCheck.checked = false;
+                    }
+                }
             } else {
                 titleEl.innerText = type === 'cartao' ? 'Novo Cartão de Crédito' : `Nova ${label}`;
+                if (histGroup) {
+                    histGroup.style.display = 'none';
+                    if (histCheck) histCheck.checked = false;
+                }
             }
 
             modal.style.display = 'flex';
@@ -1945,6 +2081,162 @@
                 const sourceSelect = document.getElementById(sourceSelectId);
                 if (sourceSelect && sourceSelect.value === '__NEW__') {
                     sourceSelect.value = '';
+                }
+            }
+        }
+
+        let pendingRenameData = null;
+
+        function openRenamePreviewModal({ type, itemId, oldName, newName, payload, sourceSelectId }) {
+            pendingRenameData = { type, itemId, oldName, newName, payload, sourceSelectId };
+            const modal = document.getElementById('renamePreviewModal');
+            const content = document.getElementById('renamePreviewContent');
+            const metaSection = document.getElementById('renameMetaConflictSection');
+            const errEl = document.getElementById('renamePreviewError');
+
+            if (!modal || !content) return;
+            if (errEl) { errEl.style.display = 'none'; errEl.innerText = ''; }
+
+            const normOld = normalizeCatalogName(oldName);
+            let detailsHtml = '';
+            let hasMeta = false;
+
+            if (type === 'categoria') {
+                const affectedTxs = globalData.filter(d => normalizeCatalogName(d.category) === normOld).length;
+                hasMeta = (rawMetas || []).some(m => normalizeCatalogName(m.categoria) === normOld);
+                detailsHtml = `
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                        <div style="margin-bottom:0.4rem;"><b>Categoria:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
+                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) terão o campo <code>categoria</code> atualizado no histórico.</div>
+                    </div>
+                `;
+            } else if (type === 'subcategoria') {
+                const parentCat = globalCategorias.find(c => c.id === payload.categoria_id);
+                const normParent = parentCat ? normalizeCatalogName(parentCat.nome) : '';
+                const affectedTxs = globalData.filter(d => normalizeCatalogName(d.subCat) === normOld && (!normParent || normalizeCatalogName(d.category) === normParent)).length;
+                detailsHtml = `
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                        <div style="margin-bottom:0.4rem;"><b>Categoria Pai:</b> ${escapeHtml(parentCat ? parentCat.nome : '')}</div>
+                        <div style="margin-bottom:0.4rem;"><b>Subcategoria:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
+                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) vinculadas a esta categoria pai terão a <code>subcategoria</code> atualizada.</div>
+                    </div>
+                `;
+            } else if (type === 'cartao') {
+                const affectedTxs = globalData.filter(d => normalizeCatalogName(d.cartao) === normOld).length;
+                detailsHtml = `
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                        <div style="margin-bottom:0.4rem;"><b>Cartão:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
+                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} compra(s) terão o nome do cartão atualizado. Datas, parcelas, faturas e valores permanecem intactos.</div>
+                    </div>
+                `;
+            } else if (type === 'tag') {
+                const affectedTxs = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normOld)).length;
+                detailsHtml = `
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                        <div style="margin-bottom:0.4rem;"><b>Tag:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
+                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) com a tag <code>[${escapeHtml(oldName)}]</code> no prefixo terão o prefixo atualizado para <code>[${escapeHtml(newName)}]</code>.</div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = detailsHtml;
+            if (metaSection) metaSection.style.display = hasMeta ? 'block' : 'none';
+
+            modal.style.display = 'flex';
+        }
+
+        function closeRenamePreviewModal() {
+            const modal = document.getElementById('renamePreviewModal');
+            if (modal) modal.style.display = 'none';
+            pendingRenameData = null;
+        }
+
+        async function confirmRenameWithHistory() {
+            if (!pendingRenameData) return;
+            const { type, itemId, oldName, newName, payload, sourceSelectId } = pendingRenameData;
+            const metaActionRadio = document.querySelector('input[name="rename_meta_action"]:checked');
+            const metaAction = metaActionRadio ? metaActionRadio.value : 'KEEP_OLD';
+            const btn = document.getElementById('btnConfirmRenameWithHistory');
+            const errEl = document.getElementById('renamePreviewError');
+
+            btn.disabled = true;
+            btn.innerText = 'Atualizando...';
+
+            try {
+                await submitRenameWithHistory({ type, itemId, oldName, newName, payload, metaAction });
+                closeRenamePreviewModal();
+                closeCatalogModal();
+                alert('Histórico e catálogo atualizados com sucesso!');
+                await manualSync();
+            } catch (err) {
+                console.error('Erro na renomeação histórica:', err);
+                if (errEl) {
+                    errEl.innerText = 'Erro ao atualizar: ' + err.message;
+                    errEl.style.display = 'block';
+                } else {
+                    alert('Erro ao atualizar: ' + err.message);
+                }
+                await manualSync();
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Confirmar e Atualizar';
+            }
+        }
+
+        async function submitRenameWithHistory({ type, itemId, oldName, newName, payload, metaAction }) {
+            const tableMap = { categoria: 'app_categorias', subcategoria: 'app_subcategorias', cartao: 'app_cartoes', tag: 'app_tags' };
+            const tableName = tableMap[type];
+
+            // 1. Atualiza o catálogo
+            const { error: catErr } = await _supabase.from(tableName).update(payload).eq('id', itemId);
+            if (catErr) throw catErr;
+
+            const normOld = normalizeCatalogName(oldName);
+
+            // 2. Atualiza transações e metas conforme o tipo
+            if (type === 'categoria') {
+                const { error: txErr } = await _supabase.from('transacoes')
+                    .update({ categoria: newName })
+                    .eq('user_id', currentUser.id)
+                    .eq('categoria', oldName);
+                if (txErr) throw txErr;
+
+                if (metaAction === 'UPDATE') {
+                    const { error: metaErr } = await _supabase.from('metas')
+                        .update({ categoria: newName })
+                        .eq('user_id', currentUser.id)
+                        .eq('categoria', oldName);
+                    if (metaErr) throw metaErr;
+                }
+            } else if (type === 'subcategoria') {
+                const parentCat = globalCategorias.find(c => c.id === payload.categoria_id);
+                if (parentCat) {
+                    const { error: txErr } = await _supabase.from('transacoes')
+                        .update({ subcategoria: newName })
+                        .eq('user_id', currentUser.id)
+                        .eq('categoria', parentCat.nome)
+                        .eq('subcategoria', oldName);
+                    if (txErr) throw txErr;
+                }
+            } else if (type === 'cartao') {
+                const { error: txErr } = await _supabase.from('transacoes')
+                    .update({ cartao: newName })
+                    .eq('user_id', currentUser.id)
+                    .eq('cartao', oldName);
+                if (txErr) throw txErr;
+            } else if (type === 'tag') {
+                const affectedTxs = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normOld));
+                for (const tx of affectedTxs) {
+                    const match = tx.desc.match(/^\s*\[(.*?)\]\s*(.*)$/);
+                    if (match) {
+                        const tagsList = match[1].split(',').map(t => t.trim()).filter(Boolean);
+                        const replacedTags = tagsList.map(t => normalizeCatalogName(t) === normOld ? newName : t);
+                        const newDesc = `[${replacedTags.join(', ')}] ${match[2]}`;
+                        const { error: txErr } = await _supabase.from('transacoes')
+                            .update({ descricao: newDesc })
+                            .eq('id', tx.id);
+                        if (txErr) throw txErr;
+                    }
                 }
             }
         }
@@ -2018,6 +2310,21 @@
                 payload.cor = cor;
             }
 
+            let originalItem = null;
+            if (itemId) {
+                if (type === 'categoria') originalItem = globalCategorias.find(c => c.id === itemId);
+                else if (type === 'subcategoria') originalItem = globalSubcategorias.find(s => s.id === itemId);
+                else if (type === 'cartao') originalItem = globalCartoes.find(c => c.id === itemId);
+                else if (type === 'tag') originalItem = globalTags.find(t => t.id === itemId);
+            }
+
+            const shouldUpdateHistory = document.getElementById('cat_modal_update_history')?.checked;
+
+            if (originalItem && cleanName !== originalItem.nome && shouldUpdateHistory) {
+                openRenamePreviewModal({ type, itemId, oldName: originalItem.nome, newName: cleanName, payload, sourceSelectId });
+                return;
+            }
+
             btn.innerText = 'Salvando...';
             btn.disabled = true;
 
@@ -2056,6 +2363,269 @@
             } finally {
                 btn.innerText = 'Salvar';
                 btn.disabled = false;
+            }
+        }
+
+        /* FUNÇÕES DO MODAL DE MESCLAGEM (MERGE 2.0 VIA RPCs) */
+        function openMergeModal(type, sourceId) {
+            const modal = document.getElementById('mergeModal');
+            const titleEl = document.getElementById('mergeModalTitle');
+            const form = document.getElementById('mergeForm');
+            const errEl = document.getElementById('mergeModalError');
+            const btn = document.getElementById('btnConfirmMerge');
+
+            if (!modal || !form) return;
+            form.reset();
+            if (errEl) { errEl.style.display = 'none'; errEl.innerText = ''; }
+            btn.disabled = true;
+            btn.innerText = 'Confirmar Mesclagem';
+
+            document.getElementById('merge_type').value = type;
+
+            const typeLabels = { categoria: 'Categoria', subcategoria: 'Subcategoria', cartao: 'Cartão de Crédito', tag: 'Tag' };
+            titleEl.innerText = `🔀 Mesclar ${typeLabels[type] || 'Itens'}`;
+
+            const sourceSelect = document.getElementById('merge_source_id');
+            const targetSelect = document.getElementById('merge_target_id');
+
+            let itemsList = [];
+            if (type === 'categoria') itemsList = globalCategorias;
+            else if (type === 'subcategoria') itemsList = globalSubcategorias;
+            else if (type === 'cartao') itemsList = globalCartoes;
+            else if (type === 'tag') itemsList = globalTags;
+
+            sourceSelect.innerHTML = '<option value="">-- Selecione a Origem --</option>';
+            targetSelect.innerHTML = '<option value="">-- Selecione o Destino --</option>';
+
+            itemsList.forEach(item => {
+                let label = item.nome;
+                if (type === 'subcategoria') {
+                    const pCat = globalCategorias.find(c => c.id === item.categoria_id);
+                    label = `${item.nome} (${pCat ? pCat.nome : 'Sem Cat'})`;
+                }
+                const optSource = document.createElement('option');
+                optSource.value = item.id;
+                optSource.textContent = label + (item.ativo ? '' : ' [Inativo]');
+                sourceSelect.appendChild(optSource);
+
+                const optTarget = document.createElement('option');
+                optTarget.value = item.id;
+                optTarget.textContent = label + (item.ativo ? '' : ' [Inativo]');
+                targetSelect.appendChild(optTarget);
+            });
+
+            if (sourceId) {
+                sourceSelect.value = sourceId;
+            }
+
+            modal.style.display = 'flex';
+            renderMergePreview();
+        }
+
+        function closeMergeModal() {
+            const modal = document.getElementById('mergeModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function renderMergePreview() {
+            const type = document.getElementById('merge_type').value;
+            const sourceId = document.getElementById('merge_source_id').value;
+            const targetId = document.getElementById('merge_target_id').value;
+            const container = document.getElementById('mergePreviewContainer');
+            const details = document.getElementById('mergePreviewDetails');
+            const metaSection = document.getElementById('mergeMetaConflictSection');
+            const btn = document.getElementById('btnConfirmMerge');
+            const errEl = document.getElementById('mergeModalError');
+
+            if (errEl) { errEl.style.display = 'none'; errEl.innerText = ''; }
+
+            if (!sourceId || !targetId || sourceId === targetId) {
+                if (container) container.style.display = 'none';
+                btn.disabled = true;
+                return;
+            }
+
+            btn.disabled = false;
+            if (metaSection) metaSection.style.display = 'none';
+
+            if (type === 'categoria') {
+                const src = globalCategorias.find(c => c.id === sourceId);
+                const tgt = globalCategorias.find(c => c.id === targetId);
+                if (!src || !tgt) return;
+
+                const normSrc = normalizeCatalogName(src.nome);
+                const normTgt = normalizeCatalogName(tgt.nome);
+                const affectedTxs = globalData.filter(d => normalizeCatalogName(d.category) === normSrc).length;
+
+                const srcSubs = globalSubcategorias.filter(s => s.categoria_id === src.id);
+                const tgtSubs = globalSubcategorias.filter(s => s.categoria_id === tgt.id);
+
+                let movedSubs = 0;
+                let dupSubs = 0;
+                srcSubs.forEach(s => {
+                    const hasDup = tgtSubs.some(ts => normalizeCatalogName(ts.nome) === normalizeCatalogName(s.nome));
+                    if (hasDup) dupSubs++;
+                    else movedSubs++;
+                });
+
+                const metaSrc = (rawMetas || []).find(m => normalizeCatalogName(m.categoria) === normSrc);
+                const metaTgt = (rawMetas || []).find(m => normalizeCatalogName(m.categoria) === normTgt);
+
+                const srcVal = metaSrc ? (parseFloat(metaSrc.valor_limite) || 0) : 0;
+                const tgtVal = metaTgt ? (parseFloat(metaTgt.valor_limite) || 0) : 0;
+
+                let metaHtml = '• <b>Metas:</b> Nenhuma meta vinculada.';
+                if (metaSrc && metaTgt) {
+                    metaHtml = `• <b style="color:var(--danger);">⚠️ Conflito de Metas:</b> Origem possui R$ ${srcVal.toFixed(2)} e Destino possui R$ ${tgtVal.toFixed(2)}.`;
+                    if (metaSection) {
+                        metaSection.style.display = 'block';
+                        document.getElementById('metaTargetValText').innerText = `R$ ${tgtVal.toFixed(2)}`;
+                        document.getElementById('metaSourceValText').innerText = `R$ ${srcVal.toFixed(2)}`;
+                        document.getElementById('metaSumValText').innerText = `R$ ${(srcVal + tgtVal).toFixed(2)}`;
+                    }
+                } else if (metaSrc) {
+                    metaHtml = `• <b>Metas:</b> A meta da origem (R$ ${srcVal.toFixed(2)}) será transferida para <b>${escapeHtml(tgt.nome)}</b>.`;
+                } else if (metaTgt) {
+                    metaHtml = `• <b>Metas:</b> O limite existente do destino (R$ ${tgtVal.toFixed(2)}) será mantido.`;
+                }
+
+                details.innerHTML = `
+                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span></div>
+                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${affectedTxs} lançamento(s) terão a categoria alterada para "${escapeHtml(tgt.nome)}".</div>
+                    <div style="margin-bottom:0.4rem;">• <b>Subcategorias:</b> ${movedSubs} subcategoria(s) serão movidas; ${dupSubs} subcategoria(s) duplicadas serão consolidadas.</div>
+                    <div>${metaHtml}</div>
+                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* O item "${escapeHtml(src.nome)}" será desativado após a mesclagem.</div>
+                `;
+            } else if (type === 'subcategoria') {
+                const src = globalSubcategorias.find(s => s.id === sourceId);
+                const tgt = globalSubcategorias.find(s => s.id === targetId);
+                if (!src || !tgt) return;
+
+                const srcParent = globalCategorias.find(c => c.id === src.categoria_id);
+                const tgtParent = globalCategorias.find(c => c.id === tgt.categoria_id);
+                const normSrcCat = srcParent ? normalizeCatalogName(srcParent.nome) : '';
+                const normSrcSub = normalizeCatalogName(src.nome);
+                const affectedTxs = globalData.filter(d => normalizeCatalogName(d.subCat) === normSrcSub && (!normSrcCat || normalizeCatalogName(d.category) === normSrcCat)).length;
+
+                const isCatChange = src.categoria_id !== tgt.categoria_id;
+                const catChangeWarning = isCatChange
+                    ? `<div style="color:var(--primary); margin-top:0.4rem;">• <b>Mudança de Categoria:</b> As transações também terão a categoria alterada de "${escapeHtml(srcParent ? srcParent.nome : '')}" para "${escapeHtml(tgtParent ? tgtParent.nome : '')}".</div>`
+                    : '';
+
+                details.innerHTML = `
+                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} (${escapeHtml(srcParent ? srcParent.nome : '')}) ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)} (${escapeHtml(tgtParent ? tgtParent.nome : '')})</span></div>
+                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${affectedTxs} lançamento(s) terão a subcategoria alterada para "${escapeHtml(tgt.nome)}".</div>
+                    ${catChangeWarning}
+                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* O item "${escapeHtml(src.nome)}" será desativado após a mesclagem.</div>
+                `;
+            } else if (type === 'cartao') {
+                const src = globalCartoes.find(c => c.id === sourceId);
+                const tgt = globalCartoes.find(c => c.id === targetId);
+                if (!src || !tgt) return;
+
+                const normSrc = normalizeCatalogName(src.nome);
+                const cardTxs = globalData.filter(d => normalizeCatalogName(d.cartao) === normSrc);
+                const totalTxs = cardTxs.length;
+                const parcelasCount = cardTxs.filter(d => d.parcela && d.parcela.includes('/')).length;
+                const recorrentesCount = cardTxs.filter(d => d.parcela === 'RECORRENTE').length;
+                const futureCount = cardTxs.filter(d => d.faturaDestino && d.faturaDestino !== 'ATUAL').length;
+
+                details.innerHTML = `
+                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span></div>
+                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${totalTxs} compra(s) no cartão.</div>
+                    <div style="margin-bottom:0.4rem;">• <b>Parcelamentos / Recorrentes:</b> ${parcelasCount} compra(s) parcelada(s), ${recorrentesCount} recorrente(s).</div>
+                    <div style="margin-bottom:0.4rem;">• <b>Faturas Futuras:</b> ${futureCount} lançamento(s) em faturas futuras.</div>
+                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* Competência de faturas, parcelas e grupo_parcela_id serão 100% preservados. O cartão "${escapeHtml(src.nome)}" será desativado.</div>
+                `;
+            } else if (type === 'tag') {
+                const src = globalTags.find(t => t.id === sourceId);
+                const tgt = globalTags.find(t => t.id === targetId);
+                if (!src || !tgt) return;
+
+                const normSrc = normalizeCatalogName(src.nome);
+                const normTgt = normalizeCatalogName(tgt.nome);
+                const tagTxs = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normSrc));
+                const totalTxs = tagTxs.length;
+                const dupCount = tagTxs.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normTgt)).length;
+
+                details.innerHTML = `
+                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> [${escapeHtml(src.nome)}] ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">[${escapeHtml(tgt.nome)}]</span></div>
+                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${totalTxs} lançamento(s) com a tag no prefixo.</div>
+                    ${dupCount > 0 ? `<div style="color:var(--primary); margin-bottom:0.4rem;">• <b>Desduplicação:</b> ${dupCount} lançamento(s) já contêm a tag destino e serão desduplicados no prefixo.</div>` : ''}
+                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* Colchetes no corpo da descrição são preservados. A tag "${escapeHtml(src.nome)}" será desativada.</div>
+                `;
+            }
+
+            container.style.display = 'block';
+        }
+
+        async function submitMerge(e) {
+            if (e) e.preventDefault();
+            const type = document.getElementById('merge_type').value;
+            const sourceId = document.getElementById('merge_source_id').value;
+            const targetId = document.getElementById('merge_target_id').value;
+            const btn = document.getElementById('btnConfirmMerge');
+            const errEl = document.getElementById('mergeModalError');
+
+            if (!sourceId || !targetId || sourceId === targetId) return;
+
+            btn.disabled = true;
+            btn.innerText = 'Processando...';
+            if (errEl) { errEl.style.display = 'none'; errEl.innerText = ''; }
+
+            try {
+                let rpcName = 'merge_categories';
+                let rpcParams = { p_source_id: sourceId, p_target_id: targetId };
+
+                if (type === 'categoria') {
+                    rpcName = 'merge_categories';
+                    const metaActionRadio = document.querySelector('input[name="merge_meta_action"]:checked');
+                    rpcParams.p_meta_action = metaActionRadio ? metaActionRadio.value : 'KEEP_TARGET';
+                } else if (type === 'subcategoria') {
+                    rpcName = 'merge_subcategories';
+                } else if (type === 'cartao') {
+                    rpcName = 'merge_cards';
+                } else if (type === 'tag') {
+                    rpcName = 'merge_tags';
+                }
+
+                const { data, error } = await _supabase.rpc(rpcName, rpcParams);
+
+                if (error) {
+                    if (errEl) {
+                        errEl.innerText = 'Erro ao executar mesclagem: ' + error.message;
+                        errEl.style.display = 'block';
+                    } else {
+                        alert('Erro ao executar mesclagem: ' + error.message);
+                    }
+                    btn.disabled = false;
+                    btn.innerText = 'Confirmar Mesclagem';
+                    await manualSync();
+                    return;
+                }
+
+                // Sucesso: feedback amigável com números reais retornados pelo banco
+                let msg = 'Mesclagem concluída com sucesso!\n\n';
+                if (data && data.updated_transactions !== undefined) msg += `• ${data.updated_transactions} lançamento(s) atualizado(s)\n`;
+                if (data && data.moved_subcategories) msg += `• ${data.moved_subcategories} subcategoria(s) movida(s)\n`;
+                if (data && data.consolidated_subcategories) msg += `• ${data.consolidated_subcategories} subcategoria(s) consolidada(s)\n`;
+                if (data && data.meta_result) msg += `• Metas: ${data.meta_result}\n`;
+                if (data && data.deduplicated_count) msg += `• ${data.deduplicated_count} desduplicação(ões) no prefixo\n`;
+
+                alert(msg);
+                closeMergeModal();
+                await manualSync();
+            } catch (err) {
+                console.error('Exceção no merge:', err);
+                if (errEl) {
+                    errEl.innerText = 'Exceção ao mesclar: ' + err.message;
+                    errEl.style.display = 'block';
+                } else {
+                    alert('Exceção ao mesclar: ' + err.message);
+                }
+                btn.disabled = false;
+                btn.innerText = 'Confirmar Mesclagem';
+                await manualSync();
             }
         }
 
@@ -3747,6 +4317,7 @@
                             </div>
                             <div style="display:flex; gap:0.3rem;">
                                 <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'categoria', itemId: '${c.id}' })">✏️</button>
+                                <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('categoria', '${c.id}')">🔀</button>
                                 <button class="action-icon-btn" title="${c.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('categoria', '${c.id}', ${c.ativo})">${c.ativo ? '⏸️' : '▶️'}</button>
                                 <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('categoria', '${c.id}')">🗑️</button>
                             </div>
@@ -3778,6 +4349,7 @@
                             </div>
                             <div style="display:flex; gap:0.3rem;">
                                 <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'subcategoria', itemId: '${s.id}' })">✏️</button>
+                                <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('subcategoria', '${s.id}')">🔀</button>
                                 <button class="action-icon-btn" title="${s.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('subcategoria', '${s.id}', ${s.ativo})">${s.ativo ? '⏸️' : '▶️'}</button>
                                 <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('subcategoria', '${s.id}')">🗑️</button>
                             </div>
@@ -3810,6 +4382,7 @@
                             </div>
                             <div style="display:flex; gap:0.3rem;">
                                 <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'cartao', itemId: '${card.id}' })">✏️</button>
+                                <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('cartao', '${card.id}')">🔀</button>
                                 <button class="action-icon-btn" title="${card.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('cartao', '${card.id}', ${card.ativo})">${card.ativo ? '⏸️' : '▶️'}</button>
                                 <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('cartao', '${card.id}')">🗑️</button>
                             </div>
@@ -3839,6 +4412,7 @@
                                 </div>
                                 <div style="display:flex; gap:0.3rem;">
                                     <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'tag', itemId: '${t.id}' })">✏️</button>
+                                    <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('tag', '${t.id}')">🔀</button>
                                     <button class="action-icon-btn" title="${t.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('tag', '${t.id}', ${t.ativo})">${t.ativo ? '⏸️' : '▶️'}</button>
                                     <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('tag', '${t.id}')">🗑️</button>
                                 </div>

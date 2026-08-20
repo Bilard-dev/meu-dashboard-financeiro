@@ -12,119 +12,851 @@
         :root {
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
+            --card-header-bg: #f8fafc;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --primary: #2563eb;
+            --primary-hover: #1d4ed8;
             --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
             --success: #10b981;
             --success-btn: #059669;
+            --success-hover: #047857;
+            --success-light: #ecfdf5;
             --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fef2f2;
             --warning: #f59e0b;
+            --warning-light: #fffbeb;
             --invest: #8b5cf6;
+            --invest-light: #f5f3ff;
             --border: #e2e8f0;
+            --border-subtle: #f1f5f9;
             --input-bg: #ffffff;
-            --table-hover: #f1f5f9;
+            --table-hover: #f8fafc;
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            --radius-xs: 4px;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --radius-full: 9999px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
         }
 
         body.dark-theme {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-color: #0b1120;
+            --card-bg: #151f32;
+            --card-header-bg: #0f172a;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --primary: #3b82f6;
-            --primary-light: #1e3a8a;
+            --primary-hover: #2563eb;
+            --primary-light: #1e293b;
+            --primary-border: #1e3a8a;
             --success: #10b981;
             --success-btn: #059669;
-            --danger: #ef4444;
-            --warning: #f59e0b;
+            --success-hover: #047857;
+            --success-light: #064e3b;
+            --danger: #f87171;
+            --danger-hover: #ef4444;
+            --danger-light: #450a0a;
+            --warning: #fbbf24;
+            --warning-light: #451a03;
             --invest: #a78bfa;
-            --border: #334155;
+            --invest-light: #2e1065;
+            --border: #1e293b;
+            --border-subtle: #172554;
             --input-bg: #1e293b;
-            --table-hover: #334155;
+            --table-hover: #1e293b;
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem; min-height: 100vh; transition: background-color 0.3s, color 0.3s; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 1.5rem;
+            min-height: 100vh;
+            line-height: 1.5;
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+        }
+
+        #appView, #loginView {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
 
         /* HEADER E TABS */
-        header { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        header h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-main); }
-        .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .action-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
-        .action-btn:hover { background-color: var(--border); }
-        .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; }
-        .tab-btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .tab-btn:hover { background-color: var(--border); color: var(--text-main); }
-        .tab-btn.active { background-color: var(--primary); color: #ffffff; }
-        .tab-content { display: none; }
+        header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            padding-bottom: 0.5rem;
+        }
+
+        header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 0.15rem;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.55rem 0.9rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            color: var(--text-main);
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition-fast);
+            user-select: none;
+        }
+
+        .action-btn:hover {
+            background-color: var(--border-subtle);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1.75rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+        .nav-tabs::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: var(--radius-full);
+        }
+
+        .tab-btn {
+            padding: 0.55rem 1.1rem;
+            border-radius: var(--radius-md);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+            user-select: none;
+        }
+
+        .tab-btn:hover {
+            background-color: var(--border);
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.2s ease-out; }
         .tab-content.active { display: block; }
-        .select-container select { padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; font-weight: 600; cursor: pointer; outline: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .select-container select {
+            padding: 0.55rem 0.9rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            box-shadow: var(--shadow-xs);
+            transition: border-color var(--transition-fast);
+        }
+
+        .select-container select:focus {
+            border-color: var(--primary);
+        }
 
         /* CARDS E KPI */
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; align-items: stretch; }
-        .kpi-card { background: var(--card-bg); padding: 1.25rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; }
-        .kpi-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
-        .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
-        .kpi-details { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--border); font-size: 0.8rem; }
-        .kpi-detail-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; color: var(--text-main); }
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            align-items: stretch;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 1.25rem 1.4rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .kpi-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .kpi-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.4rem;
+        }
+
+        .kpi-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .kpi-details {
+            margin-top: 0.85rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--border);
+            font-size: 0.8rem;
+        }
+
+        .kpi-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.35rem;
+            color: var(--text-main);
+        }
+
         .kpi-detail-item:last-child { margin-bottom: 0; }
         .kpi-detail-label { font-weight: 500; color: var(--text-muted); }
         .kpi-detail-val { font-weight: 600; }
 
-        .chart-card { background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main); }
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        .data-table th, .data-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-main); }
-        .data-table th { background-color: var(--bg-color); color: var(--text-muted); font-weight: 600; }
-        .data-table tbody tr:hover { background-color: var(--table-hover); }
-        .tag-status { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1.4rem 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-main);
+        }
+
+        .data-table th {
+            background-color: var(--bg-color);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .data-table tbody tr {
+            transition: background-color var(--transition-fast);
+        }
+
+        .data-table tbody tr:hover {
+            background-color: var(--table-hover);
+        }
+
+        /* STATUS BADGES */
+        .tag-status {
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            letter-spacing: 0.02em;
+            line-height: 1.3;
+        }
+
         .tag-open { background-color: #fef3c7; color: #b45309; }
         .tag-done { background-color: #d1fae5; color: #047857; }
         .tag-quitado { background-color: #e0e7ff; color: #3730a3; }
         .tag-recorrente { background-color: #f3e8ff; color: #6b21a8; }
-        .reset-btn { background-color: var(--bg-color); color: var(--primary); border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-        .loading { text-align: center; font-size: 1.1rem; color: var(--primary); padding: 3rem; }
-        #categoryDetailsSection { display: none; padding-top: 1rem; border-top: 2px dashed var(--border); margin-top: 1rem; }
+        .tag-inactive { background-color: #f1f5f9; color: #64748b; }
+        .tag-history { background-color: #ede9fe; color: #6d28d9; }
+
+        body.dark-theme .tag-open { background-color: #451a03; color: #fbbf24; }
+        body.dark-theme .tag-done { background-color: #064e3b; color: #34d399; }
+        body.dark-theme .tag-quitado { background-color: #1e1b4b; color: #a5b4fc; }
+        body.dark-theme .tag-recorrente { background-color: #3b0764; color: #d8b4fe; }
+        body.dark-theme .tag-inactive { background-color: #1e293b; color: #94a3b8; }
+        body.dark-theme .tag-history { background-color: #2e1065; color: #c4b5fd; }
+
+        .reset-btn {
+            background-color: var(--card-bg);
+            color: var(--primary);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .reset-btn:hover {
+            background-color: var(--border);
+            border-color: var(--text-muted);
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 3rem;
+        }
+
+        #categoryDetailsSection {
+            display: none;
+            padding-top: 1rem;
+            border-top: 2px dashed var(--border);
+            margin-top: 1rem;
+        }
 
         /* AVISOS E METAS */
-        .alert-mini-box { padding: 0.6rem 0.9rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.85rem; display: flex; align-items: center; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); color: var(--text-main); }
-        .alert-mini-danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
-        .progress-bar-bg { width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
-        .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+        .alert-mini-box {
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-top: 0.6rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 4px solid var(--warning);
+            background: rgba(245, 158, 11, 0.08);
+            color: var(--text-main);
+        }
+
+        .alert-mini-danger {
+            border-left-color: var(--danger);
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            background: var(--border);
+            height: 8px;
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: var(--radius-full);
+            transition: width 0.3s ease;
+        }
 
         /* LOGIN E FORMULÁRIO */
-        .auth-container { max-width: 420px; margin: 4rem auto; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border); }
-        .input-group { margin-bottom: 1rem; position: relative; }
-        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text-main); }
-        .input-field { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: var(--input-bg); color: var(--text-main); }
-        .input-field:focus { border-color: var(--primary); }
+        .auth-container {
+            max-width: 420px;
+            margin: 4rem auto;
+            background: var(--card-bg);
+            padding: 2.25rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
 
-        .password-wrapper { position: relative; display: flex; align-items: center; }
-        .toggle-password-btn { position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--text-muted); padding: 0 4px; }
+        .input-group {
+            margin-bottom: 1rem;
+            position: relative;
+        }
 
-        .btn-primary { width: 100%; padding: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-success { background: var(--success-btn); color: white; border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-success:hover { opacity: 0.9; }
-        .btn-secondary { background: var(--border); color: var(--text-main); border: none; padding: 0.8rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-secondary:hover { background-color: #cbd5e1; }
-        .btn-danger { background: var(--danger); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .action-icon-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; color: var(--text-main); }
-        .action-icon-btn:hover { background: var(--border); }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            color: var(--text-main);
+        }
 
-        .quick-chips-container { margin-bottom: 1.2rem; }
-        .quick-chips-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; }
-        .quick-chips { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.4rem; }
+        .input-field {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.925rem;
+            outline: none;
+            background: var(--input-bg);
+            color: var(--text-main);
+            box-shadow: var(--shadow-xs);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-password-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        /* BOTÕES PRINCIPAIS */
+        .btn-primary {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.925rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: var(--success-btn);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.925rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background-color: var(--success-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.925rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        body.dark-theme .btn-secondary:hover {
+            background-color: #334155;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 0.55rem 0.9rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+            transform: translateY(-1px);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1.1rem;
+        }
+
+        /* BOTÕES DE ÍCONE (AÇÕES DE LINHA NO GERENCIADOR) */
+        .action-icon-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .action-icon-btn:hover {
+            background: var(--border);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+        .action-icon-btn.btn-action-edit:hover {
+            color: var(--primary);
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .action-icon-btn.btn-action-merge:hover {
+            color: var(--invest);
+            background: var(--invest-light);
+            border-color: var(--invest);
+        }
+
+        .action-icon-btn.btn-action-delete:hover {
+            color: var(--danger);
+            background: var(--danger-light);
+            border-color: var(--danger);
+        }
+
+        .quick-chips-container {
+            margin-bottom: 1.2rem;
+        }
+
+        .quick-chips-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-chips {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.4rem;
+            scrollbar-width: none;
+        }
+
         .quick-chips::-webkit-scrollbar { display: none; }
-        .chip-btn { background: var(--input-bg); border: 1px solid var(--border); border-radius: 20px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; color: var(--text-main); transition: 0.2s; }
-        .chip-btn:hover, .chip-btn:active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
-        .mobile-quick-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 9999; padding: 1.2rem; overflow-y: auto; }
-        .mobile-quick-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
+        .chip-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            padding: 0.4rem 0.95rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            color: var(--text-main);
+            box-shadow: var(--shadow-xs);
+            transition: all var(--transition-fast);
+        }
 
-        .password-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.2; }
-        .forgot-link { font-size: 0.8rem; color: var(--primary); text-align: right; display: block; margin-top: 0.4rem; cursor: pointer; text-decoration: underline; }
+        .chip-btn:hover, .chip-btn:active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* MODAIS E OVERLAYS MODERNOS */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 100000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            padding: 1.5rem;
+            animation: modalSlide 0.25s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: scale(0.97) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.01em;
+        }
+
+        /* PREVIEW METRIC CARDS */
+        .preview-flow-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--primary-light);
+            border: 1px solid var(--primary-border);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .preview-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-stat-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .preview-stat-val {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .preview-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 0.2rem;
+        }
+
+        /* EMPTY STATES */
+        .empty-state-box {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .empty-state-box .empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.6;
+        }
+
+        /* LANÇADOR RÁPIDO CELULAR */
+        .mobile-quick-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-color);
+            z-index: 99990;
+            padding: 1.25rem;
+            overflow-y: auto;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .mobile-quick-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .password-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+            line-height: 1.3;
+        }
+
+        .forgot-link {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-align: right;
+            display: block;
+            margin-top: 0.4rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            header h1 { font-size: 1.4rem; }
+            .header-controls { width: 100%; justify-content: space-between; }
+            .kpi-container { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .data-table th, .data-table td { padding: 0.6rem 0.75rem; font-size: 0.8rem; }
+            .btn-primary, .btn-secondary, .btn-success, .btn-danger { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -2105,9 +2837,20 @@
                 const affectedTxs = globalData.filter(d => normalizeCatalogName(d.category) === normOld).length;
                 hasMeta = (rawMetas || []).some(m => normalizeCatalogName(m.categoria) === normOld);
                 detailsHtml = `
-                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                    <div class="preview-flow-banner">
+                        <span>${escapeHtml(oldName)}</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">${escapeHtml(newName)}</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${affectedTxs}</div>
+                            <div class="preview-stat-label">Lançamentos Afetados</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:0.8rem;">
                         <div style="margin-bottom:0.4rem;"><b>Categoria:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
-                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) terão o campo <code>categoria</code> atualizado no histórico.</div>
+                        <div style="color:var(--text-muted); font-size:0.85rem;"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) terão o campo <code>categoria</code> atualizado no histórico.</div>
                     </div>
                 `;
             } else if (type === 'subcategoria') {
@@ -2115,26 +2858,59 @@
                 const normParent = parentCat ? normalizeCatalogName(parentCat.nome) : '';
                 const affectedTxs = globalData.filter(d => normalizeCatalogName(d.subCat) === normOld && (!normParent || normalizeCatalogName(d.category) === normParent)).length;
                 detailsHtml = `
-                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                    <div class="preview-flow-banner">
+                        <span>${escapeHtml(oldName)}</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">${escapeHtml(newName)}</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${affectedTxs}</div>
+                            <div class="preview-stat-label">Lançamentos Afetados</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:0.8rem;">
                         <div style="margin-bottom:0.4rem;"><b>Categoria Pai:</b> ${escapeHtml(parentCat ? parentCat.nome : '')}</div>
                         <div style="margin-bottom:0.4rem;"><b>Subcategoria:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
-                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) vinculadas a esta categoria pai terão a <code>subcategoria</code> atualizada.</div>
+                        <div style="color:var(--text-muted); font-size:0.85rem;"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) vinculadas a esta categoria pai terão a <code>subcategoria</code> atualizada.</div>
                     </div>
                 `;
             } else if (type === 'cartao') {
                 const affectedTxs = globalData.filter(d => normalizeCatalogName(d.cartao) === normOld).length;
                 detailsHtml = `
-                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                    <div class="preview-flow-banner">
+                        <span>${escapeHtml(oldName)}</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">${escapeHtml(newName)}</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${affectedTxs}</div>
+                            <div class="preview-stat-label">Lançamentos Afetados</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:0.8rem;">
                         <div style="margin-bottom:0.4rem;"><b>Cartão:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
-                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} compra(s) terão o nome do cartão atualizado. Datas, parcelas, faturas e valores permanecem intactos.</div>
+                        <div style="color:var(--text-muted); font-size:0.85rem;"><b>Lançamentos Afetados:</b> ${affectedTxs} compra(s) terão o nome do cartão atualizado. Datas, parcelas, faturas e valores permanecem intactos.</div>
                     </div>
                 `;
             } else if (type === 'tag') {
                 const affectedTxs = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normOld)).length;
                 detailsHtml = `
-                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:8px; border:1px solid var(--border); margin-bottom:0.8rem;">
+                    <div class="preview-flow-banner">
+                        <span>[${escapeHtml(oldName)}]</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">[${escapeHtml(newName)}]</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${affectedTxs}</div>
+                            <div class="preview-stat-label">Lançamentos Afetados</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border); margin-bottom:0.8rem;">
                         <div style="margin-bottom:0.4rem;"><b>Tag:</b> ${escapeHtml(oldName)} ➔ <b style="color:var(--primary);">${escapeHtml(newName)}</b></div>
-                        <div style="color:var(--text-muted);"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) com a tag <code>[${escapeHtml(oldName)}]</code> no prefixo terão o prefixo atualizado para <code>[${escapeHtml(newName)}]</code>.</div>
+                        <div style="color:var(--text-muted); font-size:0.85rem;"><b>Lançamentos Afetados:</b> ${affectedTxs} transação(ões) com a tag <code>[${escapeHtml(oldName)}]</code> no prefixo terão o prefixo atualizado para <code>[${escapeHtml(newName)}]</code>.</div>
                     </div>
                 `;
             }
@@ -2490,11 +3266,28 @@
                 }
 
                 details.innerHTML = `
-                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span></div>
-                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${affectedTxs} lançamento(s) terão a categoria alterada para "${escapeHtml(tgt.nome)}".</div>
-                    <div style="margin-bottom:0.4rem;">• <b>Subcategorias:</b> ${movedSubs} subcategoria(s) serão movidas; ${dupSubs} subcategoria(s) duplicadas serão consolidadas.</div>
-                    <div>${metaHtml}</div>
-                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* O item "${escapeHtml(src.nome)}" será desativado após a mesclagem.</div>
+                    <div class="preview-flow-banner">
+                        <span>${escapeHtml(src.nome)}</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${affectedTxs}</div>
+                            <div class="preview-stat-label">Transações Afetadas</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${movedSubs + dupSubs}</div>
+                            <div class="preview-stat-label">Subcategorias</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+                        <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span></div>
+                        <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${affectedTxs} lançamento(s) terão a categoria alterada para "${escapeHtml(tgt.nome)}".</div>
+                        <div style="margin-bottom:0.4rem;">• <b>Subcategorias:</b> ${movedSubs} subcategoria(s) serão movidas; ${dupSubs} subcategoria(s) duplicadas serão consolidadas.</div>
+                        <div>${metaHtml}</div>
+                        <div style="margin-top:0.6rem; font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:0.4rem;">* O item "${escapeHtml(src.nome)}" será desativado após a mesclagem.</div>
+                    </div>
                 `;
             } else if (type === 'subcategoria') {
                 const src = globalSubcategorias.find(s => s.id === sourceId);
@@ -2513,10 +3306,23 @@
                     : '';
 
                 details.innerHTML = `
-                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} (${escapeHtml(srcParent ? srcParent.nome : '')}) ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)} (${escapeHtml(tgtParent ? tgtParent.nome : '')})</span></div>
-                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${affectedTxs} lançamento(s) terão a subcategoria alterada para "${escapeHtml(tgt.nome)}".</div>
-                    ${catChangeWarning}
-                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* O item "${escapeHtml(src.nome)}" será desativado após a mesclagem.</div>
+                    <div class="preview-flow-banner">
+                        <span>${escapeHtml(src.nome)}</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${affectedTxs}</div>
+                            <div class="preview-stat-label">Transações Afetadas</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+                        <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} (${escapeHtml(srcParent ? srcParent.nome : '')}) ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)} (${escapeHtml(tgtParent ? tgtParent.nome : '')})</span></div>
+                        <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${affectedTxs} lançamento(s) terão a subcategoria alterada para "${escapeHtml(tgt.nome)}".</div>
+                        ${catChangeWarning}
+                        <div style="margin-top:0.6rem; font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:0.4rem;">* O item "${escapeHtml(src.nome)}" será desativado após a mesclagem.</div>
+                    </div>
                 `;
             } else if (type === 'cartao') {
                 const src = globalCartoes.find(c => c.id === sourceId);
@@ -2531,11 +3337,32 @@
                 const futureCount = cardTxs.filter(d => d.faturaDestino && d.faturaDestino !== 'ATUAL').length;
 
                 details.innerHTML = `
-                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span></div>
-                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${totalTxs} compra(s) no cartão.</div>
-                    <div style="margin-bottom:0.4rem;">• <b>Parcelamentos / Recorrentes:</b> ${parcelasCount} compra(s) parcelada(s), ${recorrentesCount} recorrente(s).</div>
-                    <div style="margin-bottom:0.4rem;">• <b>Faturas Futuras:</b> ${futureCount} lançamento(s) em faturas futuras.</div>
-                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* Competência de faturas, parcelas e grupo_parcela_id serão 100% preservados. O cartão "${escapeHtml(src.nome)}" será desativado.</div>
+                    <div class="preview-flow-banner">
+                        <span>${escapeHtml(src.nome)}</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${totalTxs}</div>
+                            <div class="preview-stat-label">Compras no Cartão</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${parcelasCount}</div>
+                            <div class="preview-stat-label">Parcelamentos</div>
+                        </div>
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${recorrentesCount}</div>
+                            <div class="preview-stat-label">Recorrentes</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+                        <div style="margin-bottom:0.4rem;"><b>Origem:</b> ${escapeHtml(src.nome)} ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">${escapeHtml(tgt.nome)}</span></div>
+                        <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${totalTxs} compra(s) no cartão.</div>
+                        <div style="margin-bottom:0.4rem;">• <b>Parcelamentos / Recorrentes:</b> ${parcelasCount} compra(s) parcelada(s), ${recorrentesCount} recorrente(s).</div>
+                        <div style="margin-bottom:0.4rem;">• <b>Faturas Futuras:</b> ${futureCount} lançamento(s) em faturas futuras.</div>
+                        <div style="margin-top:0.6rem; font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:0.4rem;">* Competência de faturas, parcelas e grupo_parcela_id serão 100% preservados. O cartão "${escapeHtml(src.nome)}" será desativado.</div>
+                    </div>
                 `;
             } else if (type === 'tag') {
                 const src = globalTags.find(t => t.id === sourceId);
@@ -2549,10 +3376,28 @@
                 const dupCount = tagTxs.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normTgt)).length;
 
                 details.innerHTML = `
-                    <div style="margin-bottom:0.4rem;"><b>Origem:</b> [${escapeHtml(src.nome)}] ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">[${escapeHtml(tgt.nome)}]</span></div>
-                    <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${totalTxs} lançamento(s) com a tag no prefixo.</div>
-                    ${dupCount > 0 ? `<div style="color:var(--primary); margin-bottom:0.4rem;">• <b>Desduplicação:</b> ${dupCount} lançamento(s) já contêm a tag destino e serão desduplicados no prefixo.</div>` : ''}
-                    <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">* Colchetes no corpo da descrição são preservados. A tag "${escapeHtml(src.nome)}" será desativada.</div>
+                    <div class="preview-flow-banner">
+                        <span>[${escapeHtml(src.nome)}]</span>
+                        <span>➔</span>
+                        <span style="color:var(--primary); font-weight:bold;">[${escapeHtml(tgt.nome)}]</span>
+                    </div>
+                    <div class="preview-stat-grid">
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val">${totalTxs}</div>
+                            <div class="preview-stat-label">Lançamentos c/ Tag</div>
+                        </div>
+                        ${dupCount > 0 ? `
+                        <div class="preview-stat-card">
+                            <div class="preview-stat-val" style="color:var(--warning);">${dupCount}</div>
+                            <div class="preview-stat-label">Desduplicações</div>
+                        </div>` : ''}
+                    </div>
+                    <div style="background:var(--bg-color); padding:0.8rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+                        <div style="margin-bottom:0.4rem;"><b>Origem:</b> [${escapeHtml(src.nome)}] ➔ <b>Destino:</b> <span style="color:var(--primary); font-weight:bold;">[${escapeHtml(tgt.nome)}]</span></div>
+                        <div style="margin-bottom:0.4rem;">• <b>Transações Afetadas:</b> ${totalTxs} lançamento(s) com a tag no prefixo.</div>
+                        ${dupCount > 0 ? `<div style="color:var(--primary); margin-bottom:0.4rem;">• <b>Desduplicação:</b> ${dupCount} lançamento(s) já contêm a tag destino e serão desduplicados no prefixo.</div>` : ''}
+                        <div style="margin-top:0.6rem; font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:0.4rem;">* Colchetes no corpo da descrição são preservados. A tag "${escapeHtml(src.nome)}" será desativada.</div>
+                    </div>
                 `;
             }
 
@@ -4299,27 +5144,27 @@
 
             // 1. Categorias
             if (globalCategorias.length === 0) {
-                catContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma categoria cadastrada.</p>';
+                catContainer.innerHTML = '<div class="empty-state-box"><div class="empty-icon">📂</div><p>Nenhuma categoria cadastrada ainda.</p></div>';
             } else {
                 catContainer.innerHTML = globalCategorias.map(c => {
                     const uses = getCatUsage(c.nome);
                     const statusBadge = c.ativo
                         ? `<span class="tag-status tag-done">Ativo</span>`
-                        : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                        : `<span class="tag-status tag-inactive">Inativo</span>`;
                     return `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
-                            <div>
-                                <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(c.nome)}</div>
-                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:0.7rem 0.9rem; border-radius:var(--radius-md); margin-bottom:0.5rem; border:1px solid var(--border); box-shadow:var(--shadow-xs); transition:transform var(--transition-fast), box-shadow var(--transition-fast);">
+                            <div style="min-width:0; flex:1; margin-right:0.5rem;">
+                                <div style="font-weight:600; font-size:0.925rem; color:var(--text-main); word-break:break-word;">${escapeHtml(c.nome)}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:3px; flex-wrap:wrap;">
                                     ${statusBadge}
-                                    <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                    <span class="uses-badge" style="background:var(--border-subtle); color:var(--text-muted); padding:1px 7px; border-radius:var(--radius-full); font-size:0.75rem; border:1px solid var(--border);">${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:0.3rem;">
-                                <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'categoria', itemId: '${c.id}' })">✏️</button>
-                                <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('categoria', '${c.id}')">🔀</button>
-                                <button class="action-icon-btn" title="${c.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('categoria', '${c.id}', ${c.ativo})">${c.ativo ? '⏸️' : '▶️'}</button>
-                                <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('categoria', '${c.id}')">🗑️</button>
+                            <div style="display:flex; gap:0.35rem; flex-shrink:0;">
+                                <button class="action-icon-btn btn-action-edit" title="Editar" onclick="openCatalogModal({ type: 'categoria', itemId: '${c.id}' })">✏️</button>
+                                <button class="action-icon-btn btn-action-merge" title="Mesclar" onclick="openMergeModal('categoria', '${c.id}')">🔀</button>
+                                <button class="action-icon-btn btn-action-toggle" title="${c.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('categoria', '${c.id}', ${c.ativo})">${c.ativo ? '⏸️' : '▶️'}</button>
+                                <button class="action-icon-btn btn-action-delete" title="Excluir" onclick="deleteCatalogItem('categoria', '${c.id}')">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -4328,7 +5173,7 @@
 
             // 2. Subcategorias
             if (globalSubcategorias.length === 0) {
-                subContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma subcategoria cadastrada.</p>';
+                subContainer.innerHTML = '<div class="empty-state-box"><div class="empty-icon">🏷️</div><p>Nenhuma subcategoria cadastrada ainda.</p></div>';
             } else {
                 subContainer.innerHTML = globalSubcategorias.map(s => {
                     const parentCat = globalCategorias.find(c => c.id === s.categoria_id);
@@ -4336,22 +5181,22 @@
                     const uses = getSubUsage(s.nome, s.categoria_id);
                     const statusBadge = s.ativo
                         ? `<span class="tag-status tag-done">Ativo</span>`
-                        : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                        : `<span class="tag-status tag-inactive">Inativo</span>`;
                     return `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border);">
-                            <div>
-                                <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(s.nome)}</div>
-                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
-                                    <span style="color:var(--primary); font-weight:500;">📁 ${escapeHtml(parentName)}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:0.7rem 0.9rem; border-radius:var(--radius-md); margin-bottom:0.5rem; border:1px solid var(--border); box-shadow:var(--shadow-xs); transition:transform var(--transition-fast), box-shadow var(--transition-fast);">
+                            <div style="min-width:0; flex:1; margin-right:0.5rem;">
+                                <div style="font-weight:600; font-size:0.925rem; color:var(--text-main); word-break:break-word;">${escapeHtml(s.nome)}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:3px; flex-wrap:wrap;">
+                                    <span style="color:var(--primary); font-weight:600; display:inline-flex; align-items:center; gap:2px;">📁 ${escapeHtml(parentName)}</span>
                                     ${statusBadge}
-                                    <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                    <span class="uses-badge" style="background:var(--border-subtle); color:var(--text-muted); padding:1px 7px; border-radius:var(--radius-full); font-size:0.75rem; border:1px solid var(--border);">${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:0.3rem;">
-                                <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'subcategoria', itemId: '${s.id}' })">✏️</button>
-                                <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('subcategoria', '${s.id}')">🔀</button>
-                                <button class="action-icon-btn" title="${s.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('subcategoria', '${s.id}', ${s.ativo})">${s.ativo ? '⏸️' : '▶️'}</button>
-                                <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('subcategoria', '${s.id}')">🗑️</button>
+                            <div style="display:flex; gap:0.35rem; flex-shrink:0;">
+                                <button class="action-icon-btn btn-action-edit" title="Editar" onclick="openCatalogModal({ type: 'subcategoria', itemId: '${s.id}' })">✏️</button>
+                                <button class="action-icon-btn btn-action-merge" title="Mesclar" onclick="openMergeModal('subcategoria', '${s.id}')">🔀</button>
+                                <button class="action-icon-btn btn-action-toggle" title="${s.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('subcategoria', '${s.id}', ${s.ativo})">${s.ativo ? '⏸️' : '▶️'}</button>
+                                <button class="action-icon-btn btn-action-delete" title="Excluir" onclick="deleteCatalogItem('subcategoria', '${s.id}')">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -4360,31 +5205,33 @@
 
             // 3. Cartões
             if (globalCartoes.length === 0) {
-                payContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhum cartão cadastrado.</p>';
+                payContainer.innerHTML = '<div class="empty-state-box"><div class="empty-icon">💳</div><p>Nenhum cartão cadastrado ainda.</p></div>';
             } else {
                 payContainer.innerHTML = globalCartoes.map(card => {
                     const uses = getCardUsage(card.nome);
                     const statusBadge = card.ativo
                         ? `<span class="tag-status tag-done">Ativo</span>`
-                        : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                        : `<span class="tag-status tag-inactive">Inativo</span>`;
                     const fechamentoInfo = card.dia_fechamento ? `F: ${card.dia_fechamento}` : '';
                     const vencimentoInfo = card.dia_vencimento ? `V: ${card.dia_vencimento}` : '';
                     const datesStr = (fechamentoInfo || vencimentoInfo) ? `(${[fechamentoInfo, vencimentoInfo].filter(Boolean).join(' | ')})` : '';
 
                     return `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border); border-left:4px solid ${card.cor || '#2563eb'};">
-                            <div>
-                                <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(card.nome)} <small style="font-size:0.75rem; color:var(--text-muted);">${datesStr}</small></div>
-                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:0.7rem 0.9rem; border-radius:var(--radius-md); margin-bottom:0.5rem; border:1px solid var(--border); border-left:4px solid ${card.cor || '#2563eb'}; box-shadow:var(--shadow-xs); transition:transform var(--transition-fast), box-shadow var(--transition-fast);">
+                            <div style="min-width:0; flex:1; margin-right:0.5rem;">
+                                <div style="font-weight:600; font-size:0.925rem; color:var(--text-main); word-break:break-word;">
+                                    ${escapeHtml(card.nome)} <small style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${datesStr}</small>
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:3px; flex-wrap:wrap;">
                                     ${statusBadge}
-                                    <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                    <span class="uses-badge" style="background:var(--border-subtle); color:var(--text-muted); padding:1px 7px; border-radius:var(--radius-full); font-size:0.75rem; border:1px solid var(--border);">${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:0.3rem;">
-                                <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'cartao', itemId: '${card.id}' })">✏️</button>
-                                <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('cartao', '${card.id}')">🔀</button>
-                                <button class="action-icon-btn" title="${card.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('cartao', '${card.id}', ${card.ativo})">${card.ativo ? '⏸️' : '▶️'}</button>
-                                <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('cartao', '${card.id}')">🗑️</button>
+                            <div style="display:flex; gap:0.35rem; flex-shrink:0;">
+                                <button class="action-icon-btn btn-action-edit" title="Editar" onclick="openCatalogModal({ type: 'cartao', itemId: '${card.id}' })">✏️</button>
+                                <button class="action-icon-btn btn-action-merge" title="Mesclar" onclick="openMergeModal('cartao', '${card.id}')">🔀</button>
+                                <button class="action-icon-btn btn-action-toggle" title="${card.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('cartao', '${card.id}', ${card.ativo})">${card.ativo ? '⏸️' : '▶️'}</button>
+                                <button class="action-icon-btn btn-action-delete" title="Excluir" onclick="deleteCatalogItem('cartao', '${card.id}')">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -4394,27 +5241,27 @@
             // 4. Tags
             if (tagContainer) {
                 if (globalTags.length === 0) {
-                    tagContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma tag cadastrada.</p>';
+                    tagContainer.innerHTML = '<div class="empty-state-box"><div class="empty-icon">🔖</div><p>Nenhuma tag cadastrada ainda.</p></div>';
                 } else {
                     tagContainer.innerHTML = globalTags.map(t => {
                         const uses = getTagUsage(t.nome);
                         const statusBadge = t.ativo
                             ? `<span class="tag-status tag-done">Ativo</span>`
-                            : `<span class="tag-status" style="background:#f1f5f9; color:#64748b;">Inativo</span>`;
+                            : `<span class="tag-status tag-inactive">Inativo</span>`;
                         return `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.4rem; border:1px solid var(--border); border-left:4px solid ${t.cor || '#64748b'};">
-                                <div>
-                                    <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">${escapeHtml(t.nome)}</div>
-                                    <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:2px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:0.7rem 0.9rem; border-radius:var(--radius-md); margin-bottom:0.5rem; border:1px solid var(--border); border-left:4px solid ${t.cor || '#64748b'}; box-shadow:var(--shadow-xs); transition:transform var(--transition-fast), box-shadow var(--transition-fast);">
+                                <div style="min-width:0; flex:1; margin-right:0.5rem;">
+                                    <div style="font-weight:600; font-size:0.925rem; color:var(--text-main); word-break:break-word;">${escapeHtml(t.nome)}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:0.4rem; align-items:center; margin-top:3px; flex-wrap:wrap;">
                                         ${statusBadge}
-                                        <span>${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
+                                        <span class="uses-badge" style="background:var(--border-subtle); color:var(--text-muted); padding:1px 7px; border-radius:var(--radius-full); font-size:0.75rem; border:1px solid var(--border);">${uses} ${uses === 1 ? 'uso' : 'usos'}</span>
                                     </div>
                                 </div>
-                                <div style="display:flex; gap:0.3rem;">
-                                    <button class="action-icon-btn" title="Editar" onclick="openCatalogModal({ type: 'tag', itemId: '${t.id}' })">✏️</button>
-                                    <button class="action-icon-btn" title="Mesclar" onclick="openMergeModal('tag', '${t.id}')">🔀</button>
-                                    <button class="action-icon-btn" title="${t.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('tag', '${t.id}', ${t.ativo})">${t.ativo ? '⏸️' : '▶️'}</button>
-                                    <button class="action-icon-btn" title="Excluir" onclick="deleteCatalogItem('tag', '${t.id}')">🗑️</button>
+                                <div style="display:flex; gap:0.35rem; flex-shrink:0;">
+                                    <button class="action-icon-btn btn-action-edit" title="Editar" onclick="openCatalogModal({ type: 'tag', itemId: '${t.id}' })">✏️</button>
+                                    <button class="action-icon-btn btn-action-merge" title="Mesclar" onclick="openMergeModal('tag', '${t.id}')">🔀</button>
+                                    <button class="action-icon-btn btn-action-toggle" title="${t.ativo ? 'Desativar' : 'Reativar'}" onclick="toggleCatalogItemActive('tag', '${t.id}', ${t.ativo})">${t.ativo ? '⏸️' : '▶️'}</button>
+                                    <button class="action-icon-btn btn-action-delete" title="Excluir" onclick="deleteCatalogItem('tag', '${t.id}')">🗑️</button>
                                 </div>
                             </div>
                         `;

@@ -438,6 +438,50 @@
             transition: width 0.3s ease;
         }
 
+        /* PREVISÃO FINANCEIRA 2.0 */
+        .forecast-month-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.1rem;
+            box-shadow: var(--shadow-xs);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .forecast-month-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+
+        .forecast-month-card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-focus), var(--shadow-sm);
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 80%, rgba(37, 99, 235, 0.04) 100%);
+        }
+
+        .forecast-horizon-btn {
+            padding: 0.4rem 0.85rem;
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-main);
+            transition: all var(--transition-fast);
+        }
+
+        .forecast-horizon-btn:hover {
+            background: var(--border-subtle);
+        }
+
+        .forecast-horizon-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
         /* LOGIN E FORMULÁRIO */
         .auth-container {
             max-width: 420px;
@@ -916,6 +960,7 @@
             <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
             <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
+            <button class="tab-btn" onclick="switchTab('previsao')">🔮 Previsão Financeira</button>
             <button class="tab-btn" onclick="switchTab('metas')">🎯 Metas & Limites</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
@@ -940,6 +985,22 @@
                 </div>
 
                 <div id="alertsContainer"></div>
+
+                <!-- WIDGET DASHBOARD: PRÓXIMOS COMPROMISSOS -->
+                <div id="dashboardForecastWidget" class="chart-card" style="padding: 1.1rem 1.3rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 70%, rgba(37, 99, 235, 0.04) 100%);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.8rem;">
+                        <div>
+                            <h3 style="font-size: 1.05rem; font-weight: 700; margin:0; display:flex; align-items:center; gap:0.4rem;">
+                                <span>🔮</span> Próximos Compromissos Conhecidos
+                            </h3>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0.2rem 0 0 0;">Faturas, parcelamentos e contas fixas previstos para os próximos meses.</p>
+                        </div>
+                        <button class="action-btn" onclick="switchTab('previsao')" style="font-size:0.8rem; padding:0.4rem 0.8rem; color:var(--primary); font-weight:600; border-color:var(--border);">Ver Previsão Completa ➔</button>
+                    </div>
+                    <div id="dashboardForecastCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.8rem;">
+                        <!-- Preenchido dinamicamente com os próximos 3 meses -->
+                    </div>
+                </div>
 
                 <div class="chart-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
@@ -1076,6 +1137,89 @@
                         </thead>
                         <tbody id="parcelasTableBody"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- ABA: PREVISÃO FINANCEIRA 2.0 -->
+            <div id="tab-previsao" class="tab-content">
+                <div class="chart-card" style="margin-bottom: 1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem; margin-bottom:1.2rem;">
+                        <div>
+                            <h2 class="chart-title" style="font-size: 1.25rem; margin-bottom: 0.3rem;">🔮 Previsão Financeira 2.0</h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+                                Compromissos financeiros futuros concretos (faturas de cartão, parcelas a vencer e despesas recorrentes).
+                            </p>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Horizonte:</span>
+                            <div class="forecast-horizon-buttons" style="display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; background:var(--bg-color);">
+                                <button class="forecast-horizon-btn" id="btnHorizon3" onclick="setForecastHorizon(3)">3 Meses</button>
+                                <button class="forecast-horizon-btn active" id="btnHorizon6" onclick="setForecastHorizon(6)" style="background:var(--primary); color:white;">6 Meses</button>
+                                <button class="forecast-horizon-btn" id="btnHorizon12" onclick="setForecastHorizon(12)">12 Meses</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banner de Total e Informação -->
+                    <div style="background:var(--bg-color); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:0.8rem 1rem; margin-bottom:1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
+                        <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted);">
+                            <span>ℹ️</span>
+                            <span><b>Compromissos Conhecidos:</b> Baseados em compras já realizadas, parcelamentos ativos e assinaturas fixas.</span>
+                        </div>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">
+                            Total Comprometido no Horizonte: <b id="forecastTotalHorizonte" style="color:var(--danger); font-size:1.1rem; margin-left:0.3rem;">R$ 0,00</b>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Evolução do Comprometimento -->
+                    <div style="width: 100%; height: 260px; position: relative; margin-bottom: 1.5rem;">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+
+                    <!-- Grid de Cards Mensais -->
+                    <div id="forecastMonthGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <!-- Preenchido dinamicamente -->
+                    </div>
+
+                    <!-- Detalhamento / Drill-Down do Mês Selecionado -->
+                    <div id="forecastDetailsSection" style="display: none; border-top: 1px dashed var(--border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+                            <h3 id="forecastDetailTitle" style="font-size: 1.1rem; color: var(--primary); margin:0;">Detalhamento da Competência</h3>
+                            <span id="forecastDetailBadge" class="tag-status tag-open" style="font-size:0.8rem;"></span>
+                        </div>
+
+                        <div class="kpi-container" style="margin-bottom: 1.2rem;">
+                            <div class="kpi-card"><div><div class="kpi-title">Total Comprometido</div><div class="kpi-value" id="fdetail-total" style="color:var(--danger);">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Em Cartões / Faturas</div><div class="kpi-value" id="fdetail-cartoes">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Parcelamentos Finitos</div><div class="kpi-value" id="fdetail-parcelas">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Despesas Recorrentes</div><div class="kpi-value" id="fdetail-recorrentes">R$ 0,00</div></div></div>
+                        </div>
+
+                        <div id="forecastConfirmadosContainer" style="display:none; margin-bottom:1.2rem;">
+                            <!-- Exibe receitas e investimentos futuros confirmados se houver -->
+                        </div>
+
+                        <!-- Breakdown por Cartão e por Categoria -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 1.2rem;">
+                            <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
+                                <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text-main);">💳 Comprometimento por Cartão</h4>
+                                <div id="forecastByCardList"></div>
+                            </div>
+                            <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
+                                <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text-main);">🏷️ Comprometimento por Categoria</h4>
+                                <div id="forecastByCategoryList"></div>
+                            </div>
+                        </div>
+
+                        <!-- Tabela de Itens Projetados no Mês -->
+                        <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.6rem 0; color:var(--text-main);">📋 Lançamentos e Parcelas Projetadas</h4>
+                        <div style="max-height: 360px; overflow-y: auto;">
+                            <table class="data-table">
+                                <thead><tr><th>Data Origem</th><th>Descrição</th><th>Meio / Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th></tr></thead>
+                                <tbody id="forecastItemsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -3776,6 +3920,7 @@
 
             if(tabId === 'analise') initAnaliseTab();
             if(tabId === 'parcelas') renderParcelasTab();
+            if(tabId === 'previsao') renderForecastTab();
             if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') renderInvestmentsTab();
             if(tabId === 'gerenciar-listas') renderManageLists();
@@ -4409,6 +4554,7 @@
             applyExtratoFilters();
             checkBudgetAlerts(despesasArr);
             renderPieChart(despesasArr, selectedYm);
+            updateDashboardForecastWidget(selectedYm);
         }
 
         async function saveCategoryBudget(e) {
@@ -5300,6 +5446,375 @@
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+        }
+
+        /* ==========================================================
+           🔮 PREVISÃO FINANCEIRA 2.0 — MOTOR & INTERFACE
+           ========================================================== */
+        let currentForecastHorizon = 6;
+        let selectedForecastYm = null;
+
+        function getFinancialForecast(startYm, horizonMonths = 6) {
+            let startYear, startMonth;
+            if (startYm && startYm !== 'all' && startYm.includes('-')) {
+                const parts = startYm.split('-').map(Number);
+                startYear = parts[0];
+                startMonth = parts[1];
+            } else {
+                const now = new Date();
+                startYear = now.getFullYear();
+                startMonth = now.getMonth();
+            }
+
+            const months = [];
+
+            for (let i = 0; i < horizonMonths; i++) {
+                const d = new Date(startYear, startMonth + i, 1);
+                const y = d.getFullYear();
+                const m = d.getMonth();
+                const ymKey = `${y}-${m}`;
+
+                // Reutilização do motor financeiro central de competência
+                const items = getFinancialExpensesForMonth(ymKey);
+
+                // Cálculo algébrico de total comprometido (estornos / valores negativos reduzem o total)
+                const totalComprometido = items.reduce((acc, item) => acc + item.value, 0);
+
+                const cartaoItems = items.filter(item => item.cartao || item.pagamento === 'Cartão de Crédito');
+                const parcelasItems = items.filter(item => item.isParcelado);
+                const recorrentesItems = items.filter(item => item.isRecorrente);
+                const outrosItems = items.filter(item => !item.cartao && item.pagamento !== 'Cartão de Crédito' && !item.isParcelado && !item.isRecorrente);
+
+                // Breakdown por cartão
+                const byCard = {};
+                cartaoItems.forEach(item => {
+                    const cardName = item.cartao || 'Cartão';
+                    byCard[cardName] = (byCard[cardName] || 0) + item.value;
+                });
+
+                // Breakdown por categoria
+                const byCategory = {};
+                items.forEach(item => {
+                    const catName = item.category || 'Outros';
+                    byCategory[catName] = (byCategory[catName] || 0) + item.value;
+                });
+
+                // Receitas e Investimentos futuros confirmados (explícitos no banco)
+                const receitasConfirmadas = globalData
+                    .filter(d => d.type === 'RECEITA' && `${d.year}-${d.month}` === ymKey)
+                    .reduce((acc, d) => acc + d.value, 0);
+
+                const investimentosConfirmados = globalData
+                    .filter(d => d.type === 'INVESTIMENTO' && `${d.year}-${d.month}` === ymKey)
+                    .reduce((acc, d) => acc + d.value, 0);
+
+                months.push({
+                    index: i,
+                    isCurrentMonth: (i === 0),
+                    year: y,
+                    month: m,
+                    yearMonth: ymKey,
+                    label: `${monthNamesBR[m]}/${y}`,
+                    shortLabel: `${monthNamesBR[m].substring(0, 3).toUpperCase()}/${String(y).slice(-2)}`,
+                    totalComprometido,
+                    totalCartao: cartaoItems.reduce((acc, d) => acc + d.value, 0),
+                    totalParcelas: parcelasItems.reduce((acc, d) => acc + d.value, 0),
+                    totalRecorrentes: recorrentesItems.reduce((acc, d) => acc + d.value, 0),
+                    totalOutros: outrosItems.reduce((acc, d) => acc + d.value, 0),
+                    receitasConfirmadas,
+                    investimentosConfirmados,
+                    byCard,
+                    byCategory,
+                    items
+                });
+            }
+
+            return months;
+        }
+
+        function setForecastHorizon(months) {
+            currentForecastHorizon = months;
+            [3, 6, 12].forEach(h => {
+                const btn = document.getElementById(`btnHorizon${h}`);
+                if (btn) {
+                    if (h === months) {
+                        btn.classList.add('active');
+                        btn.style.background = 'var(--primary)';
+                        btn.style.color = 'white';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.style.background = 'transparent';
+                        btn.style.color = 'var(--text-main)';
+                    }
+                }
+            });
+            renderForecastTab();
+        }
+
+        function renderForecastTab() {
+            const startYm = document.getElementById('monthSelector')?.value || `${new Date().getFullYear()}-${new Date().getMonth()}`;
+            const forecastData = getFinancialForecast(startYm, currentForecastHorizon);
+
+            const gridEl = document.getElementById('forecastMonthGrid');
+            const totalComprometidoHorizonte = forecastData.reduce((acc, m) => acc + m.totalComprometido, 0);
+
+            // Atualiza resumo do topo
+            const totalEl = document.getElementById('forecastTotalHorizonte');
+            if (totalEl) totalEl.innerText = fmt(totalComprometidoHorizonte);
+
+            // Se o mês selecionado não estiver na lista ou for nulo, seleciona o primeiro
+            if (!selectedForecastYm || !forecastData.some(m => m.yearMonth === selectedForecastYm)) {
+                selectedForecastYm = forecastData[0]?.yearMonth || null;
+            }
+
+            // 1. Renderiza Cards Mensais
+            if (!gridEl) return;
+            gridEl.innerHTML = '';
+
+            if (forecastData.length === 0 || totalComprometidoHorizonte === 0) {
+                gridEl.innerHTML = `
+                    <div class="empty-state-box" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">🔮</div>
+                        <p>Nenhum compromisso financeiro futuro identificado para este período.</p>
+                        <p class="empty-hint">Novas compras em cartão, parcelamentos e despesas recorrentes aparecerão aqui automaticamente.</p>
+                    </div>
+                `;
+            } else {
+                forecastData.forEach(m => {
+                    const card = document.createElement('div');
+                    const isSelected = m.yearMonth === selectedForecastYm;
+                    card.className = `forecast-month-card ${isSelected ? 'selected' : ''}`;
+                    card.onclick = () => {
+                        selectedForecastYm = m.yearMonth;
+                        renderForecastTab();
+                    };
+
+                    let confirmadosHtml = '';
+                    if (m.receitasConfirmadas > 0) {
+                        confirmadosHtml += `<div style="font-size:0.75rem; color:var(--success); margin-top:0.3rem;">• Receitas confirmadas: <b>${fmt(m.receitasConfirmadas)}</b></div>`;
+                    }
+                    if (m.investimentosConfirmados > 0) {
+                        confirmadosHtml += `<div style="font-size:0.75rem; color:var(--invest); margin-top:0.2rem;">• Aportes confirmados: <b>${fmt(m.investimentosConfirmados)}</b></div>`;
+                    }
+
+                    const badgeText = m.isCurrentMonth ? 'Mês Corrente' : 'Futuro';
+                    const badgeClass = m.isCurrentMonth ? 'tag-done' : 'tag-open';
+
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                            <span style="font-weight:700; font-size:0.95rem; color:var(--text-main);">${escapeHtml(m.label)}</span>
+                            <span class="tag-status ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span>
+                        </div>
+                        <div style="font-size:1.35rem; font-weight:800; color:var(--danger); margin-bottom:0.4rem;">
+                            ${fmt(m.totalComprometido)}
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:0.4rem;">
+                            <div>Cartão/Faturas: <b>${fmt(m.totalCartao)}</b></div>
+                            ${m.totalParcelas > 0 ? `<div>Parcelas: <b>${fmt(m.totalParcelas)}</b></div>` : ''}
+                            ${m.totalRecorrentes > 0 ? `<div>Recorrentes: <b>${fmt(m.totalRecorrentes)}</b></div>` : ''}
+                        </div>
+                        ${confirmadosHtml}
+                    `;
+                    gridEl.appendChild(card);
+                });
+            }
+
+            // 2. Renderiza Gráfico Chart.js
+            const chartCanvas = document.getElementById('forecastChart');
+            if (chartCanvas) {
+                if (charts.forecast) {
+                    charts.forecast.destroy();
+                    charts.forecast = null;
+                }
+
+                const labels = forecastData.map(m => m.shortLabel);
+                const values = forecastData.map(m => m.totalComprometido);
+                const bgColors = forecastData.map(m => m.yearMonth === selectedForecastYm ? '#2563eb' : '#94a3b8');
+
+                charts.forecast = new Chart(chartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Comprometido (R$)',
+                            data: values,
+                            backgroundColor: bgColors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Comprometido: ' + fmt(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) { return 'R$ ' + value; }
+                                }
+                            }
+                        },
+                        onClick: (e, active) => {
+                            if (active.length > 0) {
+                                const clickedIndex = active[0].index;
+                                if (forecastData[clickedIndex]) {
+                                    selectedForecastYm = forecastData[clickedIndex].yearMonth;
+                                    renderForecastTab();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 3. Renderiza Drill-Down do Mês Selecionado
+            const selectedMonthData = forecastData.find(m => m.yearMonth === selectedForecastYm) || forecastData[0];
+            if (selectedMonthData) {
+                renderForecastDetails(selectedMonthData);
+            }
+        }
+
+        function renderForecastDetails(m) {
+            const section = document.getElementById('forecastDetailsSection');
+            if (!section) return;
+            section.style.display = 'block';
+
+            document.getElementById('forecastDetailTitle').innerText = `Detalhamento: ${m.label}`;
+            const badgeEl = document.getElementById('forecastDetailBadge');
+            if (badgeEl) {
+                badgeEl.innerText = m.isCurrentMonth ? 'Comprometido neste mês (Mês Corrente)' : 'Comprometido no Próximo Mês (Projeção)';
+                badgeEl.className = `tag-status ${m.isCurrentMonth ? 'tag-done' : 'tag-open'}`;
+            }
+
+            document.getElementById('fdetail-total').innerText = fmt(m.totalComprometido);
+            document.getElementById('fdetail-cartoes').innerText = fmt(m.totalCartao);
+            document.getElementById('fdetail-parcelas').innerText = fmt(m.totalParcelas);
+            document.getElementById('fdetail-recorrentes').innerText = fmt(m.totalRecorrentes);
+
+            // Confirmados
+            const confContainer = document.getElementById('forecastConfirmadosContainer');
+            if (confContainer) {
+                if (m.receitasConfirmadas > 0 || m.investimentosConfirmados > 0) {
+                    confContainer.style.display = 'block';
+                    let confHtml = '<div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.8rem; display:flex; gap:1.5rem; flex-wrap:wrap;">';
+                    if (m.receitasConfirmadas > 0) {
+                        confHtml += `<div><span style="font-size:0.8rem; color:var(--text-muted);">Receitas Confirmadas no Banco:</span> <b style="color:var(--success); font-size:1rem;">${fmt(m.receitasConfirmadas)}</b></div>`;
+                    }
+                    if (m.investimentosConfirmados > 0) {
+                        confHtml += `<div><span style="font-size:0.8rem; color:var(--text-muted);">Aportes Confirmados no Banco:</span> <b style="color:var(--invest); font-size:1rem;">${fmt(m.investimentosConfirmados)}</b></div>`;
+                    }
+                    confHtml += '</div>';
+                    confContainer.innerHTML = confHtml;
+                } else {
+                    confContainer.style.display = 'none';
+                    confContainer.innerHTML = '';
+                }
+            }
+
+            // Breakdown por Cartão
+            const byCardList = document.getElementById('forecastByCardList');
+            if (byCardList) {
+                const cardEntries = Object.entries(m.byCard);
+                if (cardEntries.length === 0) {
+                    byCardList.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">Nenhum gasto em cartão para este mês.</p>';
+                } else {
+                    byCardList.innerHTML = cardEntries.map(([name, val]) => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.35rem 0; border-bottom:1px solid var(--border-subtle); font-size:0.85rem;">
+                            <span>💳 ${escapeHtml(name)}</span>
+                            <span style="font-weight:700; color:var(--text-main);">${fmt(val)}</span>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Breakdown por Categoria
+            const byCatList = document.getElementById('forecastByCategoryList');
+            if (byCatList) {
+                const catEntries = Object.entries(m.byCategory);
+                if (catEntries.length === 0) {
+                    byCatList.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">Nenhum gasto categorizado para este mês.</p>';
+                } else {
+                    byCatList.innerHTML = catEntries.map(([name, val]) => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.35rem 0; border-bottom:1px solid var(--border-subtle); font-size:0.85rem;">
+                            <span>🏷️ ${escapeHtml(name)}</span>
+                            <span style="font-weight:700; color:var(--text-main);">${fmt(val)}</span>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Tabela de Itens
+            const tbody = document.getElementById('forecastItemsTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (m.items.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento previsto para este mês.</td></tr>`;
+                } else {
+                    m.items.sort((a,b) => b.date - a.date).forEach(item => {
+                        const tr = document.createElement('tr');
+                        const meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
+                        tr.innerHTML = `
+                            <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                            <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                            <td><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(meioInfo || 'Geral')}</span></td>
+                            <td>${escapeHtml(item.category)}</td>
+                            <td><span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span></td>
+                            <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+        }
+
+        function updateDashboardForecastWidget(selectedYm) {
+            const container = document.getElementById('dashboardForecastCards');
+            if (!container) return;
+
+            const baseYm = (selectedYm && selectedYm !== 'all') ? selectedYm : `${new Date().getFullYear()}-${new Date().getMonth()}`;
+            // Pega o mês corrente + próximos 3 meses (total 4)
+            const forecastData = getFinancialForecast(baseYm, 4);
+
+            // Os próximos 3 meses futuros são os índices 1, 2, 3
+            const next3Months = forecastData.slice(1, 4);
+            container.innerHTML = '';
+
+            if (next3Months.length === 0) return;
+
+            next3Months.forEach(m => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.75rem 0.9rem; cursor:pointer; transition:all var(--transition-fast);';
+                card.onmouseover = () => { card.style.borderColor = 'var(--primary)'; card.style.transform = 'translateY(-2px)'; };
+                card.onmouseout = () => { card.style.borderColor = 'var(--border)'; card.style.transform = 'translateY(0)'; };
+                card.onclick = () => {
+                    selectedForecastYm = m.yearMonth;
+                    switchTab('previsao');
+                };
+
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                        <span style="font-weight:700; font-size:0.85rem; color:var(--text-main);">${escapeHtml(m.label)}</span>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">Comprometido</span>
+                    </div>
+                    <div style="font-size:1.15rem; font-weight:800; color:var(--danger);">
+                        ${fmt(m.totalComprometido)}
+                    </div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.2rem;">
+                        Cartão: ${fmt(m.totalCartao)}
+                    </div>
+                `;
+                container.appendChild(card);
             });
         }
     </script>

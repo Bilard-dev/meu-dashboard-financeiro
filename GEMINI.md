@@ -149,3 +149,251 @@ Ao finalizar cada tarefa, apresente de forma simples:
 - Resultado dos testes
 - Se existe algum risco ou pendência
 - Qual seria o próximo passo recomendado
+
+# PROTOCOLO DE INVESTIGAÇÃO E CORREÇÃO DE BUGS
+
+Quando eu disser algo como:
+- "Encontrei um bug"
+- "Tem um erro"
+- "Isso não está funcionando"
+- "Corrija este problema"
+- "Esse comportamento está estranho"
+
+o agente deve seguir automaticamente este protocolo:
+
+==================================================
+1. ENTENDER O RELATO
+==================================================
+
+Extrair, quando disponíveis:
+- onde ocorreu;
+- o que o usuário fez;
+- o que aconteceu;
+- o que deveria acontecer;
+- mensagem de erro;
+- print/evidência.
+
+Não exigir detalhes técnicos do usuário.
+Se o relato já for suficiente, não fazer perguntas desnecessárias.
+
+==================================================
+2. INVESTIGAÇÃO PROGRESSIVA
+==================================================
+
+Priorizar velocidade.
+NÃO começar lendo o projeto inteiro.
+
+Começar pelo menor escopo plausível:
+1. localizar a função/elemento diretamente relacionado;
+2. seguir somente o fluxo relevante;
+3. reproduzir o bug;
+4. identificar a causa raiz;
+5. ampliar a investigação somente se necessário.
+
+Evitar:
+- reler os mesmos arquivos;
+- buscas globais repetidas;
+- abrir módulos sem relação aparente;
+- executar toda a suíte cedo demais.
+
+==================================================
+3. LIMITAR ESCOPO
+==================================================
+
+Corrigir estritamente o problema relatado.
+
+NÃO transformar automaticamente um bug pequeno em:
+- redesign;
+- refatoração ampla;
+- substituição global de comportamentos;
+- nova funcionalidade;
+- revisão completa do sistema.
+
+Se perceber que uma correção maior/global seria melhor, primeiro explique ao usuário e peça autorização.
+
+==================================================
+4. CLASSIFICAR RISCO
+==================================================
+
+BAIXO:
+- visual;
+- texto;
+- toast;
+- botão isolado;
+- estado local;
+- comportamento pontual.
+
+MÉDIO:
+- formulário;
+- catálogo;
+- filtro;
+- navegação;
+- sincronização entre módulos.
+
+ALTO:
+- cálculo financeiro;
+- faturas;
+- parcelas;
+- recorrências;
+- dinheiro físico;
+- metas;
+- histórico;
+- autenticação;
+- RLS;
+- Supabase;
+- exclusões;
+- merges;
+- risco de perda/corrupção de dados.
+
+A profundidade da investigação e dos testes deve ser proporcional ao risco.
+
+==================================================
+5. CAUSA RAIZ
+==================================================
+
+Não esconder o sintoma com workaround quando houver correção determinística.
+
+Evitar soluções artificiais com:
+- F5;
+- reload;
+- setTimeout;
+- repetição de chamadas;
+
+quando a causa raiz puder ser corrigida diretamente.
+
+==================================================
+6. MENOR CORREÇÃO SEGURA
+==================================================
+
+Depois de identificar a causa:
+implementar a menor alteração possível.
+Preservar comportamento não relacionado.
+Não aproveitar a correção para "melhorar outras coisas".
+
+==================================================
+7. GIT
+==================================================
+
+Nunca desenvolver diretamente na main.
+
+Antes da primeira alteração:
+- verificar branch;
+- verificar working tree.
+
+Se estiver na main:
+criar branch específica de hotfix a partir da main atualizada.
+Exemplo: hotfix/descricao-curta
+
+Se já existir branch específica do bug:
+continuar nela.
+
+Nunca sobrescrever alterações não relacionadas.
+
+==================================================
+8. SUPABASE
+==================================================
+
+Por padrão:
+- NÃO modificar Supabase.
+- NÃO executar migration.
+- NÃO executar seed.
+- NÃO executar RPC real de escrita.
+- NÃO alterar dados reais para testar.
+
+Consultas read-only podem ser usadas quando necessárias.
+
+Se a correção exigir alteração real no banco:
+PARAR e pedir autorização antes.
+
+==================================================
+9. TESTE DO BUG
+==================================================
+
+Sempre que tecnicamente razoável:
+criar ou ajustar teste automatizado que reproduza o bug.
+O teste deve validar exatamente o comportamento corrigido.
+Não enfraquecer testes existentes apenas para obter verde.
+
+==================================================
+10. TESTES PROPORCIONAIS
+==================================================
+
+BUG BAIXO:
+- teste específico;
+- suíte relacionada se necessário.
+
+BUG MÉDIO:
+- teste específico;
+- módulos afetados.
+
+BUG ALTO:
+- teste específico;
+- módulos afetados;
+- suíte completa antes de considerar pronto.
+
+NÃO rodar automaticamente toda a suíte para todo bug pequeno.
+
+==================================================
+11. EVITAR CICLOS DESNECESSÁRIOS
+==================================================
+
+Não executar a mesma suíte repetidamente sem alteração relevante.
+Não criar scripts temporários ou benchmarks se não forem necessários para o bug.
+Se um teste falhar: investigar a causa específica antes de ampliar o escopo.
+
+==================================================
+12. PRESERVAR REGRAS CRÍTICAS
+==================================================
+
+Dar atenção especial para não quebrar:
+- Competência de Faturas;
+- Parcelamentos;
+- Recorrências;
+- Dinheiro Físico;
+- Gastos Compartilhados;
+- Metas;
+- Previsão Financeira;
+- Catálogos;
+- Merge;
+- Hash Routing;
+- autenticação.
+
+==================================================
+13. RELATÓRIO CURTO
+==================================================
+
+Ao finalizar, responder objetivamente:
+
+BUG:
+CAUSA RAIZ:
+CORREÇÃO:
+ARQUIVOS ALTERADOS:
+TESTES EXECUTADOS:
+RESULTADO:
+RISCO:
+SUPABASE ALTERADO: SIM/NÃO
+PENDÊNCIAS:
+PRONTO PARA REVISÃO: SIM/NÃO
+
+Evitar relatórios enormes para correções pequenas.
+
+==================================================
+14. NÃO PUBLICAR AUTOMATICAMENTE
+==================================================
+
+Após corrigir:
+- NÃO fazer commit.
+- NÃO fazer push.
+- NÃO fazer merge.
+
+Aguardar aprovação explícita do usuário.
+
+==================================================
+15. PRINCÍPIO CENTRAL
+==================================================
+
+Equilibrar:
+SEGURANÇA + VELOCIDADE + MENOR ESCOPO.
+
+Bug simples não deve gerar auditoria completa do projeto.
+Bug financeiro/destrutivo não deve receber investigação superficial.

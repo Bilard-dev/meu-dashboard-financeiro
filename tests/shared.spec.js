@@ -7,7 +7,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('1. Aba de Divisão de Gastos carrega listagem e totais', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         await expect(page.locator('#tab-divisao')).toHaveClass(/active/);
 
         // Verifica a tabela de gastos compartilhados
@@ -18,7 +18,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('2. Cadastro de novo gasto compartilhado com divisão 50/50', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         await page.locator('#s_data').fill('2026-08-18');
         await page.locator('#s_descricao').fill('Supermercado Casal');
@@ -42,7 +42,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('3. Cadastro com divisão personalizada (Ex: 60/40)', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         await page.locator('#s_data').fill('2026-08-18');
         await page.locator('#s_descricao').fill('Aluguel Compartilhado');
@@ -61,7 +61,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('4. [GASTOS COMPARTILHADOS 2.0] Lançamento de valor pessoal cria transação vinculada e muda botão para Já Lançado', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         await expect(page.locator('#tab-divisao')).toHaveClass(/active/);
 
         // Localiza a linha do "Jantar Casal" na tabela de compartilhados
@@ -87,7 +87,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('5. [GASTOS COMPARTILHADOS 2.0] Prevenção de duplicidade: botão permanece desabilitado e não cria segunda transação', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         // Lança o valor do Jantar Casal
         const rowJantar = page.locator('#sharedTableBody tr:has-text("Jantar Casal")');
@@ -107,7 +107,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
         await setupAuthenticatedApp(page);
 
         // 1. Lança a conta compartilhada
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         const rowJantar = page.locator('#sharedTableBody tr:has-text("Jantar Casal")');
         await rowJantar.getByRole('button', { name: '👤 Lançar Meu Valor' }).click();
         await expect(rowJantar.getByRole('button', { name: '✅ Já Lançado' })).toBeVisible();
@@ -119,7 +119,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
         await expect(page.locator('#resumoExtratoTableBody')).not.toContainText('Jantar Casal (Divisão)');
 
         // 3. Retorna à aba de Gastos Compartilhados e confirma que o botão voltou a "👤 Lançar Meu Valor"
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         const rowJantarReativado = page.locator('#sharedTableBody tr:has-text("Jantar Casal")');
         const btnLancarReativado = rowJantarReativado.getByRole('button', { name: '👤 Lançar Meu Valor' });
         await expect(btnLancarReativado).toBeVisible();
@@ -129,7 +129,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('7. [GASTOS COMPARTILHADOS 2.0] Gasto antigo sem vínculo continua funcionando normalmente', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         // A conta "Contas Casa - Luz" (shared-002) não possui vínculo prévio
         const rowLuz = page.locator('#sharedTableBody tr:has-text("Contas Casa - Luz")');
@@ -141,7 +141,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('8. [EDIÇÃO 2.0] Edição completa de descrição e categoria em gasto NÃO lançado', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         // Clica no botão de editar da conta "Contas Casa - Luz" (não lançada)
         const rowLuz = page.locator('#sharedTableBody tr:has-text("Contas Casa - Luz")');
@@ -168,7 +168,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('9. [EDIÇÃO 2.0] Edição de valores e regra de divisão em gasto NÃO lançado', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         // Clica para editar "Contas Casa - Luz"
         const rowLuz = page.locator('#sharedTableBody tr:has-text("Contas Casa - Luz")');
@@ -192,7 +192,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('10. [EDIÇÃO 2.0] Cancelamento de edição restaura formulário para modo de criação', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         // Clica para editar
         const rowLuz = page.locator('#sharedTableBody tr:has-text("Contas Casa - Luz")');
@@ -212,7 +212,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('11. [EDIÇÃO 2.0] Gasto JÁ lançado bloqueia edição financeira e exibe mensagem explicativa', async ({ page, context }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         // 1. Lança a conta "Jantar Casal"
         const rowJantar = page.locator('#sharedTableBody tr:has-text("Jantar Casal")');
@@ -231,7 +231,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('12. [EXCLUSÃO 2.0] Exclusão de gasto NÃO lançado remove o registro da tabela', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         await expect(page.locator('#sharedTableBody')).toContainText('Contas Casa - Luz');
 
         // Clica para excluir
@@ -245,7 +245,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('13. [EXCLUSÃO 2.0] Cancelar o diálogo de exclusão mantém o registro intacto', async ({ page }) => {
         await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         await expect(page.locator('#sharedTableBody')).toContainText('Contas Casa - Luz');
 
         // Rejeita a exclusão no diálogo de confirmação
@@ -264,7 +264,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
         await setupAuthenticatedApp(page);
 
         // 1. Lança a conta "Jantar Casal"
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
         const rowJantar = page.locator('#sharedTableBody tr:has-text("Jantar Casal")');
         await rowJantar.getByRole('button', { name: '👤 Lançar Meu Valor' }).click();
         await expect(rowJantar.getByRole('button', { name: '✅ Já Lançado' })).toBeVisible();
@@ -289,7 +289,7 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
     test('15. [STATUS 2.0] Alternância de status PENDENTE/PAGO não afeta o estado do botão de lançamento', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚖️ Gastos Compartilhados' }).click();
+        await page.evaluate(() => switchTab('divisao'));
 
         const rowLuz = page.locator('#sharedTableBody tr:has-text("Contas Casa - Luz")');
         const statusBtn = rowLuz.locator('.action-btn');

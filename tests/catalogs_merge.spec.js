@@ -7,7 +7,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('1. Editar categoria sem histórico altera somente app_categorias e não altera transacoes', async ({ page }) => {
         const { getCategories, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await catRow.locator('button[title="Editar"]').click();
@@ -30,7 +30,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('2. Editar categoria com atualização histórica atualiza catálogo e transacoes.categoria', async ({ page }) => {
         const { getCategories, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await catRow.locator('button[title="Editar"]').click();
@@ -60,7 +60,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('3. Cancelar preview não altera dados', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await catRow.locator('button[title="Editar"]').click();
@@ -86,7 +86,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             metas: [{ id: 'meta-1', user_id: mockUser.id, categoria: 'Alimentação', valor_limite: 1500 }]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await catRow.locator('button[title="Editar"]').click();
@@ -114,7 +114,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Transporte")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -142,7 +142,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Transporte")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -166,7 +166,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Transporte")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -185,7 +185,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('8. Merge de categorias via RPC atualiza transações e inativa origem', async ({ page }) => {
         const { getCategories, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Lazer")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -207,7 +207,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('9. Subcategorias movidas na mesclagem de categoria', async ({ page }) => {
         const { getSubcategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Transporte")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -228,7 +228,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Moradia")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -244,7 +244,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('11. Merge de subcategorias na mesma categoria pai', async ({ page }) => {
         const { getSubcategories, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         // Restaurante e Supermercado estão em Alimentação
         const subRow = page.locator('#manageSubcategoriesList div:has-text("Restaurante")').first();
@@ -266,7 +266,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('12. Merge de subcategorias entre categorias pais diferentes atualiza categoria textual', async ({ page }) => {
         const { getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         // Combustível (Transporte) para Supermercado (Alimentação)
         const subRow = page.locator('#manageSubcategoriesList div:has-text("Combustível")').first();
@@ -292,7 +292,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const subRow = page.locator('#manageSubcategoriesList div:has-text("Outros")').filter({ hasText: 'Transporte' }).first();
         await subRow.locator('button[title="Mesclar"]').click();
@@ -308,7 +308,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('14. Editar cartão sem histórico altera somente app_cartoes', async ({ page }) => {
         const { getCards, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await cardRow.locator('button[title="Editar"]').click();
@@ -328,7 +328,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('15. Editar cartão com atualização histórica altera app_cartoes e transacoes.cartao', async ({ page }) => {
         const { getCards, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await cardRow.locator('button[title="Editar"]').click();
@@ -369,7 +369,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Inter Black")').first();
         await cardRow.locator('button[title="Mesclar"]').click();
@@ -390,7 +390,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('17. Preservar fatura_destino ao mesclar cartões', async ({ page }) => {
         const { getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Inter Black")').first();
         await cardRow.locator('button[title="Mesclar"]').click();
@@ -406,7 +406,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('18. Preservar parcela (ex: 1/3) ao mesclar cartões', async ({ page }) => {
         const { getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Inter Black")').first();
         await cardRow.locator('button[title="Mesclar"]').click();
@@ -439,7 +439,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Inter Black")').first();
         await cardRow.locator('button[title="Mesclar"]').click();
@@ -455,7 +455,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('20. Compras recorrentes preservadas ao mesclar cartões', async ({ page }) => {
         const { getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Inter Black")').first();
         await cardRow.locator('button[title="Mesclar"]').click();
@@ -471,7 +471,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('21. Editar tag sem histórico altera somente app_tags', async ({ page }) => {
         const { getTags, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Viagem")').first();
         await tagRow.locator('button[title="Editar"]').click();
@@ -491,7 +491,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('22. Editar tag + histórico atualiza tag no prefixo inicial', async ({ page }) => {
         const { getTags, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Viagem")').first();
         await tagRow.locator('button[title="Editar"]').click();
@@ -528,7 +528,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Família")').first();
         await tagRow.locator('button[title="Mesclar"]').click();
@@ -563,7 +563,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Viagem")').first();
         await tagRow.locator('button[title="Editar"]').click();
@@ -597,7 +597,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
             ]
         });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Família")').first();
         await tagRow.locator('button[title="Mesclar"]').click();
@@ -613,7 +613,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('26. Preview de merge não altera dados em memória antes da confirmação', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Moradia")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -631,7 +631,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('27. Cancelar não altera dados', async ({ page }) => {
         const { getCards } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const cardRow = page.locator('#managePaymentsList div:has-text("Inter Black")').first();
         await cardRow.locator('button[title="Mesclar"]').click();
@@ -646,7 +646,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('28. Erro na RPC não atualiza UI como sucesso', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Moradia")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -658,7 +658,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('29. Duplo clique protegido: botão desabilita imediatamente durante execução', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Lazer")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -673,7 +673,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('30. Origem fica inativa após merge', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Lazer")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -688,7 +688,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('31. Destino fica ativo após merge', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Lazer")').first();
         await catRow.locator('button[title="Mesclar"]').click();
@@ -703,7 +703,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('32. Filtros de análise atualizados após merge/rename', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await catRow.locator('button[title="Editar"]').click();
@@ -720,7 +720,7 @@ test.describe('Catálogos 2.0 - Fase 2: Histórico + Mesclagem (Merge 2.0)', () 
     test('33. Desktop e Mobile atualizados imediatamente após merge/rename', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const catRow = page.locator('#manageCategoriesList div:has-text("Transporte")').first();
         await catRow.locator('button[title="Editar"]').click();

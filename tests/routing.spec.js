@@ -35,10 +35,10 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('button.tab-btn.active')).toContainText('Parcelas / Fatura Cartão');
     });
 
-    test('6. #/metas abre a aba de Metas & Limites', async ({ page }) => {
+    test('6. #/metas abre a aba de Metas', async ({ page }) => {
         await setupAuthenticatedApp(page, { initialUrl: '/#/metas' });
         await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page.locator('button.tab-btn.active')).toContainText('Metas & Limites');
+        await expect(page.locator('button.tab-btn.active')).toContainText('Metas');
     });
 
     test('7. #/previsao abre a aba de Previsão Financeira 2.0', async ({ page }) => {
@@ -53,10 +53,10 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('button.tab-btn.active')).toContainText('Investimentos');
     });
 
-    test('9. #/configuracoes abre a aba de Categorias & Listas', async ({ page }) => {
+    test('9. #/configuracoes abre a aba de Categorias', async ({ page }) => {
         await setupAuthenticatedApp(page, { initialUrl: '/#/configuracoes' });
         await expect(page.locator('#tab-gerenciar-listas')).toBeVisible();
-        await expect(page.locator('button.tab-btn.active')).toContainText('Categorias & Listas');
+        await expect(page.locator('button.tab-btn.active')).toContainText('Categorias');
     });
 
     test('10. Rota inválida (#/batata) faz fallback suave para Dashboard e normaliza URL', async ({ page }) => {
@@ -73,11 +73,11 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('#tab-previsao')).toBeVisible();
         await expect(page).toHaveURL(/#\/previsao/);
 
-        await page.click('button:has-text("🎯 Metas & Limites")');
+        await page.click('button:has-text("🎯 Metas")');
         await expect(page.locator('#tab-metas')).toBeVisible();
         await expect(page).toHaveURL(/#\/metas/);
 
-        await page.click('button:has-text("⚙️ Categorias & Listas")');
+        await page.click('button:has-text("⚙️ Categorias")');
         await expect(page.locator('#tab-gerenciar-listas')).toBeVisible();
         await expect(page).toHaveURL(/#\/configuracoes/);
     });
@@ -161,7 +161,7 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
 
         await expect(page.locator('#appView')).toBeVisible();
         await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page.locator('button.tab-btn.active')).toContainText('Metas & Limites');
+        await expect(page.locator('button.tab-btn.active')).toContainText('Metas');
         await expect(page).toHaveURL(/#\/metas/);
     });
 
@@ -204,7 +204,7 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         for (let i = 0; i < 4; i++) {
             await page.click('button:has-text("🔮 Previsão Financeira")');
             await expect(page.locator('#tab-previsao')).toBeVisible();
-            await page.click('button:has-text("🎯 Metas & Limites")');
+            await page.click('button:has-text("🎯 Metas")');
             await expect(page.locator('#tab-metas')).toBeVisible();
             await page.click('button:has-text("Resumo Geral")');
             await expect(page.locator('#tab-resumo')).toBeVisible();

@@ -7,7 +7,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
     test('1. Carregar metas diretamente da nuvem', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
         await expect(page.locator('#tab-metas')).toHaveClass(/active/);
 
         const container = page.locator('#budgetsListContainer');
@@ -23,7 +23,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
     test('2. Criar nova meta na nuvem', async ({ page }) => {
         const { getMetas } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         await page.locator('#b_target').fill('Transporte');
         await page.locator('#b_limit').fill('500.00');
@@ -43,7 +43,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
     test('3. Atualizar meta existente (Upsert)', async ({ page }) => {
         const { getMetas } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         // Atualiza Alimentação de 1.000,00 para 1.500,00
         await page.locator('#b_target').fill('Alimentação');
@@ -62,7 +62,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
     test('4. "Alimentação" e " alimentação " não geram duplicidade na nuvem', async ({ page }) => {
         const { getMetas } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         // Cadastra com espaços e minúsculas
         await page.locator('#b_target').fill('  alimentação  ');
@@ -81,7 +81,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
     test('5. Excluir meta com botão 🗑️', async ({ page }) => {
         const { getMetas } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         const container = page.locator('#budgetsListContainer');
         await expect(container).toContainText('Saúde');
@@ -103,7 +103,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
             await dialog.dismiss();
         });
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         const container = page.locator('#budgetsListContainer');
         const cardSaude = container.locator('div:has-text("Saúde")').first();
@@ -167,7 +167,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
             }
         });
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         const container = page.locator('#budgetsListContainer');
         await expect(container).toContainText('Supermercado');
@@ -198,7 +198,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
             }
         });
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         const metasNuvem = getMetas();
         expect(metasNuvem.length).toBe(1);
@@ -222,7 +222,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
             }
         });
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
 
         const container = page.locator('#budgetsListContainer');
         await expect(container).toContainText('Educação');
@@ -358,7 +358,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
         await page.reload();
         await page.waitForSelector('#appView:not([style*="display: none"])');
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
         const container = page.locator('#budgetsListContainer');
         await expect(container).toContainText('Alimentação');
         await expect(container).toContainText('1.000,00');
@@ -384,7 +384,7 @@ test.describe('Metas e Limites de Gastos - Base 2.0 (Supabase & Migração Segur
             ]
         });
 
-        await page.getByRole('button', { name: '🎯 Metas & Limites' }).click();
+        await page.getByRole('button', { name: '🎯 Metas' }).click();
         const container = page.locator('#budgetsListContainer');
         await expect(container).toContainText('Alimentação');
         await expect(container).not.toContainText('Viagens Exclusivas');

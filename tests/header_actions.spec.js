@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 const { test, expect } = require('@playwright/test');
 const { setupAuthenticatedApp } = require('./helpers/setupApp');
 
@@ -73,6 +73,26 @@ test.describe('Reorganização dos Botões do Cabeçalho & Aba Minha Conta', () 
         // Testa clique em Atualizar
         await syncBtn.click();
         await expect(syncBtn).toHaveAttribute('title', /Atualizado/);
+    });
+
+    test('4. Botões renomeados para "Metas" e "Categorias" e aba "Gastos Compartilhados" oculta', async ({ page }) => {
+        await setupAuthenticatedApp(page);
+
+        // Verifica botão 🎯 Metas
+        const metasBtn = page.getByRole('button', { name: '🎯 Metas' });
+        await expect(metasBtn).toBeVisible();
+        await metasBtn.click();
+        await expect(page.locator('#tab-metas')).toHaveClass(/active/);
+
+        // Verifica botão ⚙️ Categorias
+        const categoriasBtn = page.getByRole('button', { name: '⚙️ Categorias' });
+        await expect(categoriasBtn).toBeVisible();
+        await categoriasBtn.click();
+        await expect(page.locator('#tab-gerenciar-listas')).toHaveClass(/active/);
+
+        // Verifica que o botão de Gastos Compartilhados está oculto (display: none)
+        const divisaoBtn = page.locator('#tabDivisaoBtn');
+        await expect(divisaoBtn).toBeHidden();
     });
 
 });

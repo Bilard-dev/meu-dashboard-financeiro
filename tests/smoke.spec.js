@@ -40,11 +40,10 @@ test.describe('Smoke Tests - Abertura e Autenticação', () => {
             { btn: 'Resumo Geral', panel: '#tab-resumo' },
             { btn: '📊 Análise de Gastos', panel: '#tab-analise' },
             { btn: 'Parcelas / Fatura Cartão', panel: '#tab-parcelas' },
-            { btn: '🎯 Metas & Limites', panel: '#tab-metas' },
+            { btn: '🎯 Metas', panel: '#tab-metas' },
             { btn: 'Investimentos', panel: '#tab-investimentos' },
-            { btn: '⚖️ Gastos Compartilhados', panel: '#tab-divisao' },
             { btn: '➕ Novo Registro', panel: '#tab-novo' },
-            { btn: '⚙️ Categorias & Listas', panel: '#tab-gerenciar-listas' }
+            { btn: '⚙️ Categorias', panel: '#tab-gerenciar-listas' }
         ];
 
         for (const { btn, panel } of tabs) {

@@ -299,4 +299,27 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
         await expect(rowsML).toHaveCount(2);
     });
 
+    test('10. [EXCLUSÃO 2.0] Excluir lançamento/parcela na aba de cartão remove o registro do banco e atualiza a tela', async ({ page }) => {
+        const { getTransactions } = await setupAuthenticatedApp(page, { initialUrl: '/#/parcelas' });
+
+        await expect(page.locator('#tab-parcelas')).toHaveClass(/active/);
+
+        // Localiza a linha do lançamento parcelado "Notebook Trabalho"
+        const rowNotebook = page.locator('#parcelasTableBody tr:has-text("Notebook Trabalho")');
+        await expect(rowNotebook).toBeVisible();
+
+        // Clica no botão de excluir (lixeira)
+        await rowNotebook.locator('button[title="Excluir"]').click();
+
+        // Confirma que o Toast de sucesso é exibido
+        await expect(page.locator('#toastContainer')).toContainText(/Lançamento excluído com sucesso!/i);
+
+        // Confirma que o lançamento saiu da tela de parcelas
+        await expect(page.locator('#parcelasTableBody tr:has-text("Notebook Trabalho")')).toHaveCount(0);
+
+        // Confirma que foi removido das transações na memória/banco
+        const txs = getTransactions();
+        expect(txs.some(t => t.descricao && t.descricao.includes('Notebook Trabalho'))).toBe(false);
+    });
+
 });

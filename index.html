@@ -4396,15 +4396,33 @@
         }
 
         async function deleteTransaction(id) {
-            const item = globalData.find(d => d.id === id);
+            const item = globalData.find(d => d.id === id || String(d.id) === String(id));
             if (!item) return;
 
             if (confirm(`Excluir o lançamento "${item.desc}" de R$ ${item.value.toFixed(2)}?`)) {
-                const { error } = await _supabase.from('transacoes').delete().eq('id', id);
+                let error = null;
+                if (item.grupo_parcela_id) {
+                    const res = await _supabase.from('transacoes').delete().eq('user_id', currentUser.id).eq('grupo_parcela_id', item.grupo_parcela_id);
+                    error = res.error;
+                } else {
+                    const res = await _supabase.from('transacoes').delete().eq('user_id', currentUser.id).eq('id', item.id);
+                    error = res.error;
+                }
+
                 if (error) {
                     showToast('Erro ao excluir: ' + error.message, 'error');
                 } else {
-                    manualSync();
+                    showToast('Lançamento excluído com sucesso!', 'success');
+                    await manualSync();
+                    const activeTabEl = document.querySelector('.tab-content.active');
+                    const activeTab = activeTabEl ? activeTabEl.id.replace('tab-', '') : 'resumo';
+                    if (activeTab === 'parcelas') {
+                        renderParcelasTab();
+                    } else if (activeTab === 'previsao') {
+                        renderForecastTab();
+                    } else if (activeTab === 'investimentos') {
+                        renderInvestmentsTab();
+                    }
                 }
             }
         }

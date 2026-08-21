@@ -173,8 +173,11 @@ async function setupAuthenticatedApp(page, {
                 }
                 if (method === 'DELETE') {
                     const targetId = getQueryParam(urlObj.search, 'id');
+                    const targetGroup = getQueryParam(urlObj.search, 'grupo_parcela_id');
                     if (targetId) {
-                        inMemoryTransactions = inMemoryTransactions.filter(t => t.id !== targetId);
+                        inMemoryTransactions = inMemoryTransactions.filter(t => t.id !== targetId && String(t.id) !== String(targetId));
+                    } else if (targetGroup) {
+                        inMemoryTransactions = inMemoryTransactions.filter(t => t.grupo_parcela_id !== targetGroup);
                     }
                     return route.fulfill({
                         status: 204,

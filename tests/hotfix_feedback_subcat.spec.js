@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 const { test, expect } = require('@playwright/test');
 const { setupAuthenticatedApp } = require('./helpers/setupApp');
 
@@ -140,6 +140,7 @@ test.describe('Hotfix — Feedback Toast & Subcategoria Rápida no Lançamento',
         await page.selectOption('#i_pagamento', 'Cartão de Crédito');
         await page.selectOption('#i_cartao', '__NEW__');
         await expect(page.locator('#catalogModal')).toBeVisible();
+        await expect(page.locator('#catalogModalTitle')).toHaveText('Novo Cartão de Crédito');
         await page.fill('#cat_modal_name', 'Cartão XP Black');
         await page.fill('#cat_modal_fechamento', '10');
         await page.fill('#cat_modal_vencimento', '20');

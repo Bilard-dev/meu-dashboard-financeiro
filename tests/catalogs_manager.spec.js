@@ -434,6 +434,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
         const nubankInactive = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await nubankInactive.locator('button[title="Reativar"]').click();
+        await expect(nubankInactive.locator('button[title="Desativar"]')).toBeVisible();
 
         cards = getCards();
         nubank = cards.find(c => c.nome === 'Nubank');

@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 const { test, expect } = require('@playwright/test');
 const { setupAuthenticatedApp } = require('./helpers/setupApp');
 const { mockUser } = require('./fixtures/mockData');
@@ -402,6 +402,9 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await expect(page.locator('#tab-previsao')).toBeVisible();
         await expect(page.locator('#forecastMonthGrid')).toBeVisible();
+
+        await page.click('button:has-text("🔒 Minha Conta")');
+        await expect(page.locator('#tab-conta')).toBeVisible();
 
         await page.click('#themeToggleBtn');
         await expect(page.locator('body')).toHaveClass(/dark-theme/);

@@ -1038,10 +1038,10 @@
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
             </div>
             <div class="header-controls">
-                <button class="action-btn" style="background-color: var(--primary); color: white;" onclick="openMobileQuickView()">📱 Lançador Celular</button>
-                <button class="action-btn" onclick="toggleTheme()" id="themeToggleBtn">🌙 <span id="themeBtnText">Modo Escuro</span></button>
-                <button class="action-btn" onclick="manualSync()" id="syncBtn">🔄 <span id="syncBtnText">Atualizar</span></button>
-                <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn">👁️ <span id="privacyBtnText">Privacidade Off</span></button>
+                <button class="action-btn" id="tabNovoBtn" style="background-color: var(--primary); color: white; font-weight: 600;" onclick="switchTab('novo')">➕ Novo Registro</button>
+                <button class="action-btn" onclick="openMobileQuickView()">📱 Lançador Celular</button>
+                <button class="action-btn" onclick="manualSync()" id="syncBtn" title="Atualizar Dados" style="font-size: 1.05rem; padding: 0.55rem 0.75rem;">🔄</button>
+                <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn" title="Modo Privacidade (Ocultar/Exibir Valores)" style="font-size: 1.05rem; padding: 0.55rem 0.75rem;">👁️</button>
                 <div class="select-container" id="filterContainer">
                     <select id="monthSelector"><option value="all">Ano Inteiro</option></select>
                 </div>
@@ -1058,7 +1058,6 @@
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
             <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias & Listas</button>
-            <button class="tab-btn" id="tabNovoBtn" style="color: var(--primary);" onclick="switchTab('novo')">➕ Novo Registro</button>
             <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
         </div>
 
@@ -1610,8 +1609,16 @@
                 </div>
             </div>
 
-            <!-- ABA 7: MINHA CONTA / ALTERAR SENHA -->
+            <!-- ABA: MINHA CONTA / CONFIGURAÇÕES -->
             <div id="tab-conta" class="tab-content">
+                <div class="chart-card" style="max-width: 500px; margin: 0 auto 1.5rem auto;">
+                    <h2 class="chart-title">🎨 Aparência e Tema</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Alterne entre o modo claro e o modo escuro do aplicativo:</p>
+                    <button type="button" class="action-btn" onclick="toggleTheme()" id="themeToggleBtn" style="width: 100%; justify-content: center; padding: 0.75rem 1rem; font-size: 0.95rem;">
+                        🌙 <span id="themeBtnText">Modo Escuro</span>
+                    </button>
+                </div>
+
                 <div class="chart-card" style="max-width: 500px; margin: 0 auto;">
                     <h2 class="chart-title">🔒 Alterar Minha Senha</h2>
                     <form onsubmit="handleChangePasswordLoggedIn(event)">
@@ -1989,9 +1996,12 @@
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
+            const themeBtn = document.getElementById('themeToggleBtn');
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-theme');
-                document.getElementById('themeToggleBtn').innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
+                if (themeBtn) themeBtn.innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
+            } else {
+                if (themeBtn) themeBtn.innerHTML = '🌙 <span id="themeBtnText">Modo Escuro</span>';
             }
         }
 
@@ -1999,9 +2009,12 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            document.getElementById('themeToggleBtn').innerHTML = isDark
-                ? '☀️ <span id="themeBtnText">Modo Claro</span>'
-                : '🌙 <span id="themeBtnText">Modo Escuro</span>';
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.innerHTML = isDark
+                    ? '☀️ <span id="themeBtnText">Modo Claro</span>'
+                    : '🌙 <span id="themeBtnText">Modo Escuro</span>';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -4091,8 +4104,11 @@
 
         function togglePrivacy() {
             isPrivacyMode = !isPrivacyMode;
-            document.getElementById('privacyBtnText').innerText = isPrivacyMode ? 'Privacidade On' : 'Privacidade Off';
-            document.getElementById('privacyToggleBtn').style.backgroundColor = isPrivacyMode ? '#dbeafe' : 'var(--card-bg)';
+            const btn = document.getElementById('privacyToggleBtn');
+            if (btn) {
+                btn.style.backgroundColor = isPrivacyMode ? '#dbeafe' : 'var(--card-bg)';
+                btn.title = isPrivacyMode ? 'Modo Privacidade (Ativo - valores ocultos)' : 'Modo Privacidade (Ocultar/Exibir Valores)';
+            }
             updateDashboard(document.getElementById('monthSelector').value);
         }
 
@@ -4217,13 +4233,20 @@
         }
 
         async function manualSync() {
-            document.getElementById('syncBtnText').innerText = 'Buscando...';
+            const syncBtn = document.getElementById('syncBtn');
+            if (syncBtn) {
+                syncBtn.style.opacity = '0.6';
+                syncBtn.title = 'Buscando dados...';
+            }
             await loadDashboardData();
             await loadSharedData();
             await loadMetasData();
             await loadCatalogsData();
-            document.getElementById('syncBtnText').innerText = 'Atualizado!';
-            setTimeout(() => { document.getElementById('syncBtnText').innerText = 'Atualizar'; }, 2000);
+            if (syncBtn) {
+                syncBtn.style.opacity = '1';
+                syncBtn.title = 'Atualizado com sucesso!';
+                setTimeout(() => { if (syncBtn) syncBtn.title = 'Atualizar Dados'; }, 2000);
+            }
         }
 
         async function addOrUpdateTransaction(e, isBatch = false) {

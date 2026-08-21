@@ -900,10 +900,103 @@
             .form-grid { grid-template-columns: 1fr; }
             .data-table th, .data-table td { padding: 0.6rem 0.75rem; font-size: 0.8rem; }
             .btn-primary, .btn-secondary, .btn-success, .btn-danger { width: 100%; }
+        /* ==========================================================
+           🍞 TOAST NOTIFICATION SYSTEM (DESIGN 2.0)
+           ========================================================== */
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 10050;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 380px;
+            width: calc(100% - 3rem);
+            pointer-events: none;
+        }
+        @media (max-width: 768px) {
+            .toast-container {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+                width: auto;
+                max-width: 100%;
+            }
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.85rem 1.15rem;
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.4;
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+        .toast.toast-show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast.toast-hide {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex: 1;
+        }
+        .toast-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .toast-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            font-size: 1.1rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+        .toast-close:hover {
+            color: var(--text-main);
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .toast-success {
+            border-left-color: var(--success);
+        }
+        .toast-error {
+            border-left-color: var(--danger);
+        }
+        .toast-warning {
+            border-left-color: #f59e0b;
+        }
+        .toast-info {
+            border-left-color: var(--primary);
         }
     </style>
 </head>
 <body>
+    <!-- CONTAINER DE NOTIFICAÇÕES TOAST -->
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <!-- TELA DE LOGIN E CADASTRO -->
     <div id="loginView">
@@ -1942,6 +2035,61 @@
             msgEl.style.border = isError ? '1px solid var(--danger)' : '1px solid var(--success)';
         }
 
+        /* SISTEMA NÃO-BLOQUEANTE DE TOAST (DESIGN 2.0) */
+        function showToast(message, type = 'success', duration = 3500) {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container';
+                container.setAttribute('aria-live', 'polite');
+                document.body.appendChild(container);
+            }
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            const icon = icons[type] || icons.info;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <span class="toast-icon">${icon}</span>
+                    <span class="toast-message">${escapeHtml(message)}</span>
+                </div>
+                <button type="button" class="toast-close" aria-label="Fechar" onclick="this.parentElement.remove()">✕</button>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.add('toast-show');
+            });
+
+            let timeoutId = setTimeout(() => {
+                toast.classList.remove('toast-show');
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    if (toast.parentElement) toast.remove();
+                }, 300);
+            }, duration);
+
+            toast.addEventListener('mouseenter', () => clearTimeout(timeoutId));
+            toast.addEventListener('mouseleave', () => {
+                timeoutId = setTimeout(() => {
+                    toast.classList.remove('toast-show');
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        if (toast.parentElement) toast.remove();
+                    }, 300);
+                }, 1500);
+            });
+        }
+
         function togglePasswordVisibility(inputId, buttonEl) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') {
@@ -1983,12 +2131,12 @@
             const btn = document.getElementById('btnUpdatePass');
 
             if (novaSenha !== confirmaSenha) {
-                alert("As duas senhas digitadas não coincidem!");
+                showToast("As duas senhas digitadas não coincidem!", "error");
                 return;
             }
 
             if (!isStrongPassword(novaSenha)) {
-                alert("A nova senha deve ter no mínimo 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).");
+                showToast("A nova senha deve ter no mínimo 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).", "warning");
                 return;
             }
 
@@ -1999,9 +2147,9 @@
             btn.innerText = "Atualizar Senha Agora";
 
             if (error) {
-                alert("Erro ao alterar senha: " + error.message);
+                showToast("Erro ao alterar senha: " + error.message, "error");
             } else {
-                alert("Sua senha foi alterada com sucesso!");
+                showToast("Sua senha foi alterada com sucesso!", "success");
                 document.getElementById('novaSenhaInput').value = "";
                 document.getElementById('confirmaNovaSenhaInput').value = "";
                 switchTab('resumo');
@@ -2524,9 +2672,9 @@
             const res = await _supabase.from('transacoes').insert([payload]);
 
             if (res.error) {
-                alert('Erro ao lançar: ' + res.error.message);
+                showToast('Erro ao lançar: ' + res.error.message, 'error');
             } else {
-                alert('Gasto lançado com sucesso!');
+                showToast('Gasto lançado com sucesso!', 'success');
                 if (reset) {
                     document.getElementById('m_descricao').value = '';
                     document.getElementById('m_valor').value = '';
@@ -2602,9 +2750,9 @@
             }
 
             if (error) {
-                alert("Erro ao salvar conta compartilhada: " + error.message);
+                showToast("Erro ao salvar conta compartilhada: " + error.message, "error");
             } else {
-                alert(editId ? "Conta compartilhada atualizada com sucesso!" : "Conta compartilhada registrada com sucesso!");
+                showToast(editId ? "Conta compartilhada atualizada com sucesso!" : "Conta compartilhada registrada com sucesso!", "success");
                 cancelSharedEdit();
                 loadSharedData();
             }
@@ -2618,7 +2766,7 @@
             // Verificação: se já foi lançado, orienta o usuário e impede edição direta dos campos financeiros
             const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
             if (jaLancado) {
-                alert("Este gasto já foi lançado no seu extrato. Para alterar os dados financeiros, exclua primeiro a transação vinculada no extrato. Depois o gasto poderá ser editado e lançado novamente.");
+                showToast("Este gasto já foi lançado no seu extrato. Para alterar os dados financeiros, exclua primeiro a transação vinculada no extrato.", "info", 5000);
                 return;
             }
 
@@ -2678,7 +2826,7 @@
                     .eq('created_by', currentUser.id);
 
                 if (error) {
-                    alert("Erro ao excluir conta compartilhada: " + error.message);
+                    showToast("Erro ao excluir conta compartilhada: " + error.message, "error");
                 } else {
                     if (document.getElementById('edit_shared_id').value === id) {
                         cancelSharedEdit();
@@ -2695,7 +2843,7 @@
             // Verificação defensiva no frontend: já existe transação vinculada?
             const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
             if (jaLancado) {
-                alert("Este gasto compartilhado já foi lançado no seu extrato!");
+                showToast("Este gasto compartilhado já foi lançado no seu extrato!", "warning");
                 return;
             }
 
@@ -2717,9 +2865,9 @@
                 const { error } = await _supabase.from('transacoes').insert([lancamento]);
 
                 if (error) {
-                    alert("Erro ao lançar no dashboard: " + error.message);
+                    showToast("Erro ao lançar no dashboard: " + error.message, "error");
                 } else {
-                    alert("Lançamento efetuado com sucesso!");
+                    showToast("Lançamento efetuado com sucesso!", "success");
                     manualSync();
                 }
             }
@@ -2730,7 +2878,7 @@
             const { error } = await _supabase.from('gastos_compartilhados').update({ status: newStatus }).eq('id', id);
 
             if (error) {
-                alert("Erro ao alterar status: " + error.message);
+                showToast("Erro ao alterar status: " + error.message, "error");
             } else {
                 loadSharedData();
             }
@@ -3110,7 +3258,7 @@
                 await submitRenameWithHistory({ type, itemId, oldName, newName, payload, metaAction });
                 closeRenamePreviewModal();
                 closeCatalogModal();
-                alert('Histórico e catálogo atualizados com sucesso!');
+                showToast('Histórico e catálogo atualizados com sucesso!', 'success');
                 await manualSync();
             } catch (err) {
                 console.error('Erro na renomeação histórica:', err);
@@ -3118,7 +3266,7 @@
                     errEl.innerText = 'Erro ao atualizar: ' + err.message;
                     errEl.style.display = 'block';
                 } else {
-                    alert('Erro ao atualizar: ' + err.message);
+                    showToast('Erro ao atualizar: ' + err.message, 'error');
                 }
                 await manualSync();
             } finally {
@@ -3289,16 +3437,40 @@
                 await loadCatalogsData();
                 closeCatalogModal();
 
+                const typeMsgs = {
+                    categoria: itemId ? 'Categoria atualizada com sucesso!' : 'Categoria criada com sucesso!',
+                    subcategoria: itemId ? 'Subcategoria atualizada com sucesso!' : 'Subcategoria criada com sucesso!',
+                    cartao: itemId ? 'Cartão atualizado com sucesso!' : 'Cartão criado com sucesso!',
+                    tag: itemId ? 'Tag atualizada com sucesso!' : 'Tag criada com sucesso!'
+                };
+                showToast(typeMsgs[type] || 'Item salvo com sucesso!', 'success');
+
                 // Se acionado a partir de um select de formulário, seleciona automaticamente o item
                 if (sourceSelectId) {
+                    const isMobile = sourceSelectId.startsWith('m_');
+                    const catSelectId = isMobile ? 'm_categoria' : 'i_categoria';
+                    const subSelectId = isMobile ? 'm_subcategoria' : 'i_subcategoria';
                     const selectEl = document.getElementById(sourceSelectId);
-                    if (selectEl) {
-                        selectEl.value = cleanName;
-                        if (type === 'categoria') {
-                            const isMobile = sourceSelectId.startsWith('m_');
-                            const subId = isMobile ? 'm_subcategoria' : 'i_subcategoria';
-                            onCategoryChange(sourceSelectId, subId);
+
+                    if (type === 'categoria') {
+                        if (selectEl) selectEl.value = cleanName;
+                        onCategoryChange(sourceSelectId, subSelectId);
+                    } else if (type === 'subcategoria') {
+                        // Garante que a categoria pai correspondente permaneça/fique selecionada
+                        const catObj = globalCategorias.find(c => c.id === payload.categoria_id);
+                        const catSelect = document.getElementById(catSelectId);
+                        if (catObj && catSelect && (!catSelect.value || catSelect.value === '')) {
+                            catSelect.value = catObj.nome;
                         }
+                        // Re-popula e filtra as subcategorias da categoria pai
+                        onCategoryChange(catSelectId, subSelectId);
+                        // Seleciona a nova subcategoria no select
+                        const subSelect = document.getElementById(subSelectId);
+                        if (subSelect) {
+                            subSelect.value = cleanName;
+                        }
+                    } else if (type === 'cartao' || type === 'tag') {
+                        if (selectEl) selectEl.value = cleanName;
                     }
                 }
             } catch (err) {
@@ -3609,7 +3781,7 @@
                         errEl.innerText = 'Erro ao executar mesclagem: ' + error.message;
                         errEl.style.display = 'block';
                     } else {
-                        alert('Erro ao executar mesclagem: ' + error.message);
+                        showToast('Erro ao executar mesclagem: ' + error.message, 'error');
                     }
                     btn.disabled = false;
                     btn.innerText = 'Confirmar Mesclagem';
@@ -3618,14 +3790,10 @@
                 }
 
                 // Sucesso: feedback amigável com números reais retornados pelo banco
-                let msg = 'Mesclagem concluída com sucesso!\n\n';
-                if (data && data.updated_transactions !== undefined) msg += `• ${data.updated_transactions} lançamento(s) atualizado(s)\n`;
-                if (data && data.moved_subcategories) msg += `• ${data.moved_subcategories} subcategoria(s) movida(s)\n`;
-                if (data && data.consolidated_subcategories) msg += `• ${data.consolidated_subcategories} subcategoria(s) consolidada(s)\n`;
-                if (data && data.meta_result) msg += `• Metas: ${data.meta_result}\n`;
-                if (data && data.deduplicated_count) msg += `• ${data.deduplicated_count} desduplicação(ões) no prefixo\n`;
+                let msg = 'Mesclagem concluída com sucesso!';
+                if (data && data.updated_transactions !== undefined) msg += ` (${data.updated_transactions} lançamentos atualizados)`;
 
-                alert(msg);
+                showToast(msg, 'success');
                 closeMergeModal();
                 await manualSync();
             } catch (err) {
@@ -3634,7 +3802,7 @@
                     errEl.innerText = 'Exceção ao mesclar: ' + err.message;
                     errEl.style.display = 'block';
                 } else {
-                    alert('Exceção ao mesclar: ' + err.message);
+                    showToast('Exceção ao mesclar: ' + err.message, 'error');
                 }
                 btn.disabled = false;
                 btn.innerText = 'Confirmar Mesclagem';
@@ -3651,8 +3819,9 @@
             const { error } = await _supabase.from(tableName).update({ ativo: newActive }).eq('id', id);
 
             if (error) {
-                alert('Erro ao alterar status: ' + error.message);
+                showToast('Erro ao alterar status: ' + error.message, 'error');
             } else {
+                showToast(newActive ? 'Item reativado com sucesso!' : 'Item desativado com sucesso!', 'success');
                 await loadCatalogsData();
             }
         }
@@ -3700,8 +3869,9 @@
             if (confirm(`Deseja realmente excluir permanentemente "${item.nome}"? Esta ação não pode ser desfeita.`)) {
                 const { error } = await _supabase.from(tableName).delete().eq('id', id);
                 if (error) {
-                    alert('Erro ao excluir: ' + error.message);
+                    showToast('Erro ao excluir: ' + error.message, 'error');
                 } else {
+                    showToast('Item excluído com sucesso!', 'success');
                     await loadCatalogsData();
                 }
             }
@@ -3904,10 +4074,10 @@
 
                 await loadCatalogsData();
                 closeAssistedImportModal();
-                alert('Catálogos importados com sucesso! Seu histórico financeiro permanece 100% intacto.');
+                showToast('Catálogos importados com sucesso! Seu histórico financeiro permanece 100% intacto.', 'success');
             } catch (err) {
                 console.error("Exceção durante submitAssistedImport:", err);
-                alert('Erro ao importar catálogos: ' + err.message);
+                showToast('Erro ao importar catálogos: ' + err.message, 'error');
             } finally {
                 btn.innerText = 'Importar Selecionados';
                 btn.disabled = false;
@@ -4114,10 +4284,10 @@
             }
 
             if (res.error) {
-                alert('Erro ao salvar: ' + res.error.message);
+                showToast('Erro ao salvar: ' + res.error.message, 'error');
                 btn.innerText = editId ? 'Atualizar Registro' : 'Salvar e Ir pro Resumo';
             } else {
-                alert(editId ? 'Registro atualizado!' : 'Lançamento salvo com sucesso!');
+                showToast(editId ? 'Registro atualizado!' : 'Lançamento salvo com sucesso!', 'success');
                 if (isBatch) {
                     document.getElementById('i_descricao').value = '';
                     document.getElementById('i_valor').value = '';
@@ -4232,7 +4402,7 @@
             if (confirm(`Excluir o lançamento "${item.desc}" de R$ ${item.value.toFixed(2)}?`)) {
                 const { error } = await _supabase.from('transacoes').delete().eq('id', id);
                 if (error) {
-                    alert('Erro ao excluir: ' + error.message);
+                    showToast('Erro ao excluir: ' + error.message, 'error');
                 } else {
                     manualSync();
                 }
@@ -4672,11 +4842,11 @@
             const limit = parseFloat(limitInput.value) || 0;
 
             if (!target) {
-                alert('Informe uma categoria ou cartão.');
+                showToast('Informe uma categoria ou cartão.', 'warning');
                 return;
             }
             if (limit <= 0) {
-                alert('O valor limite deve ser maior que zero.');
+                showToast('O valor limite deve ser maior que zero.', 'warning');
                 return;
             }
 
@@ -4698,9 +4868,9 @@
             btn.innerText = originalText;
 
             if (error) {
-                alert('Erro ao salvar meta: ' + error.message);
+                showToast('Erro ao salvar meta: ' + error.message, 'error');
             } else {
-                alert(`Meta para "${target}" definida em R$ ${limit.toFixed(2)}`);
+                showToast(`Meta para "${target}" definida em R$ ${limit.toFixed(2)}`, 'success');
                 targetInput.value = '';
                 limitInput.value = '';
                 await loadMetasData();
@@ -4720,9 +4890,9 @@
                 .eq('user_id', currentUser.id);
 
             if (error) {
-                alert('Erro ao excluir meta: ' + error.message);
+                showToast('Erro ao excluir meta: ' + error.message, 'error');
             } else {
-                alert('Meta excluída com sucesso!');
+                showToast('Meta excluída com sucesso!', 'success');
                 await loadMetasData();
                 updateDashboard(document.getElementById('monthSelector').value);
             }
@@ -4988,7 +5158,7 @@
                     });
                     if (error) {
                         hasError = true;
-                        alert('Erro ao atualizar meta "' + c.categoria + '": ' + error.message);
+                        showToast('Erro ao atualizar meta "' + c.categoria + '": ' + error.message, 'error');
                     }
                 }
             }
@@ -4998,7 +5168,7 @@
                 if (modal) modal.style.display = 'none';
                 pendingConflicts = [];
                 await loadMetasData();
-                alert('Metas sincronizadas com sucesso!');
+                showToast('Metas sincronizadas com sucesso!', 'success');
             }
         }
 

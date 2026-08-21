@@ -219,18 +219,11 @@ test.describe('Gastos Compartilhados e Divisão de Contas', () => {
         await rowJantar.getByRole('button', { name: '👤 Lançar Meu Valor' }).click();
         await expect(rowJantar.getByRole('button', { name: '✅ Já Lançado' })).toBeVisible();
 
-        // 2. Intercepta a mensagem do alert
-        let dialogMessage = '';
-        page.on('dialog', async dialog => {
-            dialogMessage = dialog.message();
-            try { await dialog.accept(); } catch(e) {}
-        });
-
         // 3. Tenta clicar no botão de editar da conta lançada
         await rowJantar.locator('button[title="Editar"]').click();
 
-        // Confirma que a mensagem explicativa foi exibida e o formulário NÃO entrou em edição
-        expect(dialogMessage).toMatch(/exclua primeiro a transação vinculada/i);
+        // Confirma que a mensagem explicativa foi exibida no Toast e o formulário NÃO entrou em edição
+        await expect(page.locator('#toastContainer')).toContainText(/exclua primeiro a transação vinculada/i);
         await expect(page.locator('#edit_shared_id')).toHaveValue('');
         await expect(page.locator('#btnCancelarEdicaoShared')).toBeHidden();
     });

@@ -629,14 +629,11 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     });
 
     test('29. Submeter Assistente de Importação cria itens de catálogo sem alterar transações', async ({ page }) => {
-        const { getCategories, getTransactions } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
+        const { getCategories, getTransactions } = await setupAuthenticatedApp(page);
 
         await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
         await page.locator('button:has-text("✨ Assistente de Importação")').click();
 
-        page.once('dialog', async dialog => {
-            await dialog.accept();
-        });
         await page.locator('#btnSubmitAssistedImport').click();
 
         await expect(page.locator('#assistedImportModal')).not.toBeVisible();

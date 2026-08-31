@@ -1159,8 +1159,15 @@
             <!-- NOVA ABA: ANÁLISE DE GASTOS AVANÇADA POR TAG E MÚLTIPLOS FILTROS -->
             <div id="tab-analise" class="tab-content">
                 <div class="chart-card">
-                    <h2 class="chart-title" style="font-size: 1.2rem;">📊 Painel Avançado de Análise Multi-Filtros</h2>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Filtre seu histórico completo por período, categorias, TAGs customizadas e meios de pagamento.</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+                        <div>
+                            <h2 class="chart-title" style="font-size: 1.2rem; margin-bottom:0.25rem;">📊 Painel Avançado de Análise Multi-Filtros</h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin:0;">Filtre seu histórico completo por período, tipos, categorias, subcategorias, TAGs, meios de pagamento e faixas de valores.</p>
+                        </div>
+                        <div>
+                            <button type="button" class="reset-btn" onclick="resetAnaliseFilters()" style="padding:0.45rem 0.9rem; font-size:0.85rem;">🔄 Limpar Filtros</button>
+                        </div>
+                    </div>
 
                     <div class="form-grid" style="margin-bottom: 1rem;">
                         <div class="input-group">
@@ -1170,9 +1177,25 @@
                             </select>
                         </div>
                         <div class="input-group">
+                            <label>Tipo de Transação</label>
+                            <select id="an_tipo" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todos os Tipos</option>
+                                <option value="DESPESA" selected>Despesas</option>
+                                <option value="RECEITA">Receitas</option>
+                                <option value="SAQUE">💵 Saques / Dinheiro Vivo</option>
+                                <option value="INVESTIMENTO">💼 Investimentos</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
                             <label>Filtrar Categoria</label>
-                            <select id="an_categoria" class="input-field" onchange="runAnaliseGastos()">
+                            <select id="an_categoria" class="input-field" onchange="onAnaliseCategoryChange()">
                                 <option value="all">Todas as Categorias</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Filtrar Subcategoria</label>
+                            <select id="an_subcategoria" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todas as Subcategorias</option>
                             </select>
                         </div>
                         <div class="input-group">
@@ -1186,6 +1209,34 @@
                             <select id="an_pagamento" class="input-field" onchange="runAnaliseGastos()">
                                 <option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>
                             </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Cartão de Crédito</label>
+                            <select id="an_cartao" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todos os Cartões</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Tipo de Custo / Rendimento</label>
+                            <select id="an_custo" class="input-field" onchange="runAnaliseGastos()">
+                                <option value="all">Todos os Custos</option>
+                                <option value="Fixo">Fixo</option>
+                                <option value="Variável">Variável</option>
+                                <option value="Renda Fixa">Renda Fixa</option>
+                                <option value="Renda Variável">Renda Variável</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Valor Mínimo (R$)</label>
+                            <input type="number" id="an_valor_min" class="input-field" step="0.01" placeholder="Ex: 50.00" oninput="runAnaliseGastos()">
+                        </div>
+                        <div class="input-group">
+                            <label>Valor Máximo (R$)</label>
+                            <input type="number" id="an_valor_max" class="input-field" step="0.01" placeholder="Ex: 1000.00" oninput="runAnaliseGastos()">
+                        </div>
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>🔍 Busca Textual Rápida</label>
+                            <input type="text" id="an_search" class="input-field" placeholder="Buscar por texto na descrição, observações ou tags..." oninput="runAnaliseGastos()">
                         </div>
                     </div>
                 </div>
@@ -1202,9 +1253,10 @@
                         <thead>
                             <tr>
                                 <th>Data</th>
+                                <th>Tipo</th>
                                 <th>Descrição / TAGs</th>
                                 <th>Categoria / Sub</th>
-                                <th>Pagamento / Cartão</th>
+                                <th>Pagamento / Meio</th>
                                 <th>Valor</th>
                                 <th style="text-align:center;">Ações</th>
                             </tr>
@@ -1216,6 +1268,43 @@
 
             <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS REAIS POR MÊS -->
             <div id="tab-parcelas" class="tab-content">
+                <!-- BARRA DE FILTROS DAS FATURAS & PARCELAS -->
+                <div style="margin-bottom:1.5rem; background:var(--card-bg); padding:1rem 1.25rem; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-xs);">
+                    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Mês da Fatura:</label>
+                                <select id="faturaMonthSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()"></select>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Cartão:</label>
+                                <select id="parcelasCartaoFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
+                                    <option value="all">Todos os Cartões</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Tipo de Compra:</label>
+                                <select id="parcelasTypeFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
+                                    <option value="all">Todas as Compras</option>
+                                    <option value="parcelado">Parceladas (Ex: 1/3, 2/10)</option>
+                                    <option value="recorrente">Recorrentes / Assinaturas</option>
+                                    <option value="avista">À Vista no Cartão</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
+                                <select id="parcelasCategoryFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
+                                    <option value="all">Todas as Categorias</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex: 1 1 240px; justify-content: flex-end;">
+                            <input type="text" id="parcelasSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; max-width:240px; margin:0;" oninput="renderParcelasTab()">
+                            <button type="button" class="reset-btn" onclick="resetParcelasFilters()" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="kpi-container">
                     <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-selecionada">Fatura Selecionada</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
                     <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-proxima">Fatura Mês Seguinte</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
@@ -1223,13 +1312,7 @@
                 </div>
 
                 <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
-                        <div class="chart-title" style="margin-bottom:0;">Gastos Por Cartão</div>
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <label style="font-weight:600; font-size:0.85rem;">Selecione o Mês da Fatura:</label>
-                            <select id="faturaMonthSelector" class="reset-btn" style="padding:0.45rem 0.8rem; background:var(--card-bg);" onchange="renderParcelasTab()"></select>
-                        </div>
-                    </div>
+                    <div class="chart-title">Gastos Por Cartão</div>
                     <div id="cartoesSummaryContainer" class="kpi-container" style="margin-bottom: 0;"></div>
                 </div>
 
@@ -4983,6 +5066,65 @@
             }
         }
 
+        function setupParcelasFilterDropdowns() {
+            const cartaoSelect = document.getElementById('parcelasCartaoFilter');
+            if (cartaoSelect) {
+                const currentVal = cartaoSelect.value || 'all';
+                const cardNames = [...new Set([
+                    ...globalCartoes.map(c => c.nome),
+                    ...globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito')).map(d => d.cartao)
+                ])].filter(Boolean).sort();
+
+                cartaoSelect.innerHTML = '<option value="all">Todos os Cartões</option>';
+                cardNames.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    cartaoSelect.appendChild(opt);
+                });
+
+                if (currentVal && (currentVal === 'all' || cardNames.includes(currentVal))) {
+                    cartaoSelect.value = currentVal;
+                }
+            }
+
+            const catSelect = document.getElementById('parcelasCategoryFilter');
+            if (catSelect) {
+                const currentVal = catSelect.value || 'all';
+                const catNames = [...new Set(
+                    globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito')).map(d => d.category)
+                )].filter(Boolean).sort();
+
+                catSelect.innerHTML = '<option value="all">Todas as Categorias</option>';
+                catNames.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    catSelect.appendChild(opt);
+                });
+
+                if (currentVal && (currentVal === 'all' || catNames.includes(currentVal))) {
+                    catSelect.value = currentVal;
+                }
+            }
+        }
+
+        function resetParcelasFilters() {
+            const cartaoSelect = document.getElementById('parcelasCartaoFilter');
+            if (cartaoSelect) cartaoSelect.value = 'all';
+
+            const typeSelect = document.getElementById('parcelasTypeFilter');
+            if (typeSelect) typeSelect.value = 'all';
+
+            const catSelect = document.getElementById('parcelasCategoryFilter');
+            if (catSelect) catSelect.value = 'all';
+
+            const searchInput = document.getElementById('parcelasSearchInput');
+            if (searchInput) searchInput.value = '';
+
+            renderParcelasTab();
+        }
+
         const INVEST_PALETTE = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#14b8a6', '#6366f1', '#f97316', '#84cc16'];
 
         function setupInvestSelector() {
@@ -5096,89 +5238,238 @@
 
         function initAnaliseTab() {
             const selMes = document.getElementById('an_mes');
-            selMes.innerHTML = '<option value="all">Todo o Histórico (Todos os Meses)</option>';
-            const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
-            activeMonths.forEach(ym => {
-                const [y, m] = ym.split('-');
-                const opt = document.createElement('option');
-                opt.value = ym; opt.textContent = `${monthNamesBR[parseInt(m)].substring(0,3)} ${y}`;
-                selMes.appendChild(opt);
-            });
+            if (selMes) {
+                const currentMes = selMes.value || 'all';
+                selMes.innerHTML = '<option value="all">Todo o Histórico (Todos os Meses)</option>';
+                const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
+                activeMonths.forEach(ym => {
+                    const [y, m] = ym.split('-');
+                    const opt = document.createElement('option');
+                    opt.value = ym;
+                    opt.textContent = `${monthNamesBR[parseInt(m)].substring(0,3)} ${y}`;
+                    selMes.appendChild(opt);
+                });
+                if (currentMes && (currentMes === 'all' || activeMonths.includes(currentMes))) {
+                    selMes.value = currentMes;
+                }
+            }
 
             const selCat = document.getElementById('an_categoria');
-            selCat.innerHTML = '<option value="all">Todas as Categorias</option>';
-            const allCatNames = [...new Set([
-                ...globalCategorias.map(c => c.nome),
-                ...globalData.map(d => d.category)
-            ])].filter(Boolean);
-            allCatNames.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c; opt.textContent = c;
-                selCat.appendChild(opt);
-            });
+            if (selCat) {
+                const currentCat = selCat.value || 'all';
+                selCat.innerHTML = '<option value="all">Todas as Categorias</option>';
+                const allCatNames = [...new Set([
+                    ...globalCategorias.map(c => c.nome),
+                    ...globalData.map(d => d.category)
+                ])].filter(Boolean).sort();
+                allCatNames.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    selCat.appendChild(opt);
+                });
+                if (currentCat && (currentCat === 'all' || allCatNames.includes(currentCat))) {
+                    selCat.value = currentCat;
+                }
+            }
+
+            updateAnaliseSubcategories();
 
             const selTag = document.getElementById('an_tag');
-            selTag.innerHTML = '<option value="all">Todas as TAGs</option>';
-            const allTagNames = [...new Set([
-                ...globalTags.map(t => t.nome),
-                ...globalData.flatMap(d => d.tags || [])
-            ])].filter(Boolean);
-            allTagNames.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t; opt.textContent = t;
-                selTag.appendChild(opt);
-            });
+            if (selTag) {
+                const currentTag = selTag.value || 'all';
+                selTag.innerHTML = '<option value="all">Todas as TAGs</option>';
+                const allTagNames = [...new Set([
+                    ...globalTags.map(t => t.nome),
+                    ...globalData.flatMap(d => d.tags || [])
+                ])].filter(Boolean).sort();
+                allTagNames.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    selTag.appendChild(opt);
+                });
+                if (currentTag && (currentTag === 'all' || allTagNames.includes(currentTag))) {
+                    selTag.value = currentTag;
+                }
+            }
 
             const selPay = document.getElementById('an_pagamento');
-            selPay.innerHTML = '<option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>';
-            const allPayNames = [...new Set([
-                ...globalCartoes.map(c => c.nome),
-                ...globalData.map(d => d.cartao),
-                ...globalData.map(d => d.pagamento)
-            ])].filter(Boolean);
-            allPayNames.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p; opt.textContent = p;
-                selPay.appendChild(opt);
-            });
+            if (selPay) {
+                const currentPay = selPay.value || 'all';
+                selPay.innerHTML = '<option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>';
+                const allPayNames = [...new Set(globalData.map(d => d.pagamento))].filter(Boolean).sort();
+                allPayNames.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    selPay.appendChild(opt);
+                });
+                if (currentPay && (currentPay === 'all' || allPayNames.includes(currentPay))) {
+                    selPay.value = currentPay;
+                }
+            }
+
+            const selCard = document.getElementById('an_cartao');
+            if (selCard) {
+                const currentCard = selCard.value || 'all';
+                selCard.innerHTML = '<option value="all">Todos os Cartões</option>';
+                const allCardNames = [...new Set([
+                    ...globalCartoes.map(c => c.nome),
+                    ...globalData.map(d => d.cartao)
+                ])].filter(Boolean).sort();
+                allCardNames.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    selCard.appendChild(opt);
+                });
+                if (currentCard && (currentCard === 'all' || allCardNames.includes(currentCard))) {
+                    selCard.value = currentCard;
+                }
+            }
 
             runAnaliseGastos();
         }
 
+        function onAnaliseCategoryChange() {
+            updateAnaliseSubcategories();
+            runAnaliseGastos();
+        }
+
+        function updateAnaliseSubcategories() {
+            const catVal = document.getElementById('an_categoria')?.value || 'all';
+            const selSub = document.getElementById('an_subcategoria');
+            if (!selSub) return;
+
+            const currentSub = selSub.value || 'all';
+            selSub.innerHTML = '<option value="all">Todas as Subcategorias</option>';
+
+            let subNames = [];
+            if (catVal === 'all') {
+                subNames = [...new Set([
+                    ...globalSubcategorias.map(s => s.nome),
+                    ...globalData.map(d => d.subCat)
+                ])].filter(Boolean).sort();
+            } else {
+                const parentCat = globalCategorias.find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(catVal));
+                const catalogSubs = parentCat ? globalSubcategorias.filter(s => s.categoria_id === parentCat.id).map(s => s.nome) : [];
+                const dataSubs = globalData.filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(catVal)).map(d => d.subCat);
+                subNames = [...new Set([...catalogSubs, ...dataSubs])].filter(Boolean).sort();
+            }
+
+            subNames.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                selSub.appendChild(opt);
+            });
+
+            if (currentSub && (currentSub === 'all' || subNames.includes(currentSub))) {
+                selSub.value = currentSub;
+            } else {
+                selSub.value = 'all';
+            }
+        }
+
+        function resetAnaliseFilters() {
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            setVal('an_mes', 'all');
+            setVal('an_tipo', 'DESPESA');
+            setVal('an_categoria', 'all');
+            setVal('an_tag', 'all');
+            setVal('an_pagamento', 'all');
+            setVal('an_cartao', 'all');
+            setVal('an_custo', 'all');
+            setVal('an_valor_min', '');
+            setVal('an_valor_max', '');
+            setVal('an_search', '');
+            updateAnaliseSubcategories();
+            runAnaliseGastos();
+        }
+
         function runAnaliseGastos() {
-            const mesVal = document.getElementById('an_mes').value;
-            const catVal = document.getElementById('an_categoria').value;
-            const tagVal = document.getElementById('an_tag').value;
-            const payVal = document.getElementById('an_pagamento').value;
+            const mesVal = document.getElementById('an_mes')?.value || 'all';
+            const tipoVal = document.getElementById('an_tipo')?.value || 'DESPESA';
+            const catVal = document.getElementById('an_categoria')?.value || 'all';
+            const subVal = document.getElementById('an_subcategoria')?.value || 'all';
+            const tagVal = document.getElementById('an_tag')?.value || 'all';
+            const payVal = document.getElementById('an_pagamento')?.value || 'all';
+            const cardVal = document.getElementById('an_cartao')?.value || 'all';
+            const custoVal = document.getElementById('an_custo')?.value || 'all';
+            const minVal = parseFloat(document.getElementById('an_valor_min')?.value);
+            const maxVal = parseFloat(document.getElementById('an_valor_max')?.value);
+            const searchTerm = (document.getElementById('an_search')?.value || '').trim().toLowerCase();
 
-            let filtered = globalData.filter(d => d.type === 'DESPESA');
+            let filtered = globalData;
 
+            if (tipoVal !== 'all') {
+                filtered = filtered.filter(d => d.type === tipoVal);
+            }
             if (mesVal !== 'all') {
                 filtered = filtered.filter(d => `${d.year}-${d.month}` === mesVal);
             }
             if (catVal !== 'all') {
-                filtered = filtered.filter(d => d.category === catVal);
+                filtered = filtered.filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(catVal));
+            }
+            if (subVal !== 'all') {
+                filtered = filtered.filter(d => normalizeCatalogName(d.subCat) === normalizeCatalogName(subVal));
             }
             if (tagVal !== 'all') {
-                filtered = filtered.filter(d => d.tags.includes(tagVal));
+                filtered = filtered.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normalizeCatalogName(tagVal)));
             }
             if (payVal !== 'all') {
-                filtered = filtered.filter(d => (d.cartao === payVal) || (d.pagamento === payVal));
+                filtered = filtered.filter(d => d.pagamento === payVal);
+            }
+            if (cardVal !== 'all') {
+                filtered = filtered.filter(d => d.cartao === cardVal);
+            }
+            if (custoVal !== 'all') {
+                filtered = filtered.filter(d => d.custo === custoVal);
+            }
+            if (!isNaN(minVal)) {
+                filtered = filtered.filter(d => d.value >= minVal);
+            }
+            if (!isNaN(maxVal)) {
+                filtered = filtered.filter(d => d.value <= maxVal);
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(d => {
+                    const matchDesc = (d.desc || '').toLowerCase().includes(searchTerm);
+                    const matchCat = (d.category || '').toLowerCase().includes(searchTerm);
+                    const matchSub = (d.subCat || '').toLowerCase().includes(searchTerm);
+                    const matchPay = (d.pagamento || '').toLowerCase().includes(searchTerm);
+                    const matchCard = (d.cartao || '').toLowerCase().includes(searchTerm);
+                    const matchTags = (d.tags || []).some(t => t.toLowerCase().includes(searchTerm));
+                    return matchDesc || matchCat || matchSub || matchPay || matchCard || matchTags;
+                });
             }
 
             const total = filtered.reduce((a, b) => a + b.value, 0);
             const qtd = filtered.length;
             const media = qtd > 0 ? total / qtd : 0;
 
-            document.getElementById('an-kpi-total').innerText = fmt(total);
-            document.getElementById('an-kpi-media').innerText = fmt(media);
-            document.getElementById('an-kpi-qtd').innerText = qtd;
+            const kpiTotalEl = document.getElementById('an-kpi-total');
+            if (kpiTotalEl) {
+                kpiTotalEl.innerText = fmt(total);
+                if (tipoVal === 'RECEITA') kpiTotalEl.style.color = 'var(--success)';
+                else if (tipoVal === 'INVESTIMENTO') kpiTotalEl.style.color = 'var(--invest)';
+                else if (tipoVal === 'SAQUE') kpiTotalEl.style.color = 'var(--warning)';
+                else kpiTotalEl.style.color = 'var(--danger)';
+            }
+
+            const kpiMediaEl = document.getElementById('an-kpi-media');
+            if (kpiMediaEl) kpiMediaEl.innerText = fmt(media);
+
+            const kpiQtdEl = document.getElementById('an-kpi-qtd');
+            if (kpiQtdEl) kpiQtdEl.innerText = qtd;
 
             const tbody = document.getElementById('analiseTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum gasto encontrado para a combinação de filtros.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para a combinação de filtros.</td></tr>`;
                 return;
             }
 
@@ -5186,13 +5477,22 @@
                 const tr = document.createElement('tr');
                 let meioInfo = item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento);
 
+                const typeBadgeColors = {
+                    DESPESA: { bg: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', label: 'Despesa' },
+                    RECEITA: { bg: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', label: 'Receita' },
+                    INVESTIMENTO: { bg: 'rgba(59, 130, 246, 0.1)', color: 'var(--invest)', label: 'Investimento' },
+                    SAQUE: { bg: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)', label: 'Saque' }
+                };
+                const badge = typeBadgeColors[item.type] || typeBadgeColors.DESPESA;
+
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td><span style="font-size:0.75rem; background:${badge.bg}; color:${badge.color}; padding:2px 8px; border-radius:4px; font-weight:600;">${badge.label}</span></td>
                     <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
                     <td>${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
                     <td><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
-                    <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
-                    <td style="text-align: center;">
+                    <td style="font-weight:700; color:${badge.color};">${fmt(item.value)}</td>
+                    <td style="text-align: center; white-space: nowrap;">
                         <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
                     </td>
                 `;
@@ -5860,6 +6160,7 @@
            ========================================================== */
         function renderParcelasTab() {
             setupFaturaMonthSelector();
+            setupParcelasFilterDropdowns();
 
             const monthSelector = document.getElementById('faturaMonthSelector');
             if (!monthSelector || !monthSelector.value) return;
@@ -6031,17 +6332,44 @@
                 });
             }
 
-            itemsNoMes.sort((a, b) => b.date - a.date);
+            // Filtros avançados da aba de parcelas
+            const cartaoFilter = document.getElementById('parcelasCartaoFilter')?.value || 'all';
+            const typeFilter = document.getElementById('parcelasTypeFilter')?.value || 'all';
+            const catFilter = document.getElementById('parcelasCategoryFilter')?.value || 'all';
+            const searchTerm = (document.getElementById('parcelasSearchInput')?.value || '').trim().toLowerCase();
+
+            const filteredItemsNoMes = itemsNoMes.filter(item => {
+                if (cartaoFilter !== 'all' && (item.cartao || 'Cartão') !== cartaoFilter) return false;
+                if (catFilter !== 'all' && normalizeCatalogName(item.category) !== normalizeCatalogName(catFilter)) return false;
+
+                if (typeFilter === 'parcelado' && (!item.isParcelado || item.isRecorrente)) return false;
+                if (typeFilter === 'recorrente' && !item.isRecorrente) return false;
+                if (typeFilter === 'avista' && (item.isParcelado || item.isRecorrente)) return false;
+
+                if (searchTerm) {
+                    const matchDesc = (item.desc || '').toLowerCase().includes(searchTerm);
+                    const matchCartao = (item.cartao || '').toLowerCase().includes(searchTerm);
+                    const matchCat = (item.category || '').toLowerCase().includes(searchTerm);
+                    const matchSub = (item.subCat || '').toLowerCase().includes(searchTerm);
+                    const matchVal = (item.value || '').toString().includes(searchTerm);
+                    const matchTags = (item.tags || []).some(t => t.toLowerCase().includes(searchTerm));
+                    if (!matchDesc && !matchCartao && !matchCat && !matchSub && !matchVal && !matchTags) return false;
+                }
+
+                return true;
+            });
+
+            filteredItemsNoMes.sort((a, b) => b.date - a.date);
 
             const tbody = document.getElementById('parcelasTableBody');
             tbody.innerHTML = '';
 
-            if (itemsNoMes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento para a fatura de ${monthNamesBR[targetMonth]}/${targetYear}.</td></tr>`;
+            if (filteredItemsNoMes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para a fatura de ${monthNamesBR[targetMonth]}/${targetYear}.</td></tr>`;
                 return;
             }
 
-            itemsNoMes.forEach(item => {
+            filteredItemsNoMes.forEach(item => {
                 const tr = document.createElement('tr');
                 const restanteTexto = item.isRecorrente ? '♾️ Contínuo' : fmt(item.restanteAposEsteMes);
 

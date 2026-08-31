@@ -438,6 +438,27 @@
             transition: width 0.3s ease;
         }
 
+        /* INVESTIMENTOS 2.0 */
+        .invest-category-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            user-select: none;
+        }
+        .invest-category-card:hover {
+            border-color: var(--invest);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .invest-category-card.active {
+            border-color: var(--invest);
+            background: rgba(16, 185, 129, 0.06);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+        }
+
         /* PREVISÃO FINANCEIRA 2.0 */
         .forecast-month-card {
             background: var(--card-bg);
@@ -1342,24 +1363,170 @@
 
             <!-- ABA 4: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
-                 <div style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; background:var(--card-bg); padding:1rem; border-radius:8px; border:1px solid var(--border);">
-                     <label style="font-weight:600; font-size:0.9rem;">Filtro por Subcategoria:</label>
-                     <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main);" onchange="renderInvestmentsTab()"></select>
-                 </div>
-
-                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Total Aportado (Filtro)</div><div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Maior Aporte Único</div><div class="kpi-value" id="kpi-maior-aporte" style="color: var(--primary);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Média por Aporte</div><div class="kpi-value" id="kpi-media-aporte">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Total de Operações</div><div class="kpi-value" id="kpi-qtd-aportes">0</div></div></div>
+                <!-- BARRA DE FILTROS AVANÇADOS -->
+                <div style="margin-bottom:1.5rem; background:var(--card-bg); padding:1rem 1.25rem; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-xs);">
+                    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Período:</label>
+                                <select id="investPeriodSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderInvestmentsTab()">
+                                    <option value="all">Todo o Histórico</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
+                                <select id="investCatSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="onInvestCategoryChange()">
+                                    <option value="todos">Todas as Categorias</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Subcategoria:</label>
+                                <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderInvestmentsTab()">
+                                    <option value="todos">Todas as Subcategorias</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex: 1 1 240px; justify-content: flex-end;">
+                            <input type="text" id="investSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; max-width:240px; margin:0;" oninput="renderInvestmentsTab()">
+                            <button type="button" class="reset-btn" onclick="resetInvestFilters()" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- KPIS PRINCIPAIS -->
+                <div class="kpi-container" style="margin-bottom:1.5rem;">
+                    <div class="kpi-card" style="border-left: 4px solid var(--invest);">
+                        <div>
+                            <div class="kpi-title">Total Aportado (Filtro)</div>
+                            <div class="kpi-value" id="kpi-patrimonio-total" style="color: var(--invest);">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-details" id="kpi-patrimonio-detalhe">
+                            <small style="color:var(--text-muted);">Acumulado total de aportes</small>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div>
+                            <div class="kpi-title">Maior Aporte Único</div>
+                            <div class="kpi-value" id="kpi-maior-aporte" style="color: var(--primary);">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-details" id="kpi-maior-aporte-detalhe">
+                            <small style="color:var(--text-muted);">-</small>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div>
+                            <div class="kpi-title">Média por Aporte</div>
+                            <div class="kpi-value" id="kpi-media-aporte">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-details" id="kpi-media-aporte-detalhe">
+                            <small style="color:var(--text-muted);">-</small>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div>
+                            <div class="kpi-title">Total de Operações</div>
+                            <div class="kpi-value" id="kpi-qtd-aportes">0</div>
+                        </div>
+                        <div class="kpi-details" id="kpi-qtd-aportes-detalhe">
+                            <small style="color:var(--text-muted);">aportes registrados</small>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div>
+                            <div class="kpi-title">Classes de Ativos</div>
+                            <div class="kpi-value" id="kpi-qtd-categorias-invest" style="color:var(--text-main);">0</div>
+                        </div>
+                        <div class="kpi-details" id="kpi-qtd-categorias-detalhe">
+                            <small style="color:var(--text-muted);">categorias ativas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO VISUAL: GRÁFICO DE ALOCAÇÃO + CARDS POR CATEGORIA -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;">
+                    <!-- Gráfico de Rosca por Categoria -->
+                    <div class="chart-card" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <h3 class="chart-title" style="margin:0; font-size:1.05rem;">📊 Alocação por Categoria</h3>
+                                <span id="investChartBadge" style="font-size:0.75rem; background:var(--bg-color); padding:3px 8px; border-radius:12px; color:var(--text-muted); font-weight:600;">% Carteira</span>
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Distribuição percentual por classe de investimento:</p>
+                            <div style="width:100%; max-width:320px; margin:0 auto; min-height:220px; display:flex; align-items:center; justify-content:center;">
+                                <canvas id="investCategoryChart" height="220"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cards de Detalhamento por Categoria -->
+                    <div class="chart-card" style="margin-bottom:0; display:flex; flex-direction:column;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <h3 class="chart-title" style="margin:0; font-size:1.05rem;">🏷️ Detalhamento por Categoria</h3>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;" id="investCatCount">0 categorias</span>
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Total acumulado e participação (clique no card para filtrar):</p>
+                        <div id="investCategoryCards" style="display:flex; flex-direction:column; gap:0.65rem; max-height:280px; overflow-y:auto; padding-right:4px;">
+                            <!-- Renderizado dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO: EVOLUÇÃO TEMPORAL DOS APORTES -->
+                <div class="chart-card" style="margin-bottom:1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                        <h3 class="chart-title" style="margin:0; font-size:1.05rem;">📈 Evolução dos Aportes Mensais</h3>
+                        <span style="font-size:0.75rem; background:var(--bg-color); padding:3px 8px; border-radius:12px; color:var(--text-muted); font-weight:600;">R$ / Mês</span>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Histórico mensal do volume financeiro investido:</p>
+                    <div style="width:100%; min-height:160px;">
+                        <canvas id="investEvolutionChart" height="90"></canvas>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO: RESUMO CONSOLIDADO POR ATIVO / SUBCATEGORIA -->
+                <div class="chart-card" style="margin-bottom:1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <h3 class="chart-title" style="margin:0; font-size:1.05rem;">📋 Consolidado por Ativo / Subcategoria</h3>
+                        <span id="investSubcatCount" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">0 ativos</span>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Subcategoria (Ativo)</th>
+                                    <th>Categoria Pai</th>
+                                    <th>Total Aportado</th>
+                                    <th>% da Carteira</th>
+                                    <th style="text-align:center;">Qtd. Aportes</th>
+                                    <th>Último Aporte</th>
+                                </tr>
+                            </thead>
+                            <tbody id="investSummaryTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO: HISTÓRICO DETALHADO DE LANÇAMENTOS -->
                 <div class="chart-card">
-                    <div class="chart-title">Histórico de Aportes</div>
-                    <table class="data-table">
-                        <thead><tr><th>Data</th><th>Descrição</th><th>Subcategoria</th><th>Destino (Categoria)</th><th>Valor</th><th style="text-align:center;">Ações</th></tr></thead>
-                        <tbody id="investTableBody"></tbody>
-                    </table>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <h3 class="chart-title" style="margin:0; font-size:1.05rem;">📜 Histórico Detalhado de Lançamentos</h3>
+                        <span id="investRowCount" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">0 registros</span>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Subcategoria</th>
+                                    <th>Destino (Categoria)</th>
+                                    <th>Valor</th>
+                                    <th style="text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="investTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -4581,19 +4748,115 @@
             }
         }
 
+        const INVEST_PALETTE = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#14b8a6', '#6366f1', '#f97316', '#84cc16'];
+
         function setupInvestSelector() {
-            const select = document.getElementById('investTypeSelector');
-            select.innerHTML = '<option value="todos">Todas as Subcategorias</option>';
+            const periodSelect = document.getElementById('investPeriodSelector');
+            const catSelect = document.getElementById('investCatSelector');
+            const subcatSelect = document.getElementById('investTypeSelector');
 
-            const investData = globalData.filter(d => d.type === 'INVESTIMENTO');
-            const subcats = getFrequencySortedOptions(investData.map(d => d.subCat));
+            const allInvest = globalData.filter(d => d.type === 'INVESTIMENTO');
 
-            subcats.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = sub;
-                select.appendChild(opt);
-            });
+            // 1. Popula Período
+            if (periodSelect) {
+                const prevPeriod = periodSelect.value || 'all';
+                periodSelect.innerHTML = '<option value="all">Todo o Histórico</option>';
+                const activeMonths = [...new Set(allInvest.map(d => `${d.year}-${d.month}`))].sort().reverse();
+                activeMonths.forEach(ym => {
+                    const [y, m] = ym.split('-');
+                    const opt = document.createElement('option');
+                    opt.value = ym;
+                    opt.textContent = `${monthNamesBR[parseInt(m)]} ${y}`;
+                    periodSelect.appendChild(opt);
+                });
+                if (activeMonths.includes(prevPeriod)) {
+                    periodSelect.value = prevPeriod;
+                }
+            }
+
+            // 2. Popula Categorias
+            if (catSelect) {
+                const prevCat = catSelect.value || 'todos';
+                catSelect.innerHTML = '<option value="todos">Todas as Categorias</option>';
+                const categories = getFrequencySortedOptions(allInvest.map(d => d.category));
+                categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.textContent = cat;
+                    catSelect.appendChild(opt);
+                });
+                if (categories.includes(prevCat)) {
+                    catSelect.value = prevCat;
+                }
+            }
+
+            // 3. Popula Subcategorias
+            if (subcatSelect) {
+                const prevSubcat = subcatSelect.value || 'todos';
+                const selectedCat = catSelect ? catSelect.value : 'todos';
+                const relevantInvest = selectedCat !== 'todos' ? allInvest.filter(d => d.category === selectedCat) : allInvest;
+                subcatSelect.innerHTML = '<option value="todos">Todas as Subcategorias</option>';
+                const subcats = getFrequencySortedOptions(relevantInvest.map(d => d.subCat));
+                subcats.forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subcatSelect.appendChild(opt);
+                });
+                if (subcats.includes(prevSubcat)) {
+                    subcatSelect.value = prevSubcat;
+                }
+            }
+        }
+
+        function onInvestCategoryChange() {
+            const catSelect = document.getElementById('investCatSelector');
+            const subcatSelect = document.getElementById('investTypeSelector');
+            const allInvest = globalData.filter(d => d.type === 'INVESTIMENTO');
+
+            if (subcatSelect) {
+                const selectedCat = catSelect ? catSelect.value : 'todos';
+                const relevantInvest = selectedCat !== 'todos' ? allInvest.filter(d => d.category === selectedCat) : allInvest;
+                subcatSelect.innerHTML = '<option value="todos">Todas as Subcategorias</option>';
+                const subcats = getFrequencySortedOptions(relevantInvest.map(d => d.subCat));
+                subcats.forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subcatSelect.appendChild(opt);
+                });
+                subcatSelect.value = 'todos';
+            }
+            renderInvestmentsTab();
+        }
+
+        function resetInvestFilters() {
+            const periodSelect = document.getElementById('investPeriodSelector');
+            const catSelect = document.getElementById('investCatSelector');
+            const subcatSelect = document.getElementById('investTypeSelector');
+            const searchInput = document.getElementById('investSearchInput');
+
+            if (periodSelect) periodSelect.value = 'all';
+            if (catSelect) catSelect.value = 'todos';
+            if (subcatSelect) {
+                setupInvestSelector();
+                subcatSelect.value = 'todos';
+            }
+            if (searchInput) searchInput.value = '';
+
+            renderInvestmentsTab();
+        }
+
+        function filterInvestCategory(catName) {
+            const catSelect = document.getElementById('investCatSelector');
+            if (catSelect) {
+                if (catSelect.value === catName) {
+                    catSelect.value = 'todos';
+                } else {
+                    catSelect.value = catName;
+                }
+                onInvestCategoryChange();
+            }
         }
 
         function initAnaliseTab() {
@@ -5725,46 +5988,364 @@
         }
 
         function renderInvestmentsTab() {
-            const perfil = document.getElementById('investTypeSelector').value;
-            let dataInvest = globalData.filter(d => d.type === 'INVESTIMENTO');
+            const periodVal = document.getElementById('investPeriodSelector')?.value || 'all';
+            const catVal = document.getElementById('investCatSelector')?.value || 'todos';
+            const subcatVal = document.getElementById('investTypeSelector')?.value || 'todos';
+            const searchVal = normalizeText(document.getElementById('investSearchInput')?.value || '');
 
-            if (perfil !== 'todos') {
-                dataInvest = dataInvest.filter(d => d.subCat === perfil);
+            const allInvest = globalData.filter(d => d.type === 'INVESTIMENTO');
+            const totalHistorico = allInvest.reduce((a, b) => a + b.value, 0);
+
+            // Filtragem
+            let filtered = allInvest;
+            if (periodVal !== 'all') {
+                filtered = filtered.filter(d => `${d.year}-${d.month}` === periodVal);
+            }
+            if (catVal !== 'todos') {
+                filtered = filtered.filter(d => d.category === catVal);
+            }
+            if (subcatVal !== 'todos') {
+                filtered = filtered.filter(d => d.subCat === subcatVal);
+            }
+            if (searchVal) {
+                filtered = filtered.filter(d => {
+                    const descNorm = normalizeText(d.desc);
+                    const catNorm = normalizeText(d.category);
+                    const subNorm = normalizeText(d.subCat);
+                    return descNorm.includes(searchVal) || catNorm.includes(searchVal) || subNorm.includes(searchVal);
+                });
             }
 
-            const totalInvestido = dataInvest.reduce((a,b)=>a+b.value, 0);
-            const qtdAportes = dataInvest.length;
-            const maiorAporte = qtdAportes > 0 ? Math.max(...dataInvest.map(d => d.value)) : 0;
+            // Cálculos de KPIs
+            const totalInvestido = filtered.reduce((a, b) => a + b.value, 0);
+            const qtdAportes = filtered.length;
+            const maiorAporte = qtdAportes > 0 ? Math.max(...filtered.map(d => d.value)) : 0;
             const mediaAporte = qtdAportes > 0 ? totalInvestido / qtdAportes : 0;
 
-            document.getElementById('kpi-patrimonio-total').innerText = fmt(totalInvestido);
-            document.getElementById('kpi-maior-aporte').innerText = fmt(maiorAporte);
-            document.getElementById('kpi-media-aporte').innerText = fmt(mediaAporte);
-            document.getElementById('kpi-qtd-aportes').innerText = qtdAportes;
+            const categoriasDistintas = [...new Set(filtered.map(d => d.category))].filter(Boolean);
+            const qtdCategorias = categoriasDistintas.length;
 
-            const tbody = document.getElementById('investTableBody');
-            tbody.innerHTML = '';
+            // Atualiza KPIs
+            const kpiPatrimonio = document.getElementById('kpi-patrimonio-total');
+            if (kpiPatrimonio) kpiPatrimonio.innerText = fmt(totalInvestido);
 
-            if (dataInvest.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum investimento registrado.</td></tr>`;
-                return;
+            const kpiMaior = document.getElementById('kpi-maior-aporte');
+            if (kpiMaior) kpiMaior.innerText = fmt(maiorAporte);
+
+            const kpiMedia = document.getElementById('kpi-media-aporte');
+            if (kpiMedia) kpiMedia.innerText = fmt(mediaAporte);
+
+            const kpiQtd = document.getElementById('kpi-qtd-aportes');
+            if (kpiQtd) kpiQtd.innerText = qtdAportes;
+
+            const kpiQtdCat = document.getElementById('kpi-qtd-categorias-invest');
+            if (kpiQtdCat) kpiQtdCat.innerText = qtdCategorias;
+
+            const kpiPatrimonioDet = document.getElementById('kpi-patrimonio-detalhe');
+            if (kpiPatrimonioDet) {
+                if (totalHistorico > 0 && periodVal !== 'all') {
+                    const pctHist = ((totalInvestido / totalHistorico) * 100).toFixed(1);
+                    kpiPatrimonioDet.innerHTML = `<small style="color:var(--text-muted);">${pctHist}% do total histórico (${fmt(totalHistorico)})</small>`;
+                } else {
+                    kpiPatrimonioDet.innerHTML = `<small style="color:var(--text-muted);">100% do total histórico acumulado</small>`;
+                }
             }
 
-            dataInvest.sort((a,b) => b.date - a.date).forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:500;">${escapeHtml(item.desc)}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px;">${escapeHtml(item.subCat || 'Geral')}</span></td>
-                    <td>${escapeHtml(item.category)}</td>
-                    <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
-                    <td style="text-align: center;">
-                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+            const kpiMaiorDet = document.getElementById('kpi-maior-aporte-detalhe');
+            if (kpiMaiorDet) {
+                const itemMaior = filtered.find(d => d.value === maiorAporte);
+                kpiMaiorDet.innerHTML = itemMaior ? `<small style="color:var(--text-muted);">${escapeHtml(itemMaior.desc || itemMaior.category)}</small>` : `<small style="color:var(--text-muted);">-</small>`;
+            }
+
+            const kpiMediaDet = document.getElementById('kpi-media-aporte-detalhe');
+            if (kpiMediaDet) {
+                kpiMediaDet.innerHTML = `<small style="color:var(--text-muted);">por operação realizada</small>`;
+            }
+
+            // Agrupamento por Categoria para Gráfico e Cards
+            const baseForCategoryBreakdown = periodVal !== 'all' ? allInvest.filter(d => `${d.year}-${d.month}` === periodVal) : allInvest;
+            const totalBaseCat = baseForCategoryBreakdown.reduce((a, b) => a + b.value, 0) || 1;
+
+            const categoryStats = {};
+            baseForCategoryBreakdown.forEach(item => {
+                const cat = item.category || 'Outros';
+                if (!categoryStats[cat]) {
+                    categoryStats[cat] = {
+                        total: 0,
+                        count: 0,
+                        subcats: new Set(),
+                        latestDate: item.date
+                    };
+                }
+                categoryStats[cat].total += item.value;
+                categoryStats[cat].count += 1;
+                if (item.subCat) categoryStats[cat].subcats.add(item.subCat);
+                if (item.date > categoryStats[cat].latestDate) {
+                    categoryStats[cat].latestDate = item.date;
+                }
             });
+
+            const sortedCategories = Object.entries(categoryStats).sort((a, b) => b[1].total - a[1].total);
+
+            // Renderiza Cards de Categoria
+            const catCardsContainer = document.getElementById('investCategoryCards');
+            const catCountEl = document.getElementById('investCatCount');
+            if (catCountEl) catCountEl.innerText = `${sortedCategories.length} categoria${sortedCategories.length !== 1 ? 's' : ''}`;
+
+            if (catCardsContainer) {
+                catCardsContainer.innerHTML = '';
+                if (sortedCategories.length === 0) {
+                    catCardsContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:1rem; font-size:0.85rem;">Nenhuma categoria encontrada.</div>`;
+                } else {
+                    sortedCategories.forEach(([catName, stats], index) => {
+                        const pct = ((stats.total / totalBaseCat) * 100).toFixed(1);
+                        const color = INVEST_PALETTE[index % INVEST_PALETTE.length];
+                        const isActive = catVal === catName;
+                        const subcatsList = Array.from(stats.subcats).slice(0, 3).join(', ');
+                        const extraSubcats = stats.subcats.size > 3 ? ` +${stats.subcats.size - 3}` : '';
+
+                        const card = document.createElement('div');
+                        card.className = `invest-category-card ${isActive ? 'active' : ''}`;
+                        card.onclick = () => filterInvestCategory(catName);
+                        card.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color};"></span>
+                                    <strong style="font-size:0.9rem; color:var(--text-main);">${escapeHtml(catName)}</strong>
+                                    ${isActive ? '<span style="font-size:0.7rem; background:var(--invest); color:white; padding:1px 6px; border-radius:10px;">Filtro Ativo</span>' : ''}
+                                </div>
+                                <div style="text-align:right;">
+                                    <span style="font-weight:700; color:var(--invest); font-size:0.95rem;">${fmt(stats.total)}</span>
+                                    <small style="color:var(--text-muted); margin-left:0.35rem; font-weight:600;">(${pct}%)</small>
+                                </div>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width:${pct}%; background-color:${color};"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem; font-size:0.75rem; color:var(--text-muted);">
+                                <span>${stats.count} aporte${stats.count > 1 ? 's' : ''}${subcatsList ? ` • ${escapeHtml(subcatsList)}${extraSubcats}` : ''}</span>
+                                <span style="font-size:0.7rem;">Último: ${stats.latestDate.toLocaleDateString('pt-BR')}</span>
+                            </div>
+                        `;
+                        catCardsContainer.appendChild(card);
+                    });
+                }
+            }
+
+            // Renderiza Gráfico Donut de Categoria com Chart.js
+            const chartCanvas = document.getElementById('investCategoryChart');
+            if (chartCanvas) {
+                if (charts.investCategory) {
+                    charts.investCategory.destroy();
+                    charts.investCategory = null;
+                }
+
+                if (sortedCategories.length > 0) {
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const textColor = isDark ? '#cbd5e1' : '#334155';
+
+                    charts.investCategory = new Chart(chartCanvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: sortedCategories.map(c => c[0]),
+                            datasets: [{
+                                data: sortedCategories.map(c => c[1].total),
+                                backgroundColor: sortedCategories.map((c, i) => INVEST_PALETTE[i % INVEST_PALETTE.length]),
+                                borderWidth: 2,
+                                borderColor: isDark ? '#1e293b' : '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: textColor,
+                                        boxWidth: 12,
+                                        padding: 10,
+                                        font: { size: 11 }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            const val = ctx.raw || 0;
+                                            const p = ((val / totalBaseCat) * 100).toFixed(1);
+                                            return ` ${ctx.label}: ${fmt(val)} (${p}%)`;
+                                        }
+                                    }
+                                }
+                            },
+                            onClick: (e, active) => {
+                                if (active.length > 0 && charts.investCategory) {
+                                    const clickedCat = charts.investCategory.data.labels[active[0].index];
+                                    filterInvestCategory(clickedCat);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Renderiza Gráfico de Evolução Mensal com Chart.js
+            const evolCanvas = document.getElementById('investEvolutionChart');
+            if (evolCanvas) {
+                if (charts.investEvolution) {
+                    charts.investEvolution.destroy();
+                    charts.investEvolution = null;
+                }
+
+                const monthlyStats = {};
+                allInvest.forEach(item => {
+                    const key = `${item.year}-${String(item.month + 1).padStart(2, '0')}`;
+                    monthlyStats[key] = (monthlyStats[key] || 0) + item.value;
+                });
+
+                const sortedMonths = Object.keys(monthlyStats).sort();
+                const displayMonths = sortedMonths.slice(-12);
+
+                if (displayMonths.length > 0) {
+                    const isDark = document.body.classList.contains('dark-theme');
+                    const textColor = isDark ? '#94a3b8' : '#64748b';
+                    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+
+                    const labels = displayMonths.map(ym => {
+                        const [y, m] = ym.split('-');
+                        return `${monthNamesBR[parseInt(m) - 1].substring(0, 3)}/${y.substring(2)}`;
+                    });
+                    const values = displayMonths.map(ym => monthlyStats[ym]);
+
+                    charts.investEvolution = new Chart(evolCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Aporte Mensal (R$)',
+                                data: values,
+                                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                                borderColor: '#10b981',
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ` Aporte: ${fmt(ctx.raw || 0)}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: textColor, font: { size: 11 } }
+                                },
+                                y: {
+                                    grid: { color: gridColor },
+                                    ticks: {
+                                        color: textColor,
+                                        font: { size: 10 },
+                                        callback: function(v) { return 'R$ ' + v.toLocaleString('pt-BR'); }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Renderiza Tabela Consolidada por Subcategoria / Ativo
+            const summaryTbody = document.getElementById('investSummaryTableBody');
+            const subcatCountEl = document.getElementById('investSubcatCount');
+
+            const subcatStats = {};
+            filtered.forEach(item => {
+                const sub = item.subCat || 'Geral';
+                const cat = item.category || 'Outros';
+                const key = `${cat}___${sub}`;
+                if (!subcatStats[key]) {
+                    subcatStats[key] = {
+                        subcat: sub,
+                        cat: cat,
+                        total: 0,
+                        count: 0,
+                        latestDate: item.date
+                    };
+                }
+                subcatStats[key].total += item.value;
+                subcatStats[key].count += 1;
+                if (item.date > subcatStats[key].latestDate) {
+                    subcatStats[key].latestDate = item.date;
+                }
+            });
+
+            const sortedSubcats = Object.values(subcatStats).sort((a, b) => b.total - a.total);
+            if (subcatCountEl) subcatCountEl.innerText = `${sortedSubcats.length} ativo${sortedSubcats.length !== 1 ? 's' : ''}`;
+
+            if (summaryTbody) {
+                summaryTbody.innerHTML = '';
+                if (sortedSubcats.length === 0) {
+                    summaryTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum ativo para o filtro atual.</td></tr>`;
+                } else {
+                    sortedSubcats.forEach(s => {
+                        const pct = ((s.total / (totalInvestido || 1)) * 100).toFixed(1);
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="font-weight:600;"><span style="background:var(--bg-color); padding:3px 8px; border-radius:4px; border:1px solid var(--border);">${escapeHtml(s.subcat)}</span></td>
+                            <td>${escapeHtml(s.cat)}</td>
+                            <td style="color:var(--invest); font-weight:700;">${fmt(s.total)}</td>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <div class="progress-bar-bg" style="width:70px; height:6px; margin:0;">
+                                        <div class="progress-bar-fill" style="width:${pct}%; background-color:var(--invest);"></div>
+                                    </div>
+                                    <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">${pct}%</span>
+                                </div>
+                            </td>
+                            <td style="text-align:center; font-weight:600;">${s.count}</td>
+                            <td style="font-size:0.85rem; color:var(--text-muted);">${s.latestDate.toLocaleDateString('pt-BR')}</td>
+                        `;
+                        summaryTbody.appendChild(tr);
+                    });
+                }
+            }
+
+            // Renderiza Tabela Detalhada de Lançamentos
+            const tbody = document.getElementById('investTableBody');
+            const rowCountEl = document.getElementById('investRowCount');
+            if (rowCountEl) rowCountEl.innerText = `${filtered.length} registro${filtered.length !== 1 ? 's' : ''}`;
+
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1.5rem;">Nenhum investimento registrado para os filtros selecionados.</td></tr>`;
+                    return;
+                }
+
+                filtered.sort((a, b) => b.date - a.date).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.date.toLocaleDateString('pt-BR')}</td>
+                        <td style="font-weight:500;">${escapeHtml(item.desc)}</td>
+                        <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-size:0.8rem;">${escapeHtml(item.subCat || 'Geral')}</span></td>
+                        <td>${escapeHtml(item.category)}</td>
+                        <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
+                        <td style="text-align: center; white-space:nowrap;">
+                            <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                            <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
         }
 
         /* ==========================================================

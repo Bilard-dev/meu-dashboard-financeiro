@@ -21,7 +21,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('2. Renderização das 4 colunas no Gerenciador de Catálogos', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         await expect(page.locator('#manageCategoriesList')).toBeVisible();
         await expect(page.locator('#manageSubcategoriesList')).toBeVisible();
@@ -40,7 +40,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('3. Criar nova Categoria via modal', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewCategory').click();
 
         await expect(page.locator('#catalogModal')).toBeVisible();
@@ -61,7 +61,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('4. Bloquear Categoria duplicada por normalização', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewCategory').click();
 
         // Tenta cadastrar " alimentação " com espaços e minúsculas
@@ -76,7 +76,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('5. Editar Categoria altera apenas catálogo e preserva transações', async ({ page }) => {
         const { getCategories, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         // Clica em Editar na categoria Alimentação
         const alimRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
@@ -106,7 +106,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('6. Desativar e reativar Categoria (Ativo/Inativo)', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const alimRow = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         // Clica em Desativar
@@ -122,7 +122,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await expect(catSelect.locator('option[value="Alimentação"]')).toHaveCount(0);
 
         // Retorna e Reativa
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         const alimRowInactive = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await alimRowInactive.locator('button[title="Reativar"]').click();
 
@@ -139,7 +139,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         const { getCategories } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
         // Cria categoria nova sem usos
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewCategory').click();
         await page.locator('#cat_modal_name').fill('Categoria Temporária');
         await page.locator('#btnSaveCatalogModal').click();
@@ -163,7 +163,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('8. Bloqueio de exclusão física de Categoria com usos históricos (oferece desativação)', async ({ page }) => {
         const { getCategories } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         let dialogMessage = '';
         page.once('dialog', async dialog => {
@@ -190,7 +190,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('9. Criar nova Subcategoria vinculada a Categoria Pai', async ({ page }) => {
         const { getSubcategories, getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewSubcategory').click();
 
         await expect(page.locator('#catalogModal')).toBeVisible();
@@ -215,7 +215,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('10. Bloquear Subcategoria duplicada na mesma Categoria Pai', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewSubcategory').click();
 
         await page.locator('#cat_modal_name').fill('Supermercado');
@@ -229,7 +229,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('11. Permitir Subcategoria com mesmo nome em Categorias Diferentes', async ({ page }) => {
         const { getSubcategories, getCategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewSubcategory').click();
 
         // Cadastra "Geral" em Transporte
@@ -255,7 +255,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('12. Editar Subcategoria existente', async ({ page }) => {
         const { getSubcategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const subRow = page.locator('#manageSubcategoriesList div:has-text("Restaurante")').first();
         await subRow.locator('button[title="Editar"]').click();
@@ -276,7 +276,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('13. Desativar e reativar Subcategoria', async ({ page }) => {
         const { getSubcategories } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const subRow = page.locator('#manageSubcategoriesList div:has-text("Restaurante")').first();
         await subRow.locator('button[title="Desativar"]').click();
@@ -291,7 +291,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await expect(page.locator('#i_subcategoria option[value="Restaurante"]')).toHaveCount(0);
 
         // Reativa
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         const subInactive = page.locator('#manageSubcategoriesList div:has-text("Restaurante")').first();
         await subInactive.locator('button[title="Reativar"]').click();
 
@@ -304,7 +304,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         const { getSubcategories } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
         // Cria subcategoria sem usos
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewSubcategory').click();
         await page.locator('#cat_modal_name').fill('Sub Temporária');
         await page.locator('#cat_modal_parent_id').selectOption({ label: 'Transporte' });
@@ -328,7 +328,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('15. Bloqueio de exclusão física de Subcategoria com usos históricos', async ({ page }) => {
         const { getSubcategories } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         let dialogMessage = '';
         page.once('dialog', async dialog => {
@@ -352,7 +352,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('16. Criar novo Cartão de Crédito com fechamento, vencimento e cor', async ({ page }) => {
         const { getCards } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewCard').click();
 
         await expect(page.locator('#catalogModalTitle')).toHaveText('Novo Cartão de Crédito');
@@ -382,7 +382,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('17. Bloquear Cartão duplicado por normalização', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewCard').click();
 
         await page.locator('#cat_modal_name').fill(' nubank ');
@@ -395,7 +395,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('18. Editar Cartão de Crédito existente', async ({ page }) => {
         const { getCards } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const nubankRow = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await nubankRow.locator('button[title="Editar"]').click();
@@ -416,7 +416,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('19. Desativar e reativar Cartão de Crédito', async ({ page }) => {
         const { getCards } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const nubankRow = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await nubankRow.locator('button[title="Desativar"]').click();
@@ -431,7 +431,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await expect(page.locator('#i_cartao option[value="Nubank"]')).toHaveCount(0);
 
         // Reativa
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         const nubankInactive = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await nubankInactive.locator('button[title="Reativar"]').click();
         await expect(nubankInactive.locator('button[title="Desativar"]')).toBeVisible();
@@ -445,7 +445,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         const { getCards } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
         // Cria cartão sem usos
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewCard').click();
         await page.locator('#cat_modal_name').fill('Cartão Teste');
         await page.locator('#btnSaveCatalogModal').click();
@@ -468,7 +468,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('21. Bloqueio de exclusão física de Cartão com usos históricos', async ({ page }) => {
         const { getCards } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         let dialogMessage = '';
         page.once('dialog', async dialog => {
@@ -493,7 +493,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('22. Criar nova Tag com cor', async ({ page }) => {
         const { getTags } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewTag').click();
 
         await expect(page.locator('#catalogModalTitle')).toHaveText('Nova Tag');
@@ -512,7 +512,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('23. Bloquear Tag duplicada por normalização', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewTag').click();
 
         await page.locator('#cat_modal_name').fill(' viagem ');
@@ -525,7 +525,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('24. Editar Tag existente', async ({ page }) => {
         const { getTags } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Família")').first();
         await tagRow.locator('button[title="Editar"]').click();
@@ -546,7 +546,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('25. Desativar e reativar Tag', async ({ page }) => {
         const { getTags } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         const tagRow = page.locator('#manageTagsList div:has-text("Viagem")').first();
         await tagRow.locator('button[title="Desativar"]').click();
@@ -568,7 +568,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         const { getTags } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
         // Cria tag sem usos
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('#btnNewTag').click();
         await page.locator('#cat_modal_name').fill('Tag Temporária');
         await page.locator('#btnSaveCatalogModal').click();
@@ -591,7 +591,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('27. Bloqueio de exclusão física de Tag com usos históricos', async ({ page }) => {
         const { getTags } = await setupAuthenticatedApp(page, { autoAcceptDialogs: false });
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
 
         let dialogMessage = '';
         page.once('dialog', async dialog => {
@@ -615,7 +615,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('28. Assistente de Importação abre modal com itens históricos e pré-seleções seguras', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('button:has-text("✨ Assistente de Importação")').click();
 
         await expect(page.locator('#assistedImportModal')).toBeVisible();
@@ -632,7 +632,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
     test('29. Submeter Assistente de Importação cria itens de catálogo sem alterar transações', async ({ page }) => {
         const { getCategories, getTransactions } = await setupAuthenticatedApp(page);
 
-        await page.getByRole('button', { name: '⚙️ Categorias & Listas' }).click();
+        await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         await page.locator('button:has-text("✨ Assistente de Importação")').click();
 
         await page.locator('#btnSubmitAssistedImport').click();

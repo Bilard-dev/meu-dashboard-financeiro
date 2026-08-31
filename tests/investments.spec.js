@@ -138,4 +138,101 @@ test.describe('Investimentos - Visualização e KPIs', () => {
         await expect(page.locator('#kpi-patrimonio-total')).toContainText('2.500,00');
     });
 
+    test('7. Lançador próprio de investimentos cadastra novo aporte com Renda Fixa/Variável', async ({ page }) => {
+        const { getTransactions } = await setupAuthenticatedApp(page);
+
+        await page.getByRole('button', { name: 'Investimentos' }).click();
+        await expect(page.locator('#investFormTitle')).toContainText('Lançar Novo Aporte');
+
+        // Preenche o formulário próprio de investimentos
+        await page.locator('#inv_data').fill('2026-08-20');
+        await page.locator('#inv_descricao').fill('CDB 110% CDI Inter');
+        await page.locator('#inv_valor').fill('3000.00');
+        await page.locator('#inv_custo').selectOption('Renda Fixa');
+        await page.locator('#inv_categoria').selectOption({ label: 'Investimentos' });
+
+        await page.locator('#btnSalvarInvest').click();
+
+        // Verifica inserção na tabela e KPIs
+        await expect(page.locator('#investTableBody')).toContainText('CDB 110% CDI Inter');
+        await expect(page.locator('#kpi-patrimonio-total')).toContainText('5.500,00');
+
+        const txs = getTransactions();
+        const newInv = txs.find(t => t.descricao === 'CDB 110% CDI Inter');
+        expect(newInv).toBeDefined();
+        expect(newInv.tipo).toBe('Investimento');
+        expect(newInv.custo).toBe('Renda Fixa');
+        expect(newInv.valor).toBe(3000);
+    });
+
+    test('8. Edição de aporte no histórico direciona para formulário próprio de investimentos', async ({ page }) => {
+        const { getTransactions } = await setupAuthenticatedApp(page);
+
+        await page.getByRole('button', { name: 'Investimentos' }).click();
+
+        // Clica em editar no primeiro registro (Aporte Tesouro Direto)
+        const row = page.locator('#investTableBody tr', { hasText: 'Aporte Tesouro Direto' });
+        await row.locator('button[title="Editar"]').click();
+
+        // Verifica que o formulário próprio de investimentos entrou em modo edição
+        await expect(page.locator('#investFormTitle')).toContainText('Editar Aporte de Investimento');
+        await expect(page.locator('#btnSalvarInvest')).toHaveText('Atualizar Aporte');
+        await expect(page.locator('#btnCancelarInvestEdit')).toBeVisible();
+        await expect(page.locator('#inv_descricao')).toHaveValue('Aporte Tesouro Direto');
+        await expect(page.locator('#inv_valor')).toHaveValue('1500');
+
+        // Altera o valor e descrição
+        await page.locator('#inv_descricao').fill('Tesouro IPCA+ 2035');
+        await page.locator('#inv_valor').fill('2000.00');
+        await page.locator('#btnSalvarInvest').click();
+
+        // Verifica atualização
+        await expect(page.locator('#investTableBody')).toContainText('Tesouro IPCA+ 2035');
+        await expect(page.locator('#investTableBody')).not.toContainText('Aporte Tesouro Direto');
+        await expect(page.locator('#kpi-patrimonio-total')).toContainText('3.000,00'); // 2000 + 1000
+
+        const txs = getTransactions();
+        const updated = txs.find(t => t.id === 'tx-008-investimento-1');
+        expect(updated.descricao).toBe('Tesouro IPCA+ 2035');
+        expect(updated.valor).toBe(2000);
+    });
+
+    test('9. Cancelar edição no lançador de investimentos restaura formulário para modo de criação', async ({ page }) => {
+        await setupAuthenticatedApp(page);
+
+        await page.getByRole('button', { name: 'Investimentos' }).click();
+
+        const row = page.locator('#investTableBody tr', { hasText: 'Aporte Tesouro Direto' });
+        await row.locator('button[title="Editar"]').click();
+
+        await expect(page.locator('#investFormTitle')).toContainText('Editar Aporte de Investimento');
+        await expect(page.locator('#btnCancelarInvestEdit')).toBeVisible();
+
+        // Clica em Cancelar
+        await page.locator('#btnCancelarInvestEdit').click();
+
+        await expect(page.locator('#investFormTitle')).toContainText('Lançar Novo Aporte');
+        await expect(page.locator('#btnSalvarInvest')).toHaveText('Salvar Aporte');
+        await expect(page.locator('#btnCancelarInvestEdit')).toBeHidden();
+        await expect(page.locator('#inv_descricao')).toHaveValue('');
+        await expect(page.locator('#inv_valor')).toHaveValue('');
+    });
+
+    test('10. Lançador geral de transações (#tab-novo) NÃO possui opção Investimento no tipo e não lista categorias de investimento', async ({ page }) => {
+        await setupAuthenticatedApp(page);
+
+        await page.getByRole('button', { name: '➕ Novo Registro' }).click();
+        await expect(page.locator('#tab-novo')).toHaveClass(/active/);
+
+        // Verifica que #i_tipo não possui a opção Investimento
+        const tipoOptions = await page.locator('#i_tipo option').allTextContents();
+        expect(tipoOptions).not.toContain('Investimento');
+        expect(tipoOptions.some(opt => opt.includes('Despesa'))).toBe(true);
+        expect(tipoOptions.some(opt => opt.includes('Receita'))).toBe(true);
+
+        // Verifica que as categorias de investimento não estão presentes nas opções do lançador geral
+        const catOptions = await page.locator('#i_categoria option').allTextContents();
+        expect(catOptions).not.toContain('Investimentos');
+    });
+
 });

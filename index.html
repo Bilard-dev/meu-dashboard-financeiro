@@ -1363,6 +1363,63 @@
 
             <!-- ABA 4: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
+                <!-- FORMULÁRIO DEDICADO DE INVESTIMENTOS -->
+                <div class="chart-card" style="margin-bottom:1.5rem;">
+                    <h2 class="chart-title" id="investFormTitle" style="font-size: 1.25rem;">💼 Lançar Novo Aporte / Investimento</h2>
+                    <form id="investForm" onsubmit="addOrUpdateInvestment(event)">
+                        <input type="hidden" id="edit_inv_id" value="">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label>1. Data do Aporte *</label>
+                                <input type="date" id="inv_data" class="input-field" required>
+                            </div>
+
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>2. Descrição / Nome do Ativo *</label>
+                                <input type="text" id="inv_descricao" class="input-field" placeholder="Ex: Tesouro Selic 2029, CDB Banco Inter, PETR4, HGLG11" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label>3. Valor do Aporte (R$) *</label>
+                                <input type="number" id="inv_valor" step="0.01" class="input-field" placeholder="Ex: 500.00" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label>4. Classe de Rendimento *</label>
+                                <select id="inv_custo" class="input-field" required>
+                                    <option value="Renda Fixa" selected>Renda Fixa</option>
+                                    <option value="Renda Variável">Renda Variável</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label>5. Categoria de Investimento</label>
+                                <select id="inv_categoria" class="input-field" onchange="onCategoryChange('inv_categoria', 'inv_subcategoria'); handleDynamicSelect(this, 'Categoria')">
+                                    <option value="">-- Selecione --</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label>6. Subcategoria / Ativo</label>
+                                <select id="inv_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
+                                    <option value="">-- Selecione a Categoria Primeiro --</option>
+                                </select>
+                            </div>
+
+                            <div class="input-group">
+                                <label>🏷️ TAGs (Opcional - Separe por vírgulas)</label>
+                                <input type="text" id="inv_tags" class="input-field" placeholder="Ex: Aporte Mensal, Dividendos, Reserva">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1rem; align-items: center;">
+                            <button type="submit" id="btnSalvarInvest" class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem; background: var(--invest); border-color: var(--invest);">Salvar Aporte</button>
+                            <button type="button" id="btnCancelarInvestEdit" class="reset-btn" style="display: none; padding: 0.6rem 1.2rem;" onclick="cancelInvestEdit()">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
                 <!-- BARRA DE FILTROS AVANÇADOS -->
                 <div style="margin-bottom:1.5rem; background:var(--card-bg); padding:1rem 1.25rem; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-xs);">
                     <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
@@ -1684,7 +1741,6 @@
                                 <select id="i_tipo" class="input-field" onchange="onTypeChange()" required>
                                     <option value="Despesa">Despesa</option>
                                     <option value="Receita">Receita</option>
-                                    <option value="Investimento">Investimento</option>
                                     <option value="Saque">💵 Saque / Transferência p/ Dinheiro Vivo</option>
                                 </select>
                             </div>
@@ -2140,6 +2196,29 @@
         let globalSubcategorias = [];
         let globalCartoes = [];
         let globalTags = [];
+        let customInvestmentCategoryNames = new Set();
+
+        const DEFAULT_INVEST_KEYWORDS = [
+            'investimento', 'investimentos', 'renda fixa', 'renda variavel', 'renda variável',
+            'acao', 'acoes', 'ação', 'ações', 'fii', 'fiis', 'fundo imobiliario', 'fundos imobiliarios',
+            'fundo imobiliário', 'fundos imobiliários', 'cripto', 'criptoativo', 'criptoativos',
+            'criptomoeda', 'criptomoedas', 'bitcoin', 'tesouro direto', 'cdb', 'lci', 'lca',
+            'reserva de emergencia', 'reserva de emergência', 'previdencia', 'previdência', 'etf', 'etfs'
+        ];
+
+        function isInvestmentCategory(catName) {
+            if (!catName) return false;
+            const norm = normalizeCatalogName(catName);
+            if (DEFAULT_INVEST_KEYWORDS.includes(norm)) return true;
+            if (customInvestmentCategoryNames.has(norm)) return true;
+
+            // Se no histórico há aportes nesta categoria e NENHUMA despesa ou receita
+            const hasInvestTx = globalData.some(d => d.type === 'INVESTIMENTO' && normalizeCatalogName(d.category) === norm);
+            const hasOtherTx = globalData.some(d => d.type !== 'INVESTIMENTO' && normalizeCatalogName(d.category) === norm);
+            if (hasInvestTx && !hasOtherTx) return true;
+
+            return false;
+        }
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -2627,8 +2706,8 @@
         function renderTopCategoryChips() {
             let categoriesList = [];
             if (globalCategorias.length > 0) {
-                const activeCats = globalCategorias.filter(c => c.ativo).map(c => c.nome);
-                const freq = getFrequencySortedOptions(globalData.filter(d => d.type === 'DESPESA').map(d => d.category));
+                const activeCats = globalCategorias.filter(c => c.ativo && !isInvestmentCategory(c.nome)).map(c => c.nome);
+                const freq = getFrequencySortedOptions(globalData.filter(d => d.type === 'DESPESA' && !isInvestmentCategory(d.category)).map(d => d.category));
                 categoriesList = [...activeCats].sort((a, b) => {
                     const idxA = freq.indexOf(a);
                     const idxB = freq.indexOf(b);
@@ -2637,7 +2716,7 @@
                     return scoreA - scoreB;
                 }).slice(0, 6);
             } else {
-                const despesas = globalData.filter(d => d.type === 'DESPESA');
+                const despesas = globalData.filter(d => d.type === 'DESPESA' && !isInvestmentCategory(d.category));
                 categoriesList = getFrequencySortedOptions(despesas.map(d => d.category)).slice(0, 6);
             }
 
@@ -3125,10 +3204,12 @@
         function populateFormDropdowns() {
             let catOptions = [];
             if (globalCategorias.length > 0) {
-                catOptions = globalCategorias.filter(c => c.ativo).map(c => c.nome);
+                catOptions = globalCategorias
+                    .filter(c => c.ativo && !isInvestmentCategory(c.nome))
+                    .map(c => c.nome);
             } else {
                 const selectedType = (document.getElementById('i_tipo')?.value || 'Despesa').toUpperCase();
-                const typeFilteredData = globalData.filter(d => d.type === selectedType || d.type === 'DESPESA');
+                const typeFilteredData = globalData.filter(d => (d.type === selectedType || d.type === 'DESPESA' || d.type === 'RECEITA') && !isInvestmentCategory(d.category));
                 catOptions = getFrequencySortedOptions(typeFilteredData.map(d => d.category));
             }
 
@@ -3145,6 +3226,31 @@
             // Sincronização Mobile
             populateSelect('m_categoria', catOptions);
             populateSelect('m_cartao', cardOptions);
+
+            // Sincroniza formulário de investimentos
+            populateInvestFormDropdowns();
+        }
+
+        function populateInvestFormDropdowns() {
+            let investCatOptions = [];
+            if (globalCategorias.length > 0) {
+                investCatOptions = globalCategorias
+                    .filter(c => c.ativo && isInvestmentCategory(c.nome))
+                    .map(c => c.nome);
+            }
+
+            if (investCatOptions.length === 0) {
+                const histInvestCats = getFrequencySortedOptions(
+                    globalData.filter(d => d.type === 'INVESTIMENTO').map(d => d.category)
+                );
+                if (histInvestCats.length > 0) {
+                    investCatOptions = histInvestCats;
+                } else {
+                    investCatOptions = ['Renda Fixa', 'Renda Variável', 'Ações', 'FIIs', 'Cripto', 'Reserva de Emergência'];
+                }
+            }
+
+            populateSelect('inv_categoria', investCatOptions);
         }
 
         function populateSelect(elementId, valuesArray) {
@@ -3182,7 +3288,8 @@
                 let parentCatId = null;
                 if (type === 'subcategoria') {
                     const isMobile = selectElement.id.startsWith('m_');
-                    const catSelectId = isMobile ? 'm_categoria' : 'i_categoria';
+                    const isInvest = selectElement.id.startsWith('inv_');
+                    const catSelectId = isInvest ? 'inv_categoria' : (isMobile ? 'm_categoria' : 'i_categoria');
                     const selCatName = document.getElementById(catSelectId)?.value;
                     const catObj = globalCategorias.find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(selCatName));
                     if (catObj) parentCatId = catObj.id;
@@ -3628,11 +3735,16 @@
                 // Se acionado a partir de um select de formulário, seleciona automaticamente o item
                 if (sourceSelectId) {
                     const isMobile = sourceSelectId.startsWith('m_');
-                    const catSelectId = isMobile ? 'm_categoria' : 'i_categoria';
-                    const subSelectId = isMobile ? 'm_subcategoria' : 'i_subcategoria';
+                    const isInvest = sourceSelectId.startsWith('inv_');
+                    const catSelectId = isInvest ? 'inv_categoria' : (isMobile ? 'm_categoria' : 'i_categoria');
+                    const subSelectId = isInvest ? 'inv_subcategoria' : (isMobile ? 'm_subcategoria' : 'i_subcategoria');
                     const selectEl = document.getElementById(sourceSelectId);
 
                     if (type === 'categoria') {
+                        if (isInvest) {
+                            customInvestmentCategoryNames.add(normName);
+                            populateInvestFormDropdowns();
+                        }
                         if (selectEl) selectEl.value = cleanName;
                         onCategoryChange(sourceSelectId, subSelectId);
                     } else if (type === 'subcategoria') {
@@ -4382,7 +4494,14 @@
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'previsao') renderForecastTab();
             if(tabId === 'metas') renderMetasTab();
-            if(tabId === 'investimentos') renderInvestmentsTab();
+            if(tabId === 'investimentos') {
+                if(!document.getElementById('edit_inv_id')?.value) {
+                    const invDataEl = document.getElementById('inv_data');
+                    if (invDataEl && !invDataEl.value) invDataEl.valueAsDate = new Date();
+                    populateInvestFormDropdowns();
+                }
+                renderInvestmentsTab();
+            }
             if(tabId === 'gerenciar-listas') renderManageLists();
             if(tabId === 'divisao') {
                 document.getElementById('s_data').valueAsDate = new Date();
@@ -4491,9 +4610,125 @@
             }
         }
 
+        async function addOrUpdateInvestment(e) {
+            if (e) e.preventDefault();
+            const btn = document.getElementById('btnSalvarInvest');
+            const editId = document.getElementById('edit_inv_id').value;
+            btn.innerText = 'Salvando...';
+
+            const dataVal = document.getElementById('inv_data').value;
+            const descVal = document.getElementById('inv_descricao').value.trim();
+            const tagsVal = document.getElementById('inv_tags').value;
+            const descWithTags = buildDescWithTags(descVal, tagsVal);
+            const valorVal = parseFloat(document.getElementById('inv_valor').value);
+            const custoVal = document.getElementById('inv_custo').value || 'Renda Fixa';
+            const catVal = document.getElementById('inv_categoria').value || 'Investimentos';
+            const subcatVal = document.getElementById('inv_subcategoria').value || '';
+
+            const payload = {
+                user_id: currentUser.id,
+                grupo_parcela_id: null,
+                tipo: 'Investimento',
+                data: dataVal,
+                descricao: descWithTags,
+                valor: valorVal,
+                pagamento: 'PIX',
+                cartao: '',
+                fatura_destino: 'ATUAL',
+                parcela: '',
+                categoria: catVal,
+                subcategoria: subcatVal,
+                custo: custoVal
+            };
+
+            let res;
+            if (editId) {
+                res = await _supabase.from('transacoes').update(payload).eq('id', editId);
+            } else {
+                res = await _supabase.from('transacoes').insert([payload]);
+            }
+
+            if (res.error) {
+                showToast('Erro ao salvar aporte: ' + res.error.message, 'error');
+                btn.innerText = editId ? 'Atualizar Aporte' : 'Salvar Aporte';
+            } else {
+                showToast(editId ? 'Aporte atualizado com sucesso!' : 'Aporte lançado com sucesso!', 'success');
+                cancelInvestEdit();
+                await manualSync();
+                renderInvestmentsTab();
+            }
+        }
+
+        function cancelInvestEdit() {
+            document.getElementById('edit_inv_id').value = '';
+            document.getElementById('inv_descricao').value = '';
+            document.getElementById('inv_valor').value = '';
+            document.getElementById('inv_tags').value = '';
+            document.getElementById('inv_categoria').value = '';
+            document.getElementById('inv_subcategoria').innerHTML = '<option value="">-- Selecione a Categoria Primeiro --</option>';
+            document.getElementById('inv_custo').value = 'Renda Fixa';
+            document.getElementById('inv_data').value = new Date().toISOString().split('T')[0];
+
+            const title = document.getElementById('investFormTitle');
+            if (title) title.innerText = '💼 Lançar Novo Aporte / Investimento';
+
+            const btn = document.getElementById('btnSalvarInvest');
+            if (btn) btn.innerText = 'Salvar Aporte';
+
+            const cancelBtn = document.getElementById('btnCancelarInvestEdit');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        }
+
         function editTransaction(id) {
             const item = globalData.find(d => d.id === id);
             if (!item) return;
+
+            if (item.type === 'INVESTIMENTO' || item.rawTipo === 'Investimento') {
+                switchTab('investimentos');
+
+                document.getElementById('edit_inv_id').value = item.id;
+                document.getElementById('inv_data').value = item.rawDate;
+                document.getElementById('inv_descricao').value = (item.desc || '').replace(/^\s*\[(.*?)\]\s*/, '').trim();
+                document.getElementById('inv_tags').value = (item.tags || []).join(', ');
+                document.getElementById('inv_valor').value = item.value;
+                document.getElementById('inv_custo').value = item.custo && (item.custo.includes('Variável') || item.custo.includes('Variavel')) ? 'Renda Variável' : (item.custo === 'Outros' ? 'Outros' : 'Renda Fixa');
+
+                populateInvestFormDropdowns();
+
+                const catSelect = document.getElementById('inv_categoria');
+                if (item.category && item.category.trim() !== '') {
+                    const hasCatOption = Array.from(catSelect.options).some(opt => opt.value === item.category);
+                    if (!hasCatOption) {
+                        const histOpt = document.createElement('option');
+                        histOpt.value = item.category;
+                        histOpt.textContent = `${item.category} (Histórico)`;
+                        catSelect.insertBefore(histOpt, catSelect.lastElementChild);
+                    }
+                    catSelect.value = item.category;
+                }
+
+                onCategoryChange('inv_categoria', 'inv_subcategoria');
+
+                const subSelect = document.getElementById('inv_subcategoria');
+                if (item.subCat && item.subCat.trim() !== '') {
+                    const hasSubOption = Array.from(subSelect.options).some(opt => opt.value === item.subCat);
+                    if (!hasSubOption) {
+                        const histSubOpt = document.createElement('option');
+                        histSubOpt.value = item.subCat;
+                        histSubOpt.textContent = `${item.subCat} (Histórico)`;
+                        subSelect.insertBefore(histSubOpt, subSelect.lastElementChild);
+                    }
+                    subSelect.value = item.subCat;
+                }
+
+                document.getElementById('investFormTitle').innerText = '✏️ Editar Aporte de Investimento';
+                document.getElementById('btnSalvarInvest').innerText = 'Atualizar Aporte';
+                document.getElementById('btnCancelarInvestEdit').style.display = 'inline-block';
+
+                const investFormEl = document.getElementById('investForm');
+                if (investFormEl) investFormEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
 
             document.getElementById('edit_id').value = item.id;
             document.getElementById('i_tipo').value = item.rawTipo;

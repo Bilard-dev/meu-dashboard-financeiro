@@ -1162,7 +1162,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
                         <div>
                             <h2 class="chart-title" style="font-size: 1.2rem; margin-bottom:0.25rem;">📊 Painel Avançado de Análise Multi-Filtros</h2>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin:0;">Filtre seu histórico completo por período, tipos, categorias, subcategorias, TAGs, meios de pagamento e faixas de valores.</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin:0;">Filtre seu histórico completo por período, intervalo de datas específico, tipos, categorias, TAGs e meios de pagamento.</p>
                         </div>
                         <div>
                             <button type="button" class="reset-btn" onclick="resetAnaliseFilters()" style="padding:0.45rem 0.9rem; font-size:0.85rem;">🔄 Limpar Filtros</button>
@@ -1172,9 +1172,25 @@
                     <div class="form-grid" style="margin-bottom: 1rem;">
                         <div class="input-group">
                             <label>Filtrar Período</label>
-                            <select id="an_mes" class="input-field" onchange="runAnaliseGastos()">
+                            <select id="an_mes" class="input-field" onchange="onAnalisePeriodChange()">
                                 <option value="all">Todo o Histórico (Todos os Meses)</option>
+                                <option value="current_month">Mês Atual</option>
+                                <option value="last_month">Mês Anterior</option>
+                                <option value="last_3_months">Últimos 3 Meses</option>
+                                <option value="last_6_months">Últimos 6 Meses</option>
+                                <option value="current_year">Ano Atual</option>
+                                <option value="custom">📅 Intervalo Personalizado (De / Até)...</option>
                             </select>
+                        </div>
+                        <div id="an_custom_date_container" style="display: none; grid-column: span 2; display: flex; gap: 0.75rem; align-items: center;">
+                            <div class="input-group" style="flex:1;">
+                                <label>Data Inicial</label>
+                                <input type="date" id="an_data_inicio" class="input-field" onchange="runAnaliseGastos()">
+                            </div>
+                            <div class="input-group" style="flex:1;">
+                                <label>Data Final</label>
+                                <input type="date" id="an_data_fim" class="input-field" onchange="runAnaliseGastos()">
+                            </div>
                         </div>
                         <div class="input-group">
                             <label>Tipo de Transação</label>
@@ -1241,10 +1257,78 @@
                     </div>
                 </div>
 
-                <div class="kpi-container">
+                <div class="kpi-container" style="margin-bottom: 1.5rem;">
                     <div class="kpi-card"><div><div class="kpi-title">Total Filtrado</div><div class="kpi-value" id="an-kpi-total" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Média por Lançamento</div><div class="kpi-value" id="an-kpi-media">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Quantidade de Transações</div><div class="kpi-value" id="an-kpi-qtd">0</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Média do Filtro Atual</div><div class="kpi-value" id="an-kpi-media">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Lançamentos no Filtro</div><div class="kpi-value" id="an-kpi-qtd">0</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title">Período Selecionado</div><div class="kpi-value" id="an-kpi-periodo" style="font-size: 1.15rem; color: var(--text-main);">-</div></div></div>
+                </div>
+
+                <!-- PAINEL DEDICADO DE MÉDIAS FINANCEIRAS -->
+                <div class="chart-card" style="margin-bottom: 1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+                        <div>
+                            <h3 class="chart-title" style="margin-bottom:0.2rem; font-size:1.15rem;">📈 Painel de Médias Financeiras</h3>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin:0;" id="an-medias-subtitle">Visão consolidada de médias por meio de pagamento, receitas e categorias no período.</p>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Calcular médias por:</label>
+                            <select id="an_modo_media" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.8rem; font-weight:600; font-size:0.85rem; border-radius:var(--radius-md);" onchange="runAnaliseGastos()">
+                                <option value="mes" selected>📅 Por Mês (R$ / mês)</option>
+                                <option value="operacao">🔢 Por Operação (R$ / lançamento)</option>
+                                <option value="dia">☀️ Por Dia (R$ / dia)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- CARDS DE MÉDIAS: RECEITAS, PIX, CARTÃO, DINHEIRO -->
+                    <div class="kpi-container" style="margin-bottom:1.5rem;">
+                        <div class="kpi-card" style="border-left: 4px solid var(--success);">
+                            <div>
+                                <div class="kpi-title" id="an-title-media-receita">Receita Média</div>
+                                <div class="kpi-value" id="an-kpi-media-receita" style="color:var(--success);">R$ 0,00</div>
+                            </div>
+                            <div class="kpi-details" id="an-detail-media-receita">
+                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 receitas)</small>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+                            <div>
+                                <div class="kpi-title" id="an-title-media-pix">Gasto PIX Médio</div>
+                                <div class="kpi-value" id="an-kpi-media-pix" style="color:#8b5cf6;">R$ 0,00</div>
+                            </div>
+                            <div class="kpi-details" id="an-detail-media-pix">
+                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                            <div>
+                                <div class="kpi-title" id="an-title-media-cartao">Gasto Cartão Médio</div>
+                                <div class="kpi-value" id="an-kpi-media-cartao" style="color:var(--primary);">R$ 0,00</div>
+                            </div>
+                            <div class="kpi-details" id="an-detail-media-cartao">
+                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
+                            </div>
+                        </div>
+
+                        <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+                            <div>
+                                <div class="kpi-title" id="an-title-media-dinheiro">Gasto Dinheiro/Outros Médio</div>
+                                <div class="kpi-value" id="an-kpi-media-dinheiro" style="color:var(--warning);">R$ 0,00</div>
+                            </div>
+                            <div class="kpi-details" id="an-detail-media-dinheiro">
+                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DETALHAMENTO DE MÉDIAS POR CATEGORIA -->
+                    <div id="an-category-averages-section">
+                        <h4 style="margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-main); font-weight: 600;">🏷️ Médias de Gastos por Categoria</h4>
+                        <div id="an-category-averages-cards" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 0.5rem;"></div>
+                    </div>
                 </div>
 
                 <div class="chart-card">
@@ -5240,16 +5324,24 @@
             const selMes = document.getElementById('an_mes');
             if (selMes) {
                 const currentMes = selMes.value || 'all';
-                selMes.innerHTML = '<option value="all">Todo o Histórico (Todos os Meses)</option>';
-                const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort();
+                selMes.innerHTML = `
+                    <option value="all">Todo o Histórico (Todos os Meses)</option>
+                    <option value="current_month">Mês Atual</option>
+                    <option value="last_month">Mês Anterior</option>
+                    <option value="last_3_months">Últimos 3 Meses</option>
+                    <option value="last_6_months">Últimos 6 Meses</option>
+                    <option value="current_year">Ano Atual</option>
+                    <option value="custom">📅 Intervalo Personalizado (De / Até)...</option>
+                `;
+                const activeMonths = [...new Set(globalData.map(d => `${d.year}-${d.month}`))].sort().reverse();
                 activeMonths.forEach(ym => {
                     const [y, m] = ym.split('-');
                     const opt = document.createElement('option');
                     opt.value = ym;
-                    opt.textContent = `${monthNamesBR[parseInt(m)].substring(0,3)} ${y}`;
+                    opt.textContent = `Mês: ${monthNamesBR[parseInt(m)]} ${y}`;
                     selMes.appendChild(opt);
                 });
-                if (currentMes && (currentMes === 'all' || activeMonths.includes(currentMes))) {
+                if (currentMes) {
                     selMes.value = currentMes;
                 }
             }
@@ -5332,9 +5424,45 @@
             runAnaliseGastos();
         }
 
+        function onAnalisePeriodChange() {
+            const periodVal = document.getElementById('an_mes')?.value || 'all';
+            const customContainer = document.getElementById('an_custom_date_container');
+            if (customContainer) {
+                if (periodVal === 'custom') {
+                    customContainer.style.display = 'flex';
+                    const inicioEl = document.getElementById('an_data_inicio');
+                    const fimEl = document.getElementById('an_data_fim');
+                    if (inicioEl && !inicioEl.value) {
+                        const now = new Date();
+                        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                        inicioEl.value = firstDay.toISOString().split('T')[0];
+                    }
+                    if (fimEl && !fimEl.value) {
+                        const now = new Date();
+                        fimEl.value = now.toISOString().split('T')[0];
+                    }
+                } else {
+                    customContainer.style.display = 'none';
+                }
+            }
+            runAnaliseGastos();
+        }
+
         function onAnaliseCategoryChange() {
             updateAnaliseSubcategories();
             runAnaliseGastos();
+        }
+
+        function filterAnaliseCategory(catName) {
+            const catSelect = document.getElementById('an_categoria');
+            if (catSelect) {
+                if (catSelect.value === catName) {
+                    catSelect.value = 'all';
+                } else {
+                    catSelect.value = catName;
+                }
+                onAnaliseCategoryChange();
+            }
         }
 
         function updateAnaliseSubcategories() {
@@ -5384,12 +5512,23 @@
             setVal('an_valor_min', '');
             setVal('an_valor_max', '');
             setVal('an_search', '');
+            setVal('an_data_inicio', '');
+            setVal('an_data_fim', '');
+            setVal('an_modo_media', 'mes');
+
+            const customContainer = document.getElementById('an_custom_date_container');
+            if (customContainer) customContainer.style.display = 'none';
+
             updateAnaliseSubcategories();
             runAnaliseGastos();
         }
 
         function runAnaliseGastos() {
-            const mesVal = document.getElementById('an_mes')?.value || 'all';
+            const periodVal = document.getElementById('an_mes')?.value || 'all';
+            const dataInicioVal = document.getElementById('an_data_inicio')?.value;
+            const dataFimVal = document.getElementById('an_data_fim')?.value;
+            const modoMedia = document.getElementById('an_modo_media')?.value || 'mes';
+
             const tipoVal = document.getElementById('an_tipo')?.value || 'DESPESA';
             const catVal = document.getElementById('an_categoria')?.value || 'all';
             const subVal = document.getElementById('an_subcategoria')?.value || 'all';
@@ -5401,13 +5540,240 @@
             const maxVal = parseFloat(document.getElementById('an_valor_max')?.value);
             const searchTerm = (document.getElementById('an_search')?.value || '').trim().toLowerCase();
 
-            let filtered = globalData;
+            // 1. Filtra primeiro por PERÍODO (para alimentar o painel de médias e a tabela)
+            let baseFiltered = globalData;
+            const now = new Date();
+            const currYear = now.getFullYear();
+            const currMonth = now.getMonth();
+
+            let periodoDescTexto = 'Todo o Histórico';
+
+            if (periodVal === 'current_month') {
+                baseFiltered = baseFiltered.filter(d => d.year === currYear && d.month === currMonth);
+                periodoDescTexto = `${monthNamesBR[currMonth]} ${currYear}`;
+            } else if (periodVal === 'last_month') {
+                const lastMDate = new Date(currYear, currMonth - 1, 1);
+                const lmY = lastMDate.getFullYear();
+                const lmM = lastMDate.getMonth();
+                baseFiltered = baseFiltered.filter(d => d.year === lmY && d.month === lmM);
+                periodoDescTexto = `${monthNamesBR[lmM]} ${lmY}`;
+            } else if (periodVal === 'last_3_months') {
+                const minDate = new Date(currYear, currMonth - 2, 1);
+                baseFiltered = baseFiltered.filter(d => d.date >= minDate && d.date <= new Date(currYear, currMonth + 1, 0, 23, 59, 59));
+                periodoDescTexto = 'Últimos 3 Meses';
+            } else if (periodVal === 'last_6_months') {
+                const minDate = new Date(currYear, currMonth - 5, 1);
+                baseFiltered = baseFiltered.filter(d => d.date >= minDate && d.date <= new Date(currYear, currMonth + 1, 0, 23, 59, 59));
+                periodoDescTexto = 'Últimos 6 Meses';
+            } else if (periodVal === 'current_year') {
+                baseFiltered = baseFiltered.filter(d => d.year === currYear);
+                periodoDescTexto = `Ano de ${currYear}`;
+            } else if (periodVal === 'custom') {
+                if (dataInicioVal) {
+                    baseFiltered = baseFiltered.filter(d => d.rawDate >= dataInicioVal);
+                }
+                if (dataFimVal) {
+                    baseFiltered = baseFiltered.filter(d => d.rawDate <= dataFimVal);
+                }
+                if (dataInicioVal && dataFimVal) {
+                    const [y1, m1, d1] = dataInicioVal.split('-');
+                    const [y2, m2, d2] = dataFimVal.split('-');
+                    periodoDescTexto = `${d1}/${m1}/${y1} a ${d2}/${m2}/${y2}`;
+                } else if (dataInicioVal) {
+                    const [y1, m1, d1] = dataInicioVal.split('-');
+                    periodoDescTexto = `A partir de ${d1}/${m1}/${y1}`;
+                } else if (dataFimVal) {
+                    const [y2, m2, d2] = dataFimVal.split('-');
+                    periodoDescTexto = `Até ${d2}/${m2}/${y2}`;
+                } else {
+                    periodoDescTexto = 'Personalizado';
+                }
+            } else if (periodVal !== 'all' && periodVal.includes('-')) {
+                const [pY, pM] = periodVal.split('-').map(Number);
+                baseFiltered = baseFiltered.filter(d => d.year === pY && d.month === pM);
+                periodoDescTexto = `${monthNamesBR[pM]} ${pY}`;
+            }
+
+            const kpiPeriodoEl = document.getElementById('an-kpi-periodo');
+            if (kpiPeriodoEl) kpiPeriodoEl.innerText = periodoDescTexto;
+
+            // Cálculo da quantidade de meses e dias no período para cálculo de médias
+            let numMesesPeriodo = 1;
+            let numDiasPeriodo = 30;
+
+            if (periodVal === 'all') {
+                const uniqueYm = new Set(baseFiltered.map(d => `${d.year}-${d.month}`));
+                numMesesPeriodo = Math.max(1, uniqueYm.size);
+                if (baseFiltered.length > 0) {
+                    const sortedDates = baseFiltered.map(d => d.date.getTime()).sort((a,b) => a - b);
+                    const diffDays = Math.round((sortedDates[sortedDates.length - 1] - sortedDates[0]) / (1000*60*60*24)) + 1;
+                    numDiasPeriodo = Math.max(1, diffDays);
+                }
+            } else if (periodVal === 'last_3_months') {
+                numMesesPeriodo = 3;
+                numDiasPeriodo = 90;
+            } else if (periodVal === 'last_6_months') {
+                numMesesPeriodo = 6;
+                numDiasPeriodo = 180;
+            } else if (periodVal === 'current_year') {
+                numMesesPeriodo = currMonth + 1;
+                numDiasPeriodo = Math.max(1, Math.round((now - new Date(currYear, 0, 1)) / (1000*60*60*24)) + 1);
+            } else if (periodVal === 'custom') {
+                if (dataInicioVal && dataFimVal) {
+                    const dStart = new Date(dataInicioVal + 'T12:00:00');
+                    const dEnd = new Date(dataFimVal + 'T12:00:00');
+                    const diffMonths = (dEnd.getFullYear() - dStart.getFullYear()) * 12 + (dEnd.getMonth() - dStart.getMonth()) + 1;
+                    numMesesPeriodo = Math.max(1, diffMonths);
+                    const diffDays = Math.round((dEnd - dStart) / (1000*60*60*24)) + 1;
+                    numDiasPeriodo = Math.max(1, diffDays);
+                } else {
+                    const uniqueYm = new Set(baseFiltered.map(d => `${d.year}-${d.month}`));
+                    numMesesPeriodo = Math.max(1, uniqueYm.size);
+                }
+            } else if (periodVal.includes('-')) {
+                numMesesPeriodo = 1;
+                numDiasPeriodo = 30;
+            }
+
+            // 2. CÁLCULO DAS MÉDIAS FINANCEIRAS NO PERÍODO
+            const receitasPeriodo = baseFiltered.filter(d => d.type === 'RECEITA');
+            const despesasPeriodo = baseFiltered.filter(d => d.type === 'DESPESA');
+            const totalReceitas = receitasPeriodo.reduce((a, b) => a + b.value, 0);
+            const totalDespesas = despesasPeriodo.reduce((a, b) => a + b.value, 0);
+
+            const pixDespesas = despesasPeriodo.filter(d => (d.pagamento || '').toUpperCase() === 'PIX');
+            const cartaoDespesas = despesasPeriodo.filter(d => (d.pagamento || '').includes('Cartão') || d.cartao);
+            const dinheiroDespesas = despesasPeriodo.filter(d => !((d.pagamento || '').toUpperCase() === 'PIX') && !((d.pagamento || '').includes('Cartão') || d.cartao));
+
+            const totalPix = pixDespesas.reduce((a, b) => a + b.value, 0);
+            const totalCartao = cartaoDespesas.reduce((a, b) => a + b.value, 0);
+            const totalDinheiro = dinheiroDespesas.reduce((a, b) => a + b.value, 0);
+
+            function calcMedia(totalVal, count) {
+                if (modoMedia === 'operacao') {
+                    return count > 0 ? totalVal / count : 0;
+                } else if (modoMedia === 'dia') {
+                    return totalVal / numDiasPeriodo;
+                } else { // 'mes'
+                    return totalVal / numMesesPeriodo;
+                }
+            }
+
+            const mediaReceitas = calcMedia(totalReceitas, receitasPeriodo.length);
+            const mediaPix = calcMedia(totalPix, pixDespesas.length);
+            const mediaCartao = calcMedia(totalCartao, cartaoDespesas.length);
+            const mediaDinheiro = calcMedia(totalDinheiro, dinheiroDespesas.length);
+
+            const modoLabels = {
+                mes: 'Média Mensal',
+                operacao: 'Média por Lançamento',
+                dia: 'Média Diária'
+            };
+            const modoSuffix = {
+                mes: '/mês',
+                operacao: '/op',
+                dia: '/dia'
+            };
+            const currentModoLabel = modoLabels[modoMedia] || 'Média';
+            const currentModoSuffix = modoSuffix[modoMedia] || '';
+
+            const subSubtitleEl = document.getElementById('an-medias-subtitle');
+            if (subSubtitleEl) {
+                subSubtitleEl.innerText = `Visão consolidada de médias (${currentModoLabel}) para o período: ${periodoDescTexto} (${numMesesPeriodo} ${numMesesPeriodo === 1 ? 'mês' : 'meses'}).`;
+            }
+
+            const elTitleRec = document.getElementById('an-title-media-receita');
+            if (elTitleRec) elTitleRec.innerText = `Receita Média (${currentModoLabel})`;
+            const elValRec = document.getElementById('an-kpi-media-receita');
+            if (elValRec) elValRec.innerText = `${fmt(mediaReceitas)} ${currentModoSuffix}`;
+            const elDetRec = document.getElementById('an-detail-media-receita');
+            if (elDetRec) elDetRec.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalReceitas)} (${receitasPeriodo.length} ${receitasPeriodo.length === 1 ? 'receita' : 'receitas'})</small>`;
+
+            const pctPix = totalDespesas > 0 ? ((totalPix / totalDespesas) * 100).toFixed(1) : 0;
+            const elTitlePix = document.getElementById('an-title-media-pix');
+            if (elTitlePix) elTitlePix.innerText = `Gasto PIX Médio (${currentModoLabel})`;
+            const elValPix = document.getElementById('an-kpi-media-pix');
+            if (elValPix) elValPix.innerText = `${fmt(mediaPix)} ${currentModoSuffix}`;
+            const elDetPix = document.getElementById('an-detail-media-pix');
+            if (elDetPix) elDetPix.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalPix)} (${pctPix}% dos gastos)</small>`;
+
+            const pctCartao = totalDespesas > 0 ? ((totalCartao / totalDespesas) * 100).toFixed(1) : 0;
+            const elTitleCard = document.getElementById('an-title-media-cartao');
+            if (elTitleCard) elTitleCard.innerText = `Gasto Cartão Médio (${currentModoLabel})`;
+            const elValCard = document.getElementById('an-kpi-media-cartao');
+            if (elValCard) elValCard.innerText = `${fmt(mediaCartao)} ${currentModoSuffix}`;
+            const elDetCard = document.getElementById('an-detail-media-cartao');
+            if (elDetCard) elDetCard.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalCartao)} (${pctCartao}% dos gastos)</small>`;
+
+            const pctDinheiro = totalDespesas > 0 ? ((totalDinheiro / totalDespesas) * 100).toFixed(1) : 0;
+            const elTitleDin = document.getElementById('an-title-media-dinheiro');
+            if (elTitleDin) elTitleDin.innerText = `Gasto Dinheiro/Outros Médio (${currentModoLabel})`;
+            const elValDin = document.getElementById('an-kpi-media-dinheiro');
+            if (elValDin) elValDin.innerText = `${fmt(mediaDinheiro)} ${currentModoSuffix}`;
+            const elDetDin = document.getElementById('an-detail-media-dinheiro');
+            if (elDetDin) elDetDin.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalDinheiro)} (${pctDinheiro}% dos gastos)</small>`;
+
+            // 3. MÉDIAS DE GASTOS POR CATEGORIA
+            const catAveragesContainer = document.getElementById('an-category-averages-cards');
+            if (catAveragesContainer) {
+                catAveragesContainer.innerHTML = '';
+                const catMap = {};
+                despesasPeriodo.forEach(d => {
+                    const cat = d.category || 'Outros';
+                    if (!catMap[cat]) catMap[cat] = { total: 0, count: 0, items: [] };
+                    catMap[cat].total += d.value;
+                    catMap[cat].count += 1;
+                    catMap[cat].items.push(d);
+                });
+
+                const sortedCatKeys = Object.keys(catMap).sort((a, b) => catMap[b].total - catMap[a].total);
+
+                if (sortedCatKeys.length === 0) {
+                    catAveragesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem; grid-column: 1 / -1;">Nenhuma despesa registrada no período para calcular médias de categorias.</div>';
+                } else {
+                    sortedCatKeys.forEach(catName => {
+                        const info = catMap[catName];
+                        const catMedia = calcMedia(info.total, info.count);
+                        const catPct = totalDespesas > 0 ? ((info.total / totalDespesas) * 100).toFixed(1) : 0;
+
+                        const isSelectedCat = catVal !== 'all' && normalizeCatalogName(catName) === normalizeCatalogName(catVal);
+
+                        const card = document.createElement('div');
+                        card.className = 'kpi-card invest-category-card';
+                        if (isSelectedCat) {
+                            card.style.border = '2px solid var(--primary)';
+                            card.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.2)';
+                        }
+                        card.style.cursor = 'pointer';
+                        card.onclick = () => filterAnaliseCategory(catName);
+                        card.title = `Clique para filtrar a categoria "${catName}"`;
+
+                        card.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem;">
+                                <div style="font-weight:700; font-size:0.95rem; color:var(--text-main);">${escapeHtml(catName)}</div>
+                                <span style="font-size:0.75rem; background:rgba(239, 68, 68, 0.1); color:var(--danger); padding:2px 6px; border-radius:4px; font-weight:700;">${catPct}%</span>
+                            </div>
+                            <div style="font-size:1.25rem; font-weight:700; color:var(--danger); margin-bottom:0.3rem;">
+                                ${fmt(catMedia)} <small style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">${currentModoSuffix}</small>
+                            </div>
+                            <div class="progress-bar-bg" style="margin-bottom:0.5rem;">
+                                <div class="progress-bar-fill" style="width: ${Math.min(100, catPct)}%; background: var(--danger);"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+                                <span>Total: <b>${fmt(info.total)}</b></span>
+                                <span><b>${info.count}</b> ${info.count === 1 ? 'gasto' : 'gastos'}</span>
+                            </div>
+                        `;
+                        catAveragesContainer.appendChild(card);
+                    });
+                }
+            }
+
+            // 4. FILTRA PARA A TABELA DE DETALHES
+            let filtered = baseFiltered;
 
             if (tipoVal !== 'all') {
                 filtered = filtered.filter(d => d.type === tipoVal);
-            }
-            if (mesVal !== 'all') {
-                filtered = filtered.filter(d => `${d.year}-${d.month}` === mesVal);
             }
             if (catVal !== 'all') {
                 filtered = filtered.filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(catVal));

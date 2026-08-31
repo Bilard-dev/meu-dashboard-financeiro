@@ -298,4 +298,214 @@ test.describe('Filtros Avançados - Parcelas/Cartões e Análise de Gastos', () 
         await expect(page.locator('#an-kpi-qtd')).toHaveText('3');
     });
 
+    test('6. Aba Análise de Gastos: Intervalo de datas personalizado (Data Inicial e Final)', async ({ page }) => {
+        await setupAuthenticatedApp(page, {
+            transactions: [
+                {
+                    id: 'tx-jul',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-07-15',
+                    descricao: 'Compra Antiga Julho',
+                    valor: 150.00,
+                    pagamento: 'PIX',
+                    categoria: 'Lazer'
+                },
+                {
+                    id: 'tx-ago-1',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-05',
+                    descricao: 'Compra Início Agosto',
+                    valor: 300.00,
+                    pagamento: 'PIX',
+                    categoria: 'Alimentação'
+                },
+                {
+                    id: 'tx-ago-2',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-25',
+                    descricao: 'Compra Fim Agosto',
+                    valor: 450.00,
+                    pagamento: 'PIX',
+                    categoria: 'Transporte'
+                }
+            ]
+        });
+
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
+        // Seleciona Intervalo Personalizado
+        await page.locator('#an_mes').selectOption('custom');
+        await expect(page.locator('#an_custom_date_container')).toBeVisible();
+
+        // Define intervalo: 2026-08-01 a 2026-08-10
+        await page.locator('#an_data_inicio').fill('2026-08-01');
+        await page.locator('#an_data_fim').fill('2026-08-10');
+        await page.locator('#an_data_fim').dispatchEvent('change');
+
+        // Apenas 'Compra Início Agosto' deve aparecer
+        await expect(page.locator('#analiseTableBody')).toContainText('Compra Início Agosto');
+        await expect(page.locator('#analiseTableBody')).not.toContainText('Compra Antiga Julho');
+        await expect(page.locator('#analiseTableBody')).not.toContainText('Compra Fim Agosto');
+        await expect(page.locator('#an-kpi-total')).toContainText('300,00');
+    });
+
+    test('7. Aba Análise de Gastos: Painel de Médias Financeiras (Receitas, PIX, Cartão e Dinheiro)', async ({ page }) => {
+        await setupAuthenticatedApp(page, {
+            transactions: [
+                {
+                    id: 'tx-rec-1',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Receita',
+                    data: '2026-08-01',
+                    descricao: 'Salário Mensal',
+                    valor: 6000.00,
+                    pagamento: 'PIX',
+                    categoria: 'Salário'
+                },
+                {
+                    id: 'tx-rec-2',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Receita',
+                    data: '2026-08-15',
+                    descricao: 'Freelance Design',
+                    valor: 2000.00,
+                    pagamento: 'PIX',
+                    categoria: 'Extra'
+                },
+                {
+                    id: 'tx-pix-1',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-05',
+                    descricao: 'Aluguel Apartamento',
+                    valor: 2000.00,
+                    pagamento: 'PIX',
+                    categoria: 'Moradia'
+                },
+                {
+                    id: 'tx-pix-2',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-10',
+                    descricao: 'Feira Orgânica',
+                    valor: 200.00,
+                    pagamento: 'PIX',
+                    categoria: 'Alimentação'
+                },
+                {
+                    id: 'tx-card-1',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-08',
+                    descricao: 'Supermercado Mensal',
+                    valor: 800.00,
+                    pagamento: 'Cartão de Crédito',
+                    cartao: 'Nubank',
+                    categoria: 'Alimentação'
+                },
+                {
+                    id: 'tx-card-2',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-12',
+                    descricao: 'Restaurante Jantar',
+                    valor: 300.00,
+                    pagamento: 'Cartão de Crédito',
+                    cartao: 'Nubank',
+                    categoria: 'Alimentação'
+                },
+                {
+                    id: 'tx-din-1',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-18',
+                    descricao: 'Padaria Café da Manhã',
+                    valor: 50.00,
+                    pagamento: 'Dinheiro',
+                    categoria: 'Alimentação'
+                }
+            ]
+        });
+
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
+        // 1 mês ativo: Médias Mensais (modo padrão)
+        // Receitas totais: 6000 + 2000 = 8000
+        // PIX total: 2000 + 200 = 2200
+        // Cartão total: 800 + 300 = 1100
+        // Dinheiro total: 50
+        await expect(page.locator('#an-kpi-media-receita')).toContainText('8.000,00');
+        await expect(page.locator('#an-kpi-media-pix')).toContainText('2.200,00');
+        await expect(page.locator('#an-kpi-media-cartao')).toContainText('1.100,00');
+        await expect(page.locator('#an-kpi-media-dinheiro')).toContainText('50,00');
+
+        // Alterna para Médias por Operação (Lançamento)
+        // Receitas: 8000 / 2 = 4000
+        // PIX: 2200 / 2 = 1100
+        // Cartão: 1100 / 2 = 550
+        // Dinheiro: 50 / 1 = 50
+        await page.locator('#an_modo_media').selectOption('operacao');
+        await expect(page.locator('#an-kpi-media-receita')).toContainText('4.000,00');
+        await expect(page.locator('#an-kpi-media-pix')).toContainText('1.100,00');
+        await expect(page.locator('#an-kpi-media-cartao')).toContainText('550,00');
+        await expect(page.locator('#an-kpi-media-dinheiro')).toContainText('50,00');
+    });
+
+    test('8. Aba Análise de Gastos: Médias por categoria e filtro interativo ao clicar no card', async ({ page }) => {
+        await setupAuthenticatedApp(page, {
+            transactions: [
+                {
+                    id: 'tx-moradia',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-01',
+                    descricao: 'Aluguel Casa',
+                    valor: 2400.00,
+                    pagamento: 'PIX',
+                    categoria: 'Moradia'
+                },
+                {
+                    id: 'tx-alim-1',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-05',
+                    descricao: 'Compras Supermercado',
+                    valor: 600.00,
+                    pagamento: 'Cartão de Crédito',
+                    cartao: 'Nubank',
+                    categoria: 'Alimentação'
+                },
+                {
+                    id: 'tx-alim-2',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-08-15',
+                    descricao: 'Almoço Restaurante',
+                    valor: 200.00,
+                    pagamento: 'PIX',
+                    categoria: 'Alimentação'
+                }
+            ]
+        });
+
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
+        // Cards de categoria aparecem com seus valores
+        const catCards = page.locator('#an-category-averages-cards');
+        await expect(catCards).toContainText('Moradia');
+        await expect(catCards).toContainText('2.400,00');
+        await expect(catCards).toContainText('Alimentação');
+        await expect(catCards).toContainText('800,00');
+
+        // Clica no card de 'Moradia' para filtrar apenas Moradia
+        await catCards.locator('.kpi-card:has-text("Moradia")').click();
+        await expect(page.locator('#an_categoria')).toHaveValue('Moradia');
+        await expect(page.locator('#analiseTableBody')).toContainText('Aluguel Casa');
+        await expect(page.locator('#analiseTableBody')).not.toContainText('Supermercado');
+        await expect(page.locator('#an-kpi-total')).toContainText('2.400,00');
+    });
+
 });

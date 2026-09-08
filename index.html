@@ -2370,6 +2370,29 @@
         </form>
     </div>
 
+    <!-- Base 3.0: Módulos ES6 Core & Ponte de Compatibilidade -->
+    <script type="module">
+        import {
+            normalizeCatalogName,
+            normalizeText,
+            extractTagsFromDesc,
+            buildDescWithTags
+        } from './src/core/textUtils.js';
+
+        import {
+            escapeHtml,
+            isStrongPassword
+        } from './src/core/security.js';
+
+        // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
+        window.escapeHtml = escapeHtml;
+        window.normalizeCatalogName = normalizeCatalogName;
+        window.normalizeText = normalizeText;
+        window.isStrongPassword = isStrongPassword;
+        window.extractTagsFromDesc = extractTagsFromDesc;
+        window.buildDescWithTags = buildDescWithTags;
+    </script>
+
     <script>
         const SUPABASE_URL = 'https://zrlkexqogahoeryqkeyr.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
@@ -2413,24 +2436,6 @@
             if (hasInvestTx && !hasOtherTx) return true;
 
             return false;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function normalizeCatalogName(str) {
-            if (!str || typeof str !== 'string') return '';
-            return str
-                .replace(/[\u00a0\s]+/g, ' ')
-                .trim()
-                .toLowerCase();
         }
 
         const monthNamesBR = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -2553,11 +2558,6 @@
                 input.type = 'password';
                 buttonEl.innerText = '👁️';
             }
-        }
-
-        function isStrongPassword(password) {
-            const strongRegex = new RegExp("^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})");
-            return strongRegex.test(password);
         }
 
         async function handleForgotPassword() {
@@ -2793,13 +2793,6 @@
             } catch (e) {
                 console.error("Exceção ao buscar metas:", e);
             }
-        }
-
-        function extractTagsFromDesc(desc) {
-            if (!desc) return [];
-            const match = desc.match(/^\s*\[(.*?)\]/);
-            if (!match) return [];
-            return match[1].split(',').map(t => t.trim()).filter(t => t.length > 0);
         }
 
         function filterDataByActiveProfile() {
@@ -3102,18 +3095,6 @@
         function toggleMobilePaymentFields() {
             const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
             document.querySelectorAll('.m-card-field').forEach(el => el.style.display = isCard ? 'block' : 'none');
-        }
-
-        function buildDescWithTags(baseDesc, tagsInput) {
-            let cleanDesc = (baseDesc || '').replace(/^\s*\[(.*?)\]\s*/, '').trim();
-            if (!tagsInput || tagsInput.trim() === '') return cleanDesc;
-
-            const formattedTags = tagsInput.split(',')
-                .map(t => t.trim())
-                .filter(t => t.length > 0)
-                .join(', ');
-
-            return formattedTags ? `[${formattedTags}] ${cleanDesc}` : cleanDesc;
         }
 
         async function saveMobileQuickTransaction(e, reset = false) {
@@ -4606,11 +4587,6 @@
                 btn.innerText = 'Importar Selecionados';
                 btn.disabled = false;
             }
-        }
-
-        function normalizeText(str) {
-            if (!str) return '';
-            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
         }
 
         function togglePrivacy() {

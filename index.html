@@ -2313,9 +2313,7 @@
         } from './src/core/security.js';
 
         import {
-            MONTH_NAMES_BR,
-            addMonths,
-            parseLocalDate
+            MONTH_NAMES_BR
         } from './src/core/dateUtils.js';
 
         import {
@@ -2325,7 +2323,6 @@
 
         import {
             getPrivacyMode,
-            setPrivacyMode,
             togglePrivacyMode,
             getRoutingSync,
             setRoutingSync,
@@ -2334,13 +2331,10 @@
             clearPendingRenameData,
             getFilteredExtratoData,
             setFilteredExtratoData,
-            getCustomInvestmentCategoryNames,
             addCustomInvestmentCategoryName,
-            hasCustomInvestmentCategoryName,
-            resetCustomInvestmentCategoryNames
+            hasCustomInvestmentCategoryName
         } from './src/store/state.js';
 
-        import { supabaseClient } from './src/services/supabaseClient.js';
         import {
             getSession,
             signIn,
@@ -2391,14 +2385,8 @@
         window.isStrongPassword = isStrongPassword;
         window.extractTagsFromDesc = extractTagsFromDesc;
         window.buildDescWithTags = buildDescWithTags;
-        window.MONTH_NAMES_BR = MONTH_NAMES_BR;
         window.monthNamesBR = MONTH_NAMES_BR;
-        window.addMonths = addMonths;
-        window.parseLocalDate = parseLocalDate;
-        window.formatCurrency = formatCurrency;
         window.formatFaturaBadge = formatFaturaBadge;
-        window.getPrivacyMode = getPrivacyMode;
-        window.setPrivacyMode = setPrivacyMode;
         window.togglePrivacyMode = togglePrivacyMode;
         window.getRoutingSync = getRoutingSync;
         window.setRoutingSync = setRoutingSync;
@@ -2407,12 +2395,9 @@
         window.clearPendingRenameData = clearPendingRenameData;
         window.getFilteredExtratoData = getFilteredExtratoData;
         window.setFilteredExtratoData = setFilteredExtratoData;
-        window.getCustomInvestmentCategoryNames = getCustomInvestmentCategoryNames;
         window.addCustomInvestmentCategoryName = addCustomInvestmentCategoryName;
         window.hasCustomInvestmentCategoryName = hasCustomInvestmentCategoryName;
-        window.resetCustomInvestmentCategoryNames = resetCustomInvestmentCategoryNames;
         window.fmt = (val) => formatCurrency(val, getPrivacyMode());
-        window._supabase = supabaseClient;
         window.authGetSession = getSession;
         window.authSignIn = signIn;
         window.authSignUp = signUp;

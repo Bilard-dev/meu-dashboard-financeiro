@@ -2326,7 +2326,18 @@
         import {
             getPrivacyMode,
             setPrivacyMode,
-            togglePrivacyMode
+            togglePrivacyMode,
+            getRoutingSync,
+            setRoutingSync,
+            getPendingRenameData,
+            setPendingRenameData,
+            clearPendingRenameData,
+            getFilteredExtratoData,
+            setFilteredExtratoData,
+            getCustomInvestmentCategoryNames,
+            addCustomInvestmentCategoryName,
+            hasCustomInvestmentCategoryName,
+            resetCustomInvestmentCategoryNames
         } from './src/store/state.js';
 
         import { supabaseClient } from './src/services/supabaseClient.js';
@@ -2389,6 +2400,17 @@
         window.getPrivacyMode = getPrivacyMode;
         window.setPrivacyMode = setPrivacyMode;
         window.togglePrivacyMode = togglePrivacyMode;
+        window.getRoutingSync = getRoutingSync;
+        window.setRoutingSync = setRoutingSync;
+        window.getPendingRenameData = getPendingRenameData;
+        window.setPendingRenameData = setPendingRenameData;
+        window.clearPendingRenameData = clearPendingRenameData;
+        window.getFilteredExtratoData = getFilteredExtratoData;
+        window.setFilteredExtratoData = setFilteredExtratoData;
+        window.getCustomInvestmentCategoryNames = getCustomInvestmentCategoryNames;
+        window.addCustomInvestmentCategoryName = addCustomInvestmentCategoryName;
+        window.hasCustomInvestmentCategoryName = hasCustomInvestmentCategoryName;
+        window.resetCustomInvestmentCategoryNames = resetCustomInvestmentCategoryNames;
         window.fmt = (val) => formatCurrency(val, getPrivacyMode());
         window._supabase = supabaseClient;
         window.authGetSession = getSession;
@@ -2430,7 +2452,6 @@
         let globalData = [];
         let rawMetas = [];
         let userBudgets = {};
-        let currentFilteredExtratoData = [];
         let charts = {};
 
         // ESTADO GLOBAL: Catálogos Gerenciados 2.0
@@ -2438,7 +2459,6 @@
         let globalSubcategorias = [];
         let globalCartoes = [];
         let globalTags = [];
-        let customInvestmentCategoryNames = new Set();
 
         const DEFAULT_INVEST_KEYWORDS = [
             'investimento', 'investimentos', 'renda fixa', 'renda variavel', 'renda variável',
@@ -2452,7 +2472,7 @@
             if (!catName) return false;
             const norm = normalizeCatalogName(catName);
             if (DEFAULT_INVEST_KEYWORDS.includes(norm)) return true;
-            if (customInvestmentCategoryNames.has(norm)) return true;
+            if (hasCustomInvestmentCategoryName(norm)) return true;
 
             // Se no histórico há aportes nesta categoria e NENHUMA despesa ou receita
             const hasInvestTx = globalData.some(d => d.type === 'INVESTIMENTO' && normalizeCatalogName(d.category) === norm);
@@ -2723,17 +2743,17 @@
                     const canonical = TAB_TO_CANONICAL_ROUTE[requestedTab] || 'dashboard';
                     const targetHash = `#/${canonical}`;
                     if (window.location.hash !== targetHash) {
-                        isRoutingSync = true;
+                        setRoutingSync(true);
                         window.location.hash = targetHash;
                     }
                 } else {
                     if (window.location.hash && window.location.hash !== '#/dashboard' && window.location.hash !== '#dashboard') {
                         // Rota inválida (ex: #/batata) -> redireciona para #/dashboard
-                        isRoutingSync = true;
+                        setRoutingSync(true);
                         window.location.hash = '#/dashboard';
                         switchTab('resumo', false);
                     } else if (!window.location.hash || window.location.hash === '#' || window.location.hash === '#/') {
-                        isRoutingSync = true;
+                        setRoutingSync(true);
                         window.location.hash = '#/dashboard';
                     }
                 }
@@ -2780,7 +2800,8 @@
                         userBudgets[m.categoria] = parseFloat(m.valor_limite);
                     });
                     renderMetasTab();
-                    checkBudgetAlerts(currentFilteredExtratoData.length > 0 ? currentFilteredExtratoData : globalData);
+                    const filteredExtrato = getFilteredExtratoData();
+                    checkBudgetAlerts(filteredExtrato.length > 0 ? filteredExtrato : globalData);
                     await checkAndMigrateLocalStorageBudgets();
                 } else if (error) {
                     console.error("Erro ao buscar metas:", error);
@@ -3379,10 +3400,8 @@
             }
         }
 
-        let pendingRenameData = null;
-
         function openRenamePreviewModal({ type, itemId, oldName, newName, payload, sourceSelectId }) {
-            pendingRenameData = { type, itemId, oldName, newName, payload, sourceSelectId };
+            setPendingRenameData({ type, itemId, oldName, newName, payload, sourceSelectId });
             const modal = document.getElementById('renamePreviewModal');
             const content = document.getElementById('renamePreviewContent');
             const metaSection = document.getElementById('renameMetaConflictSection');
@@ -3486,12 +3505,13 @@
         function closeRenamePreviewModal() {
             const modal = document.getElementById('renamePreviewModal');
             if (modal) modal.style.display = 'none';
-            pendingRenameData = null;
+            clearPendingRenameData();
         }
 
         async function confirmRenameWithHistory() {
-            if (!pendingRenameData) return;
-            const { type, itemId, oldName, newName, payload, sourceSelectId } = pendingRenameData;
+            const pendingRename = getPendingRenameData();
+            if (!pendingRename) return;
+            const { type, itemId, oldName, newName, payload, sourceSelectId } = pendingRename;
             const metaActionRadio = document.querySelector('input[name="rename_meta_action"]:checked');
             const metaAction = metaActionRadio ? metaActionRadio.value : 'KEEP_OLD';
             const btn = document.getElementById('btnConfirmRenameWithHistory');
@@ -3686,7 +3706,7 @@
 
                     if (type === 'categoria') {
                         if (isInvest) {
-                            customInvestmentCategoryNames.add(normName);
+                            addCustomInvestmentCategoryName(normName);
                             populateInvestFormDropdowns();
                         }
                         if (selectEl) selectEl.value = cleanName;
@@ -4364,8 +4384,6 @@
             'conta': 'conta'
         };
 
-        let isRoutingSync = false;
-
         function getRouteFromHash() {
             const raw = (window.location.hash || '').replace(/^#\/?/, '').trim().toLowerCase();
             if (!raw) return null;
@@ -4374,8 +4392,8 @@
 
         function handleHashChange() {
             if (!currentUser) return;
-            if (isRoutingSync) {
-                isRoutingSync = false;
+            if (getRoutingSync()) {
+                setRoutingSync(false);
                 return;
             }
 
@@ -4384,7 +4402,7 @@
                 switchTab(targetTab, false);
             } else {
                 switchTab('resumo', false);
-                isRoutingSync = true;
+                setRoutingSync(true);
                 window.location.hash = '#/dashboard';
             }
         }
@@ -4415,7 +4433,7 @@
                 const canonical = TAB_TO_CANONICAL_ROUTE[tabId] || 'dashboard';
                 const targetHash = `#/${canonical}`;
                 if (window.location.hash !== targetHash) {
-                    isRoutingSync = true;
+                    setRoutingSync(true);
                     window.location.hash = targetHash;
                 }
             }
@@ -4810,8 +4828,8 @@
                 );
             }
 
-            currentFilteredExtratoData = filtered;
-            renderResumoExtrato(currentFilteredExtratoData);
+            setFilteredExtratoData(filtered);
+            renderResumoExtrato(getFilteredExtratoData());
         }
 
         function setupMonthSelector() {
@@ -5991,7 +6009,8 @@
                             userBudgets = {};
                             rawMetas.forEach(m => { userBudgets[m.categoria] = parseFloat(m.valor_limite); });
                             renderMetasTab();
-                            checkBudgetAlerts(currentFilteredExtratoData.length > 0 ? currentFilteredExtratoData : globalData);
+                            const filteredExtrato = getFilteredExtratoData();
+                            checkBudgetAlerts(filteredExtrato.length > 0 ? filteredExtrato : globalData);
                         }
                     } else {
                         console.error("Erro ao migrar metas locais para nuvem vazia:", error);

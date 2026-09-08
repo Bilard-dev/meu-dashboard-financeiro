@@ -2402,6 +2402,14 @@
         } from './src/store/state.js';
 
         import { supabaseClient } from './src/services/supabaseClient.js';
+        import {
+            getSession,
+            signIn,
+            signUp,
+            signOut,
+            updatePassword,
+            requestPasswordReset
+        } from './src/services/authService.js';
 
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
@@ -2421,6 +2429,12 @@
         window.togglePrivacyMode = togglePrivacyMode;
         window.fmt = (val) => formatCurrency(val, getPrivacyMode());
         window._supabase = supabaseClient;
+        window.authGetSession = getSession;
+        window.authSignIn = signIn;
+        window.authSignUp = signUp;
+        window.authSignOut = signOut;
+        window.authUpdatePassword = updatePassword;
+        window.authRequestPasswordReset = requestPasswordReset;
     </script>
 
     <script>
@@ -2491,7 +2505,7 @@
         });
 
         async function checkSession() {
-            const { data: { session } } = await _supabase.auth.getSession();
+            const { data: { session } } = await authGetSession();
             if (session) {
                 currentUser = session.user;
                 document.getElementById('loginView').style.display = 'none';
@@ -2589,7 +2603,7 @@
                 return;
             }
 
-            const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+            const { error } = await authRequestPasswordReset(email, {
                 redirectTo: window.location.href
             });
 
@@ -2618,7 +2632,7 @@
 
             btn.innerText = "Atualizando...";
 
-            const { error } = await _supabase.auth.updateUser({ password: novaSenha });
+            const { error } = await authUpdatePassword(novaSenha);
 
             btn.innerText = "Atualizar Senha Agora";
 
@@ -2649,10 +2663,7 @@
 
             signUpBtn.innerText = "Criando conta...";
 
-            const { data, error } = await _supabase.auth.signUp({
-                email: email,
-                password: password
-            });
+            const { data, error } = await authSignUp(email, password);
 
             signUpBtn.innerText = "Criar Nova Conta";
 
@@ -2676,7 +2687,7 @@
 
             btn.innerText = 'Entrando...';
 
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await authSignIn(email, password);
 
             if (error) {
                 showMessage("Erro de login: " + error.message);
@@ -2687,7 +2698,7 @@
         });
 
         async function logout() {
-            await _supabase.auth.signOut();
+            await authSignOut();
             currentUser = null;
             window.location.hash = '';
             window.location.reload();

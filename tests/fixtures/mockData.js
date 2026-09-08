@@ -178,39 +178,6 @@ const mockTransactions = [
     }
 ];
 
-const mockSharedExpenses = [
-    {
-        id: 'shared-001',
-        created_by: 'test-user-uuid-1234',
-        data: `${currentYearMonth}-12`,
-        descricao: 'Jantar Casal',
-        valor_total: 200.00,
-        valor_meu: 100.00,
-        valor_parceiro: 100.00,
-        categoria: 'Alimentação',
-        subcategoria: 'Restaurante',
-        pagamento: 'PIX',
-        cartao: null,
-        status: 'Pendente',
-        created_at: `${currentYearMonth}-12T20:00:00.000Z`
-    },
-    {
-        id: 'shared-002',
-        created_by: 'test-user-uuid-1234',
-        data: `${currentYearMonth}-10`,
-        descricao: 'Contas Casa - Luz',
-        valor_total: 300.00,
-        valor_meu: 180.00,
-        valor_parceiro: 120.00,
-        categoria: 'Casa',
-        subcategoria: 'Energia',
-        pagamento: 'PIX',
-        cartao: null,
-        status: 'Pago',
-        created_at: `${currentYearMonth}-10T10:00:00.000Z`
-    }
-];
-
 const mockMetas = [
     {
         id: 'meta-001-alimentacao',
@@ -281,7 +248,6 @@ const mockTags = [
 module.exports = {
     mockUser,
     mockTransactions,
-    mockSharedExpenses,
     mockMetas,
     mockBudgets,
     mockCategorias,

@@ -75,7 +75,7 @@ test.describe('Reorganização dos Botões do Cabeçalho & Aba Minha Conta', () 
         await expect(syncBtn).toHaveAttribute('title', /Atualizado/);
     });
 
-    test('4. Botões renomeados para "Metas" e "Categorias" e aba "Gastos Compartilhados" oculta', async ({ page }) => {
+    test('4. Botões renomeados para "Metas" e "Categorias" e remoção de Gastos Compartilhados', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
         // Verifica botão 🎯 Metas
@@ -90,9 +90,9 @@ test.describe('Reorganização dos Botões do Cabeçalho & Aba Minha Conta', () 
         await categoriasBtn.click();
         await expect(page.locator('#tab-gerenciar-listas')).toHaveClass(/active/);
 
-        // Verifica que o botão de Gastos Compartilhados está oculto (display: none)
-        const divisaoBtn = page.locator('#tabDivisaoBtn');
-        await expect(divisaoBtn).toBeHidden();
+        // Verifica que o botão e a aba de Gastos Compartilhados não existem no DOM
+        await expect(page.locator('#tabDivisaoBtn')).toHaveCount(0);
+        await expect(page.locator('#tab-divisao')).toHaveCount(0);
     });
 
 });

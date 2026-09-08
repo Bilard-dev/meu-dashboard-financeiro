@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 const { test, expect } = require('@playwright/test');
 const { setupAuthenticatedApp } = require('./helpers/setupApp');
 const { mockUser } = require('./fixtures/mockData');
@@ -216,9 +216,9 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
 
     test('22. Nenhuma regressão nas chamadas programáticas de switchTab', async ({ page }) => {
         await setupAuthenticatedApp(page);
-        await page.evaluate(() => { switchTab('divisao'); });
-        await expect(page.locator('#tab-divisao')).toBeVisible();
-        await expect(page).toHaveURL(/#\/divisao/);
+        await page.evaluate(() => { switchTab('investimentos'); });
+        await expect(page.locator('#tab-investimentos')).toBeVisible();
+        await expect(page).toHaveURL(/#\/investimentos/);
 
         await page.evaluate(() => { switchTab('novo'); });
         await expect(page.locator('#tab-novo')).toBeVisible();

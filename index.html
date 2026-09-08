@@ -1077,7 +1077,6 @@
             <button class="tab-btn" onclick="switchTab('previsao')">🔮 Previsão Financeira</button>
             <button class="tab-btn" onclick="switchTab('metas')">🎯 Metas</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
-            <button class="tab-btn" id="tabDivisaoBtn" style="display: none;" onclick="switchTab('divisao')">⚖️ Gastos Compartilhados</button>
             <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
             <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
         </div>
@@ -1754,77 +1753,6 @@
                 </div>
             </div>
 
-            <!-- ABA 5: GASTOS COMPARTILHADOS -->
-            <div id="tab-divisao" class="tab-content">
-                <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title">Total Geral Dividido</div><div class="kpi-value" id="kpi-shared-total" style="color: var(--primary);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Sua Parte Acumulada</div><div class="kpi-value" id="kpi-shared-meu" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Parte Dela Acumulada</div><div class="kpi-value" id="kpi-shared-parceiro" style="color: var(--warning);">R$ 0,00</div></div></div>
-                </div>
-
-                <div class="chart-card">
-                    <h2 class="chart-title" id="sharedFormTitle" style="font-size: 1.3rem;">Lançar Conta Compartilhada (Divisão do Casal)</h2>
-                    <form id="sharedForm" onsubmit="addSharedTransaction(event)">
-                        <input type="hidden" id="edit_shared_id" value="">
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label>Data *</label>
-                                <input type="date" id="s_data" class="input-field" required>
-                            </div>
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label>Descrição da Conta *</label>
-                                <input type="text" id="s_descricao" class="input-field" placeholder="Ex: Aluguel, Mercado" required>
-                            </div>
-                            <div class="input-group">
-                                <label>Valor Total (R$) *</label>
-                                <input type="number" id="s_valor_total" step="0.01" class="input-field" placeholder="Ex: 200.00" oninput="calculateSplit()" required>
-                            </div>
-                            <div class="input-group">
-                                <label>Regra de Divisão</label>
-                                <select id="s_regra" class="input-field" onchange="calculateSplit()">
-                                    <option value="50_50">50% / 50% (Divisão Igual)</option>
-                                    <option value="CUSTOM">Valores Personalizados</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>Minha Parte (R$)</label>
-                                <input type="number" id="s_valor_meu" step="0.01" class="input-field" oninput="onCustomSplitChange('meu')">
-                            </div>
-                            <div class="input-group">
-                                <label>Parte Dela (R$)</label>
-                                <input type="number" id="s_valor_parceiro" step="0.01" class="input-field" oninput="onCustomSplitChange('parceiro')">
-                            </div>
-                            <div class="input-group">
-                                <label>Categoria</label>
-                                <input type="text" id="s_categoria" class="input-field" placeholder="Ex: Casa, Lazer">
-                            </div>
-                        </div>
-                        <div style="margin-top: 1.5rem;">
-                            <button type="submit" class="btn-primary" id="btnSalvarShared">Salvar Gastos Divididos</button>
-                            <button type="button" class="btn-secondary" id="btnCancelarEdicaoShared" style="display:none; margin-left: 0.5rem;" onclick="cancelSharedEdit()">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title">Contas Compartilhadas Cadastradas</div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Descrição</th>
-                                <th>Total</th>
-                                <th>Sua Parte</th>
-                                <th>Parte Dela</th>
-                                <th>Status</th>
-                                <th style="text-align:center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sharedTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
             <!-- ABA GERENCIAR CATEGORIAS E LISTAS -->
             <div id="tab-gerenciar-listas" class="tab-content">
                 <!-- BANNER DO ASSISTENTE DE IMPORTAÇÃO (QUANDO CATÁLOGOS VAZIOS OU ACIONADO PELO USUÁRIO) -->
@@ -2441,7 +2369,6 @@
         let currentUser = null;
         let rawSupabaseData = [];
         let globalData = [];
-        let sharedData = [];
         let rawMetas = [];
         let userBudgets = {};
         let currentFilteredExtratoData = [];
@@ -2512,7 +2439,6 @@
                 document.getElementById('appView').style.display = 'block';
 
                 loadDashboardData();
-                loadSharedData();
                 loadMetasData();
                 loadCatalogsData();
             } else {
@@ -2786,22 +2712,6 @@
             }
         }
 
-        async function loadSharedData() {
-            try {
-                const { data, error } = await _supabase
-                    .from('gastos_compartilhados')
-                    .select('*')
-                    .order('data', { ascending: false });
-
-                if (!error && data) {
-                    sharedData = data;
-                    renderSharedTable();
-                }
-            } catch (e) {
-                console.error("Tabela compartilhada não carregada.", e);
-            }
-        }
-
         async function loadMetasData() {
             if (!currentUser) return;
             try {
@@ -2839,7 +2749,6 @@
                 return {
                     id: row.id,
                     user_id: row.user_id,
-                    gasto_compartilhado_id: row.gasto_compartilhado_id || null,
                     grupo_parcela_id: row.grupo_parcela_id || null,
                     type: row.tipo ? row.tipo.toUpperCase() : 'DESPESA',
                     rawTipo: row.tipo || 'Despesa',
@@ -3193,254 +3102,6 @@
 
         function saveAndResetMobile(e) {
             saveMobileQuickTransaction(e, true);
-        }
-
-        function calculateSplit() {
-            const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
-            const regra = document.getElementById('s_regra').value;
-
-            if (regra === '50_50') {
-                const metade = total / 2;
-                document.getElementById('s_valor_meu').value = metade.toFixed(2);
-                document.getElementById('s_valor_parceiro').value = metade.toFixed(2);
-            }
-        }
-
-        function onCustomSplitChange(changedField) {
-            document.getElementById('s_regra').value = 'CUSTOM';
-            const total = parseFloat(document.getElementById('s_valor_total').value) || 0;
-
-            if (changedField === 'meu') {
-                const meuVal = parseFloat(document.getElementById('s_valor_meu').value) || 0;
-                document.getElementById('s_valor_parceiro').value = Math.max(0, total - meuVal).toFixed(2);
-            } else {
-                const parceiroVal = parseFloat(document.getElementById('s_valor_parceiro').value) || 0;
-                document.getElementById('s_valor_meu').value = Math.max(0, total - parceiroVal).toFixed(2);
-            }
-        }
-
-        async function addSharedTransaction(e) {
-            if (e) e.preventDefault();
-            const btn = document.getElementById('btnSalvarShared');
-            const editId = document.getElementById('edit_shared_id').value;
-            btn.innerText = editId ? 'Atualizando...' : 'Salvando...';
-
-            const payload = {
-                data: document.getElementById('s_data').value,
-                descricao: document.getElementById('s_descricao').value,
-                valor_total: parseFloat(document.getElementById('s_valor_total').value),
-                valor_meu: parseFloat(document.getElementById('s_valor_meu').value),
-                valor_parceiro: parseFloat(document.getElementById('s_valor_parceiro').value),
-                categoria: document.getElementById('s_categoria').value || 'Gastos Compartilhados'
-            };
-
-            let error = null;
-
-            if (editId) {
-                const res = await _supabase
-                    .from('gastos_compartilhados')
-                    .update(payload)
-                    .eq('id', editId)
-                    .eq('created_by', currentUser.id);
-                error = res.error;
-            } else {
-                const novaConta = {
-                    ...payload,
-                    created_by: currentUser.id,
-                    pagamento: 'Compartilhado',
-                    status: 'PENDENTE'
-                };
-                const res = await _supabase.from('gastos_compartilhados').insert([novaConta]);
-                error = res.error;
-            }
-
-            if (error) {
-                showToast("Erro ao salvar conta compartilhada: " + error.message, "error");
-            } else {
-                showToast(editId ? "Conta compartilhada atualizada com sucesso!" : "Conta compartilhada registrada com sucesso!", "success");
-                cancelSharedEdit();
-                loadSharedData();
-            }
-            btn.innerText = editId ? 'Atualizar Conta' : 'Salvar Gastos Divididos';
-        }
-
-        function editSharedTransaction(id) {
-            const item = sharedData.find(s => s.id === id);
-            if (!item) return;
-
-            // Verificação: se já foi lançado, orienta o usuário e impede edição direta dos campos financeiros
-            const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
-            if (jaLancado) {
-                showToast("Este gasto já foi lançado no seu extrato. Para alterar os dados financeiros, exclua primeiro a transação vinculada no extrato.", "info", 5000);
-                return;
-            }
-
-            document.getElementById('edit_shared_id').value = item.id;
-            document.getElementById('s_data').value = item.data;
-            document.getElementById('s_descricao').value = item.descricao;
-            document.getElementById('s_valor_total').value = item.valor_total;
-            document.getElementById('s_valor_meu').value = item.valor_meu;
-            document.getElementById('s_valor_parceiro').value = item.valor_parceiro;
-            document.getElementById('s_categoria').value = item.categoria || '';
-
-            // Se for 50/50 exato, define regra como 50_50, senão CUSTOM
-            const vTotal = parseFloat(item.valor_total) || 0;
-            const vMeu = parseFloat(item.valor_meu) || 0;
-            if (vTotal > 0 && Math.abs(vMeu - (vTotal / 2)) < 0.01) {
-                document.getElementById('s_regra').value = '50_50';
-            } else {
-                document.getElementById('s_regra').value = 'CUSTOM';
-            }
-
-            const titleEl = document.getElementById('sharedFormTitle');
-            if (titleEl) titleEl.innerText = "Editar Conta Compartilhada";
-            const btnSalvar = document.getElementById('btnSalvarShared');
-            if (btnSalvar) btnSalvar.innerText = "Atualizar Conta";
-            const btnCancelar = document.getElementById('btnCancelarEdicaoShared');
-            if (btnCancelar) btnCancelar.style.display = "inline-block";
-
-            document.getElementById('sharedForm').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function cancelSharedEdit() {
-            document.getElementById('edit_shared_id').value = "";
-            document.getElementById('sharedForm').reset();
-            document.getElementById('s_data').valueAsDate = new Date();
-            const titleEl = document.getElementById('sharedFormTitle');
-            if (titleEl) titleEl.innerText = "Lançar Conta Compartilhada (Divisão do Casal)";
-            const btnSalvar = document.getElementById('btnSalvarShared');
-            if (btnSalvar) btnSalvar.innerText = "Salvar Gastos Divididos";
-            const btnCancelar = document.getElementById('btnCancelarEdicaoShared');
-            if (btnCancelar) btnCancelar.style.display = "none";
-        }
-
-        async function deleteSharedTransaction(id) {
-            const item = sharedData.find(s => s.id === id);
-            if (!item) return;
-
-            const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
-            const msgConfirm = jaLancado
-                ? `Esta conta já possui uma despesa lançada no seu extrato.\n\nExcluir esta conta removerá apenas o controle de divisão.\nA despesa pessoal continuará no extrato.\n\nDeseja continuar?`
-                : `Deseja realmente excluir a conta compartilhada "${item.descricao}"?`;
-
-            if (confirm(msgConfirm)) {
-                const { error } = await _supabase
-                    .from('gastos_compartilhados')
-                    .delete()
-                    .eq('id', id)
-                    .eq('created_by', currentUser.id);
-
-                if (error) {
-                    showToast("Erro ao excluir conta compartilhada: " + error.message, "error");
-                } else {
-                    if (document.getElementById('edit_shared_id').value === id) {
-                        cancelSharedEdit();
-                    }
-                    manualSync();
-                }
-            }
-        }
-
-        async function pushSharedIndividual(id, target) {
-            const conta = sharedData.find(s => s.id === id);
-            if (!conta) return;
-
-            // Verificação defensiva no frontend: já existe transação vinculada?
-            const jaLancado = globalData.some(d => d.gasto_compartilhado_id === id);
-            if (jaLancado) {
-                showToast("Este gasto compartilhado já foi lançado no seu extrato!", "warning");
-                return;
-            }
-
-            const targetVal = target === 'meu' ? conta.valor_meu : conta.valor_parceiro;
-
-            if (confirm(`Lançar R$ ${targetVal.toFixed(2)} no seu painel?`)) {
-                const lancamento = {
-                    user_id: currentUser.id,
-                    gasto_compartilhado_id: id,
-                    grupo_parcela_id: null,
-                    tipo: 'Despesa',
-                    data: conta.data,
-                    descricao: `${conta.descricao} (Divisão)`,
-                    valor: targetVal,
-                    categoria: conta.categoria,
-                    pagamento: 'Compartilhado'
-                };
-
-                const { error } = await _supabase.from('transacoes').insert([lancamento]);
-
-                if (error) {
-                    showToast("Erro ao lançar no dashboard: " + error.message, "error");
-                } else {
-                    showToast("Lançamento efetuado com sucesso!", "success");
-                    manualSync();
-                }
-            }
-        }
-
-        async function toggleSharedPaidStatus(id, currentStatus) {
-            const newStatus = currentStatus === 'PAGO' ? 'PENDENTE' : 'PAGO';
-            const { error } = await _supabase.from('gastos_compartilhados').update({ status: newStatus }).eq('id', id);
-
-            if (error) {
-                showToast("Erro ao alterar status: " + error.message, "error");
-            } else {
-                loadSharedData();
-            }
-        }
-
-        function renderSharedTable() {
-            const tbody = document.getElementById('sharedTableBody');
-            tbody.innerHTML = '';
-
-            let totalGeral = 0, totalMeu = 0, totalParceiro = 0;
-
-            if (sharedData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhuma conta dividida cadastrada.</td></tr>`;
-                return;
-            }
-
-            sharedData.forEach(item => {
-                const tr = document.createElement('tr');
-                const isPago = item.status === 'PAGO';
-                const d = new Date(item.data + 'T12:00:00');
-
-                const valTotal = parseFloat(item.valor_total) || 0;
-                const valMeu = parseFloat(item.valor_meu) || 0;
-                const valParceiro = parseFloat(item.valor_parceiro) || 0;
-
-                totalGeral += valTotal;
-                totalMeu += valMeu;
-                totalParceiro += valParceiro;
-
-                const jaLancado = globalData.some(d => d.gasto_compartilhado_id === item.id);
-                const btnLancamento = jaLancado
-                    ? `<button class="reset-btn" disabled style="opacity:0.65; cursor:not-allowed; background:var(--bg-color); color:var(--success); border-color:var(--border);">✅ Já Lançado</button>`
-                    : `<button class="reset-btn" onclick="pushSharedIndividual('${item.id}', 'meu')">👤 Lançar Meu Valor</button>`;
-
-                tr.innerHTML = `
-                    <td>${d.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:600;">${escapeHtml(item.descricao)}</td>
-                    <td style="font-weight:700;">${fmt(valTotal)}</td>
-                    <td style="color:var(--danger); font-weight:600;">${fmt(valMeu)}</td>
-                    <td style="color:var(--warning); font-weight:600;">${fmt(valParceiro)}</td>
-                    <td>
-                        <button class="action-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="toggleSharedPaidStatus('${item.id}', '${item.status}')">
-                            <span class="tag-status ${isPago ? 'tag-done' : 'tag-open'}">${isPago ? '✅ Pago' : '⏳ Pendente'}</span>
-                        </button>
-                    </td>
-                    <td style="text-align:center; white-space:nowrap;">
-                        ${btnLancamento}
-                        <button class="action-icon-btn" title="Editar" onclick="editSharedTransaction('${item.id}')">✏️</button>
-                        <button class="action-icon-btn" title="Excluir" onclick="deleteSharedTransaction('${item.id}')">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('kpi-shared-total').innerText = fmt(totalGeral);
-            document.getElementById('kpi-shared-meu').innerText = fmt(totalMeu);
-            document.getElementById('kpi-shared-parceiro').innerText = fmt(totalParceiro);
         }
 
         function onTypeChange() {
@@ -4645,9 +4306,6 @@
             'previsao': 'previsao',
             'metas': 'metas',
             'investimentos': 'investimentos',
-            'divisao': 'divisao',
-            'compartilhado': 'divisao',
-            'gastos-compartilhados': 'divisao',
             'configuracoes': 'gerenciar-listas',
             'gerenciar-listas': 'gerenciar-listas',
             'categorias': 'gerenciar-listas',
@@ -4664,7 +4322,6 @@
             'previsao': 'previsao',
             'metas': 'metas',
             'investimentos': 'investimentos',
-            'divisao': 'divisao',
             'gerenciar-listas': 'configuracoes',
             'novo': 'novo',
             'conta': 'conta'
@@ -4739,10 +4396,6 @@
                 renderInvestmentsTab();
             }
             if(tabId === 'gerenciar-listas') renderManageLists();
-            if(tabId === 'divisao') {
-                document.getElementById('s_data').valueAsDate = new Date();
-                loadSharedData();
-            }
             if(tabId === 'novo') {
                 if(!document.getElementById('edit_id').value) {
                     document.getElementById('i_data').valueAsDate = new Date();
@@ -4761,7 +4414,6 @@
                 syncBtn.title = 'Buscando dados...';
             }
             await loadDashboardData();
-            await loadSharedData();
             await loadMetasData();
             await loadCatalogsData();
             if (syncBtn) {

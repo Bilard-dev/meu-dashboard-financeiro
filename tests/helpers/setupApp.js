@@ -6,7 +6,6 @@
 const {
     mockUser,
     mockTransactions,
-    mockSharedExpenses,
     mockMetas,
     mockBudgets,
     mockCategorias,
@@ -21,7 +20,6 @@ const {
  * @param {Object} options
  * @param {boolean} [options.authenticated=true] - Se deve inicializar já logado
  * @param {Array} [options.transactions] - Lista inicial de transações mockadas
- * @param {Array} [options.sharedExpenses] - Lista inicial de gastos compartilhados
  * @param {Array} [options.metas] - Lista inicial de metas mockadas
  * @param {Array} [options.categorias] - Lista inicial de categorias mockadas
  * @param {Array} [options.subcategorias] - Lista inicial de subcategorias mockadas
@@ -33,7 +31,6 @@ const {
 async function setupAuthenticatedApp(page, {
     authenticated = true,
     transactions = JSON.parse(JSON.stringify(mockTransactions)),
-    sharedExpenses = JSON.parse(JSON.stringify(mockSharedExpenses)),
     metas = JSON.parse(JSON.stringify(mockMetas)),
     categorias = JSON.parse(JSON.stringify(mockCategorias)),
     subcategorias = JSON.parse(JSON.stringify(mockSubcategorias)),
@@ -45,7 +42,6 @@ async function setupAuthenticatedApp(page, {
 } = {}) {
 
     let inMemoryTransactions = [...transactions];
-    let inMemoryShared = [...sharedExpenses];
     let inMemoryMetas = [...metas];
     let inMemoryCategorias = [...categorias];
     let inMemorySubcategorias = [...subcategorias];
@@ -105,24 +101,9 @@ async function setupAuthenticatedApp(page, {
                     const postData = route.request().postDataJSON();
                     const newItems = Array.isArray(postData) ? postData : [postData];
 
-                    // Simulação da trava UNIQUE do PostgreSQL em gasto_compartilhado_id
-                    for (const item of newItems) {
-                        if (item.gasto_compartilhado_id) {
-                            const duplicate = inMemoryTransactions.some(t => t.gasto_compartilhado_id === item.gasto_compartilhado_id);
-                            if (duplicate) {
-                                return route.fulfill({
-                                    status: 409,
-                                    contentType: 'application/json',
-                                    body: JSON.stringify({ message: 'duplicate key value violates unique constraint "unique_transacao_por_gasto_compartilhado"' })
-                                });
-                            }
-                        }
-                    }
-
                     const createdItems = newItems.map((item, idx) => ({
                         id: item.id || `tx-created-${Date.now()}-${idx}`,
                         created_at: new Date().toISOString(),
-                        gasto_compartilhado_id: item.gasto_compartilhado_id || null,
                         grupo_parcela_id: item.grupo_parcela_id || null,
                         ...item
                     }));
@@ -178,66 +159,6 @@ async function setupAuthenticatedApp(page, {
                         inMemoryTransactions = inMemoryTransactions.filter(t => t.id !== targetId && String(t.id) !== String(targetId));
                     } else if (targetGroup) {
                         inMemoryTransactions = inMemoryTransactions.filter(t => t.grupo_parcela_id !== targetGroup);
-                    }
-                    return route.fulfill({
-                        status: 204,
-                        body: ''
-                    });
-                }
-            }
-
-            // Mock de Gastos Compartilhados (REST)
-            if (pathname.includes('/rest/v1/gastos_compartilhados')) {
-                if (method === 'GET') {
-                    return route.fulfill({
-                        status: 200,
-                        contentType: 'application/json',
-                        headers: { 'content-range': `0-${inMemoryShared.length - 1}/${inMemoryShared.length}` },
-                        body: JSON.stringify(inMemoryShared)
-                    });
-                }
-                if (method === 'POST') {
-                    const postData = route.request().postDataJSON();
-                    const newItems = Array.isArray(postData) ? postData : [postData];
-                    const createdItems = newItems.map((item, idx) => ({
-                        id: item.id || `shared-created-${Date.now()}-${idx}`,
-                        created_at: new Date().toISOString(),
-                        ...item
-                    }));
-                    inMemoryShared.unshift(...createdItems);
-                    return route.fulfill({
-                        status: 201,
-                        contentType: 'application/json',
-                        body: JSON.stringify(createdItems)
-                    });
-                }
-                if (method === 'PATCH') {
-                    const patchData = route.request().postDataJSON();
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
-                    if (targetId) {
-                        const index = inMemoryShared.findIndex(s => s.id === targetId);
-                        if (index !== -1) {
-                            inMemoryShared[index] = { ...inMemoryShared[index], ...patchData };
-                        }
-                    }
-                    return route.fulfill({
-                        status: 200,
-                        contentType: 'application/json',
-                        body: JSON.stringify(patchData)
-                    });
-                }
-                if (method === 'DELETE') {
-                    const match = urlObj.search.match(/id=eq\.([^&]+)/);
-                    const targetId = match ? match[1] : null;
-                    if (targetId) {
-                        inMemoryShared = inMemoryShared.filter(s => s.id !== targetId);
-                        inMemoryTransactions = inMemoryTransactions.map(t => {
-                            if (t.gasto_compartilhado_id === targetId) {
-                                return { ...t, gasto_compartilhado_id: null };
-                            }
-                            return t;
-                        });
                     }
                     return route.fulfill({
                         status: 204,
@@ -945,7 +866,6 @@ async function setupAuthenticatedApp(page, {
 
     return {
         getTransactions: () => inMemoryTransactions,
-        getShared: () => inMemoryShared,
         getMetas: () => inMemoryMetas,
         getCategories: () => inMemoryCategorias,
         getSubcategories: () => inMemorySubcategorias,

@@ -18,6 +18,9 @@ O Row Level Security (RLS) está explicitamente habilitado nas tabelas:
 * `public.transacoes`
 * `public.gastos_compartilhados`
 
+> [!NOTE]
+> **Nota de Arquitetura (Base 3.0):** O frontend da aplicação removeu o módulo de Gastos Compartilhados. A tabela `public.gastos_compartilhados` e suas políticas de segurança RLS permanecem temporariamente existentes no banco de dados e registradas neste documento para fins históricos, aguardando futura auditoria e migração backend dedicada.
+
 ---
 
 ## 3. Políticas Ativas (Estado Consolidado)

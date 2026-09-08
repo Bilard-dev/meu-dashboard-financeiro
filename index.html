@@ -2348,6 +2348,19 @@
             updateMetaCategory
         } from './src/services/metasService.js';
 
+        import {
+            fetchCategoriasOrdered,
+            fetchCategorias,
+            fetchSubcategoriasOrdered,
+            fetchCartoesOrdered,
+            fetchTagsOrdered,
+            insertCatalogItem,
+            insertCatalogBatch,
+            updateCatalogItem,
+            deleteCatalogItem,
+            callCatalogRpc
+        } from './src/services/catalogsService.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -2378,6 +2391,16 @@
         window.metasDelete = deleteMeta;
         window.metasInsertMany = insertMetas;
         window.metasUpdateCategory = updateMetaCategory;
+        window.catalogFetchCategoriasOrdered = fetchCategoriasOrdered;
+        window.catalogFetchCategorias = fetchCategorias;
+        window.catalogFetchSubcategoriasOrdered = fetchSubcategoriasOrdered;
+        window.catalogFetchCartoesOrdered = fetchCartoesOrdered;
+        window.catalogFetchTagsOrdered = fetchTagsOrdered;
+        window.catalogInsertItem = insertCatalogItem;
+        window.catalogInsertBatch = insertCatalogBatch;
+        window.catalogUpdateItem = updateCatalogItem;
+        window.catalogDeleteItem = deleteCatalogItem;
+        window.catalogCallRpc = callCatalogRpc;
     </script>
 
     <script>
@@ -2707,10 +2730,10 @@
             if (!currentUser) return;
             try {
                 const [catsRes, subcatsRes, cardsRes, tagsRes] = await Promise.all([
-                    _supabase.from('app_categorias').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true }),
-                    _supabase.from('app_subcategorias').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true }),
-                    _supabase.from('app_cartoes').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true }),
-                    _supabase.from('app_tags').select('*').eq('user_id', currentUser.id).order('ordem', { ascending: true }).order('nome', { ascending: true })
+                    catalogFetchCategoriasOrdered(currentUser.id),
+                    catalogFetchSubcategoriasOrdered(currentUser.id),
+                    catalogFetchCartoesOrdered(currentUser.id),
+                    catalogFetchTagsOrdered(currentUser.id)
                 ]);
 
                 if (!catsRes.error && catsRes.data) globalCategorias = catsRes.data;
@@ -3485,7 +3508,7 @@
             const tableName = tableMap[type];
 
             // 1. Atualiza o catálogo
-            const { error: catErr } = await _supabase.from(tableName).update(payload).eq('id', itemId);
+            const { error: catErr } = await catalogUpdateItem(tableName, itemId, payload);
             if (catErr) throw catErr;
 
             const normOld = normalizeCatalogName(oldName);
@@ -3625,9 +3648,9 @@
             try {
                 let res;
                 if (itemId) {
-                    res = await _supabase.from(tableName).update(payload).eq('id', itemId);
+                    res = await catalogUpdateItem(tableName, itemId, payload);
                 } else {
-                    res = await _supabase.from(tableName).insert([payload]).select();
+                    res = await catalogInsertItem(tableName, payload);
                 }
 
                 if (res.error) {
@@ -3981,7 +4004,7 @@
                     rpcName = 'merge_tags';
                 }
 
-                const { data, error } = await _supabase.rpc(rpcName, rpcParams);
+                const { data, error } = await catalogCallRpc(rpcName, rpcParams);
 
                 if (error) {
                     if (errEl) {
@@ -4023,7 +4046,7 @@
             if (!tableName) return;
 
             const newActive = !currentActive;
-            const { error } = await _supabase.from(tableName).update({ ativo: newActive }).eq('id', id);
+            const { error } = await catalogUpdateItem(tableName, id, { ativo: newActive });
 
             if (error) {
                 showToast('Erro ao alterar status: ' + error.message, 'error');
@@ -4074,7 +4097,7 @@
             }
 
             if (confirm(`Deseja realmente excluir permanentemente "${item.nome}"? Esta ação não pode ser desfeita.`)) {
-                const { error } = await _supabase.from(tableName).delete().eq('id', id);
+                const { error } = await catalogDeleteItem(tableName, id);
                 if (error) {
                     showToast('Erro ao excluir: ' + error.message, 'error');
                 } else {
@@ -4227,12 +4250,12 @@
                 });
 
                 if (catPayloads.length > 0) {
-                    const { error: catErr } = await _supabase.from('app_categorias').insert(catPayloads);
+                    const { error: catErr } = await catalogInsertBatch('app_categorias', catPayloads);
                     if (catErr) console.error("Erro ao importar categorias:", catErr);
                 }
 
                 // Re-fetch categories para obter IDs atualizados para vincular subcategorias
-                const { data: updatedCats } = await _supabase.from('app_categorias').select('*').eq('user_id', currentUser.id);
+                const { data: updatedCats } = await catalogFetchCategorias(currentUser.id);
                 if (updatedCats) globalCategorias = updatedCats;
 
                 // 2. Cartões selecionados
@@ -4251,7 +4274,7 @@
                 });
 
                 if (cardPayloads.length > 0) {
-                    const { error: cardErr } = await _supabase.from('app_cartoes').insert(cardPayloads);
+                    const { error: cardErr } = await catalogInsertBatch('app_cartoes', cardPayloads);
                     if (cardErr) console.error("Erro ao importar cartões:", cardErr);
                 }
 
@@ -4275,7 +4298,7 @@
                 });
 
                 if (subPayloads.length > 0) {
-                    const { error: subErr } = await _supabase.from('app_subcategorias').insert(subPayloads);
+                    const { error: subErr } = await catalogInsertBatch('app_subcategorias', subPayloads);
                     if (subErr) console.error("Erro ao importar subcategorias:", subErr);
                 }
 

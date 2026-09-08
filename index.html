@@ -2384,6 +2384,17 @@
             isStrongPassword
         } from './src/core/security.js';
 
+        import {
+            MONTH_NAMES_BR,
+            addMonths,
+            parseLocalDate
+        } from './src/core/dateUtils.js';
+
+        import {
+            formatCurrency,
+            formatFaturaBadge
+        } from './src/core/formatters.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -2391,6 +2402,13 @@
         window.isStrongPassword = isStrongPassword;
         window.extractTagsFromDesc = extractTagsFromDesc;
         window.buildDescWithTags = buildDescWithTags;
+        window.MONTH_NAMES_BR = MONTH_NAMES_BR;
+        window.monthNamesBR = MONTH_NAMES_BR;
+        window.addMonths = addMonths;
+        window.parseLocalDate = parseLocalDate;
+        window.formatCurrency = formatCurrency;
+        window.formatFaturaBadge = formatFaturaBadge;
+        window.fmt = (val) => formatCurrency(val, typeof isPrivacyMode !== 'undefined' ? isPrivacyMode : false);
     </script>
 
     <script>
@@ -2437,8 +2455,6 @@
 
             return false;
         }
-
-        const monthNamesBR = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
@@ -4599,11 +4615,6 @@
             updateDashboard(document.getElementById('monthSelector').value);
         }
 
-        function fmt(val) {
-            if (isPrivacyMode) return 'R$ ****,**';
-            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
         /* ==========================================================
            🌐 BASE 3.0 — SPA HASH ROUTING
            ========================================================== */
@@ -5916,20 +5927,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-        }
-
-        function formatFaturaBadge(item) {
-            if (item.pagamento !== 'Cartão de Crédito' && !item.cartao) return '';
-            const pDate = new Date(item.rawDate + 'T12:00:00');
-            const pYear = pDate.getFullYear();
-            const pMonth = pDate.getMonth();
-            let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
-            if (item.faturaDestino && item.faturaDestino.includes('-')) {
-                const [absY, absM] = item.faturaDestino.split('-').map(Number);
-                faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
-            }
-            const fDate = new Date(pYear, pMonth + faturaOffset, 1);
-            return `Fatura ${monthNamesBR[fDate.getMonth()]}/${fDate.getFullYear()}`;
         }
 
         function getFinancialExpensesForMonth(selectedYm) {

@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 const { test, expect } = require('@playwright/test');
 const { setupAuthenticatedApp } = require('./helpers/setupApp');
 
@@ -95,6 +95,7 @@ test.describe('Filtros Avançados - Parcelas/Cartões e Análise de Gastos', () 
         });
 
         await page.getByRole('button', { name: /Parcelas/i }).click();
+        await page.locator('#faturaMonthSelector').selectOption('2026-7');
 
         // Filtra apenas parceladas
         await page.locator('#parcelasTypeFilter').selectOption('parcelado');

@@ -108,13 +108,14 @@ test.describe('Descrições & Tags 2.0 - Prefixo Ancorado e Preservação de Col
     });
 
     test('6. Edição de "Livro [Edição Especial]" preserva colchetes legítimos no formulário e no banco', async ({ page }) => {
+        const currentYearMonth = new Date().toISOString().slice(0, 7);
         const { getTransactions } = await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-livro-colchetes',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-01',
+                    data: `${currentYearMonth}-01`,
                     descricao: 'Livro [Edição Especial]',
                     valor: 120.00,
                     pagamento: 'PIX',
@@ -146,13 +147,14 @@ test.describe('Descrições & Tags 2.0 - Prefixo Ancorado e Preservação de Col
     });
 
     test('7. Salvar novamente registro com tag não duplica prefixo de tags', async ({ page }) => {
+        const currentYearMonth = new Date().toISOString().slice(0, 7);
         const { getTransactions } = await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-jogo-tagged',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-01',
+                    data: `${currentYearMonth}-01`,
                     descricao: '[Lazer] Jogo [Edição de Colecionador]',
                     valor: 350.00,
                     pagamento: 'PIX',
@@ -182,13 +184,14 @@ test.describe('Descrições & Tags 2.0 - Prefixo Ancorado e Preservação de Col
     });
 
     test('8. Remover tags ao editar preserva os colchetes legítimos da descrição', async ({ page }) => {
+        const currentYearMonth = new Date().toISOString().slice(0, 7);
         const { getTransactions } = await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-jogo-tagged',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-01',
+                    data: `${currentYearMonth}-01`,
                     descricao: '[Lazer] Jogo [Edição de Colecionador]',
                     valor: 350.00,
                     pagamento: 'PIX',
@@ -214,13 +217,14 @@ test.describe('Descrições & Tags 2.0 - Prefixo Ancorado e Preservação de Col
     });
 
     test('9. Pesquisa na aba Resumo/Extrato encontra texto dentro de colchetes legítimos', async ({ page }) => {
+        const currentYearMonth = new Date().toISOString().slice(0, 7);
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-01',
+                    data: `${currentYearMonth}-01`,
                     descricao: 'Livro [Edição Especial]',
                     valor: 120.00,
                     pagamento: 'PIX',
@@ -231,7 +235,7 @@ test.describe('Descrições & Tags 2.0 - Prefixo Ancorado e Preservação de Col
                     id: 'tx-2',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: `${currentYearMonth}-02`,
                     descricao: 'Supermercado Mensal',
                     valor: 200.00,
                     pagamento: 'PIX',
@@ -250,13 +254,14 @@ test.describe('Descrições & Tags 2.0 - Prefixo Ancorado e Preservação de Col
     });
 
     test('10. Filtro dropdown por tag em Análise & Filtros reconhece apenas tags iniciais', async ({ page }) => {
+        const currentYearMonth = new Date().toISOString().slice(0, 7);
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-01',
+                    data: `${currentYearMonth}-01`,
                     descricao: '[Trabalho] Teclado [RGB]',
                     valor: 250.00,
                     pagamento: 'PIX',

@@ -445,6 +445,7 @@ test.describe('Competência de Faturas 2.0 - Fluxo de Caixa Real', () => {
             ]
         });
 
+        await page.selectOption('#monthSelector', '2026-7');
         const firstRow = page.locator('#resumoExtratoTableBody tr').first();
         await expect(firstRow).toContainText('28/08/2026');
         await expect(firstRow).toContainText('Compras Shopping');

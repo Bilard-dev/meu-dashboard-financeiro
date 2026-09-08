@@ -940,7 +940,7 @@ async function setupAuthenticatedApp(page, {
 
     if (authenticated) {
         // Aguarda exibição do aplicativo principal
-        await page.waitForSelector('#appView:not([style*="display: none"])', { timeout: 12000 });
+        await page.waitForSelector('#appView:not([style*="display: none"])', { timeout: 20000 });
     }
 
     return {

@@ -6,6 +6,7 @@ test.describe('Transações - CRUD e Fluxo Real', () => {
 
     test('1. Cadastro de nova transação à vista (PIX)', async ({ page }) => {
         const state = await setupAuthenticatedApp(page);
+        const today = new Date().toISOString().split('T')[0];
 
         // Navega para aba Novo Registro
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
@@ -13,7 +14,7 @@ test.describe('Transações - CRUD e Fluxo Real', () => {
 
         // Preenche o formulário
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Livro de Finanças');
         await page.locator('#i_valor').fill('79.90');
         await page.locator('#i_pagamento').selectOption('PIX');
@@ -30,11 +31,12 @@ test.describe('Transações - CRUD e Fluxo Real', () => {
 
     test('2. Cadastro de compra parcelada no Cartão de Crédito', async ({ page }) => {
         await setupAuthenticatedApp(page);
+        const today = new Date().toISOString().split('T')[0];
 
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
 
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Smartphone Parcelado');
         await page.locator('#i_valor').fill('250.00');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');

@@ -1974,8 +1974,21 @@
                                 <label>Parcela / Recorrência</label>
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
                                     <option value="À vista">À vista / Sem parcela</option>
+                                    <option value="1/2">2x (1/2)</option>
+                                    <option value="1/3">3x (1/3)</option>
+                                    <option value="1/4">4x (1/4)</option>
+                                    <option value="1/5">5x (1/5)</option>
+                                    <option value="1/6">6x (1/6)</option>
+                                    <option value="1/7">7x (1/7)</option>
+                                    <option value="1/8">8x (1/8)</option>
+                                    <option value="1/9">9x (1/9)</option>
+                                    <option value="1/10">10x (1/10)</option>
+                                    <option value="1/11">11x (1/11)</option>
+                                    <option value="1/12">12x (1/12)</option>
+                                    <option value="1/18">18x (1/18)</option>
+                                    <option value="1/24">24x (1/24)</option>
                                     <option value="RECORRENTE">🔄 Recorrente / Assinatura (Mensal)</option>
-                                    <option value="CUSTOM">🔢 Digitado (Ex: 1/12, 2/6, 8/11)</option>
+                                    <option value="CUSTOM">🔢 Outro / Digitar Parcela (Ex: 3/8, 1/36)...</option>
                                 </select>
                                 <input type="text" id="i_parcela_custom" class="input-field" placeholder="Ex: 8/11" style="display: none; margin-top: 0.4rem;">
                             </div>
@@ -2323,11 +2336,26 @@
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
-                <label>Tipo de Cobrança</label>
-                <select id="m_parcela_select" class="input-field">
-                    <option value="À vista">À vista</option>
-                    <option value="RECORRENTE">🔄 Recorrente / Assinatura</option>
+                <label id="m_parcela_label">Parcela / Recorrência</label>
+                <select id="m_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'm_parcela_custom')">
+                    <option value="À vista">À vista / Sem parcela</option>
+                    <option value="1/2">2x (1/2)</option>
+                    <option value="1/3">3x (1/3)</option>
+                    <option value="1/4">4x (1/4)</option>
+                    <option value="1/5">5x (1/5)</option>
+                    <option value="1/6">6x (1/6)</option>
+                    <option value="1/7">7x (1/7)</option>
+                    <option value="1/8">8x (1/8)</option>
+                    <option value="1/9">9x (1/9)</option>
+                    <option value="1/10">10x (1/10)</option>
+                    <option value="1/11">11x (1/11)</option>
+                    <option value="1/12">12x (1/12)</option>
+                    <option value="1/18">18x (1/18)</option>
+                    <option value="1/24">24x (1/24)</option>
+                    <option value="RECORRENTE">🔄 Recorrente / Assinatura (Mensal)</option>
+                    <option value="CUSTOM">🔢 Outro / Digitar Parcela (Ex: 3/8, 1/36)...</option>
                 </select>
+                <input type="text" id="m_parcela_custom" class="input-field" placeholder="Ex: 1/12 ou 3/8" style="display: none; margin-top: 0.4rem;">
             </div>
 
             <div class="input-group">
@@ -2808,8 +2836,8 @@
         }
 
         function updateFormCardLabels() {
-            const isCard = document.getElementById('i_pagamento').value === 'Cartão de Crédito';
-            const pSel = document.getElementById('i_parcela_select').value;
+            const isCard = document.getElementById('i_pagamento')?.value === 'Cartão de Crédito';
+            const pSel = document.getElementById('i_parcela_select')?.value;
             const valorLabel = document.getElementById('i_valor_label');
             const faturaLabel = document.getElementById('i_fatura_destino_label');
 
@@ -2817,7 +2845,7 @@
                 if (isCard) {
                     if (pSel === 'RECORRENTE') {
                         valorLabel.innerText = '4. Valor Mensal (R$) *';
-                    } else if (pSel === 'CUSTOM') {
+                    } else if (pSel === 'CUSTOM' || (pSel && pSel.includes('/'))) {
                         valorLabel.innerText = '4. Valor da Parcela (R$) *';
                     } else {
                         valorLabel.innerText = '4. Valor da Compra (R$) *';
@@ -2830,7 +2858,7 @@
             if (faturaLabel) {
                 if (pSel === 'RECORRENTE') {
                     faturaLabel.innerText = 'Primeira Fatura de Cobrança *';
-                } else if (pSel === 'CUSTOM') {
+                } else if (pSel === 'CUSTOM' || (pSel && pSel.includes('/'))) {
                     faturaLabel.innerText = 'Primeira Parcela na Fatura *';
                 } else {
                     faturaLabel.innerText = 'Fatura de Pagamento *';
@@ -3048,12 +3076,27 @@
             document.getElementById('m_data').valueAsDate = new Date();
             document.getElementById('m_categoria').innerHTML = document.getElementById('i_categoria').innerHTML;
             document.getElementById('m_cartao').innerHTML = document.getElementById('i_cartao').innerHTML;
+            document.getElementById('m_parcela_select').value = 'À vista';
+            const mCustom = document.getElementById('m_parcela_custom');
+            if (mCustom) {
+                mCustom.style.display = 'none';
+                mCustom.value = '';
+            }
             updateMobileDynamicFaturaDropdown();
             toggleMobilePaymentFields();
         }
 
         function closeMobileQuickView() {
             document.getElementById('mobileQuickView').style.display = 'none';
+            document.getElementById('m_descricao').value = '';
+            document.getElementById('m_valor').value = '';
+            document.getElementById('m_tags').value = '';
+            document.getElementById('m_parcela_select').value = 'À vista';
+            const mCustom = document.getElementById('m_parcela_custom');
+            if (mCustom) {
+                mCustom.style.display = 'none';
+                mCustom.value = '';
+            }
         }
 
         function toggleMobilePaymentFields() {
@@ -3078,11 +3121,27 @@
 
             const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
             const mParcelaSel = document.getElementById('m_parcela_select').value;
+            let valorParcelaFinal = '';
+            if (isCard) {
+                if (mParcelaSel === 'RECORRENTE') {
+                    valorParcelaFinal = 'RECORRENTE';
+                } else if (mParcelaSel === 'CUSTOM') {
+                    valorParcelaFinal = document.getElementById('m_parcela_custom').value.trim();
+                } else if (mParcelaSel !== 'À vista') {
+                    valorParcelaFinal = mParcelaSel;
+                }
+            }
+
+            let grupoParcelaId = null;
+            if (isCard && valorParcelaFinal && /^\d+\/\d+$/.test(valorParcelaFinal)) {
+                grupoParcelaId = crypto.randomUUID();
+            }
+
             const descWithTags = buildDescWithTags(document.getElementById('m_descricao').value, document.getElementById('m_tags').value);
 
             const payload = {
                 user_id: currentUser.id,
-                grupo_parcela_id: null,
+                grupo_parcela_id: grupoParcelaId,
                 tipo: 'Despesa',
                 data: document.getElementById('m_data').value,
                 descricao: descWithTags,
@@ -3090,8 +3149,8 @@
                 pagamento: document.getElementById('m_pagamento').value,
                 cartao: isCard ? document.getElementById('m_cartao').value : '',
                 fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
-                parcela: isCard ? (mParcelaSel === 'RECORRENTE' ? 'RECORRENTE' : '') : '',
-                categoria: document.getElementById('m_categoria').value,
+                parcela: valorParcelaFinal,
+                categoria: document.getElementById('m_categoria').value || 'Outros',
                 subcategoria: document.getElementById('m_subcategoria').value || ''
             };
 
@@ -3105,6 +3164,12 @@
                     document.getElementById('m_descricao').value = '';
                     document.getElementById('m_valor').value = '';
                     document.getElementById('m_tags').value = '';
+                    document.getElementById('m_parcela_select').value = 'À vista';
+                    const customEl = document.getElementById('m_parcela_custom');
+                    if (customEl) {
+                        customEl.style.display = 'none';
+                        customEl.value = '';
+                    }
                 } else {
                     closeMobileQuickView();
                 }
@@ -4719,6 +4784,8 @@
                     valorParcelaFinal = 'RECORRENTE';
                 } else if (pSel === 'CUSTOM') {
                     valorParcelaFinal = document.getElementById('i_parcela_custom').value.trim();
+                } else if (pSel !== 'À vista') {
+                    valorParcelaFinal = pSel;
                 }
             }
 
@@ -4915,13 +4982,22 @@
             if (item.parcela === 'RECORRENTE') {
                 pSel.value = 'RECORRENTE';
                 pCustom.style.display = 'none';
+                pCustom.value = '';
             } else if (item.parcela && item.parcela.includes('/')) {
-                pSel.value = 'CUSTOM';
-                pCustom.value = item.parcela;
-                pCustom.style.display = 'block';
+                const hasOption = Array.from(pSel.options).some(o => o.value === item.parcela);
+                if (hasOption) {
+                    pSel.value = item.parcela;
+                    pCustom.style.display = 'none';
+                    pCustom.value = '';
+                } else {
+                    pSel.value = 'CUSTOM';
+                    pCustom.value = item.parcela;
+                    pCustom.style.display = 'block';
+                }
             } else {
                 pSel.value = 'À vista';
                 pCustom.style.display = 'none';
+                pCustom.value = '';
             }
 
             populateFormDropdowns();

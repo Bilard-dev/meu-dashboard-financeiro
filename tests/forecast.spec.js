@@ -61,6 +61,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await page.click('#btnHorizon6');
 
@@ -89,6 +90,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await page.click('#btnHorizon6');
 
@@ -116,6 +118,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await page.click('#btnHorizon3');
 
@@ -142,6 +145,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await page.click('#btnHorizon6');
 
@@ -170,6 +174,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await page.click('#btnHorizon6');
 
@@ -211,6 +216,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
 
         await expect(page.locator('#fdetail-total')).toHaveText('R$ 500,00');
@@ -238,6 +244,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
 
         const cards = page.locator('#forecastMonthGrid .forecast-month-card');
@@ -264,6 +271,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
 
         await expect(page.locator('#forecastByCategoryList')).toContainText('Saúde');
@@ -290,6 +298,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await expect(page.locator('#dashboardForecastWidget')).toBeVisible();
 
         const dashCards = page.locator('#dashboardForecastCards > div');
@@ -338,6 +347,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
 
         const cards = page.locator('#forecastMonthGrid .forecast-month-card');
@@ -380,6 +390,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
 
         await expect(page.locator('#fdetail-total')).toHaveText('R$ 250,00');
@@ -433,6 +444,7 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         ];
 
         await setupAuthenticatedApp(page, { transactions: customTxs });
+        await page.selectOption('#monthSelector', '2026-7');
         await page.click('button:has-text("🔮 Previsão Financeira")');
         await page.click('#btnHorizon12');
 

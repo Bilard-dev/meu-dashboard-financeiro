@@ -100,11 +100,12 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
 
     test('6. [PARCELAMENTOS 2.0] Nova compra parcelada 1/3 recebe grupo_parcela_id UUID válido', async ({ page }) => {
         await setupAuthenticatedApp(page);
+        const today = new Date().toISOString().slice(0, 10);
 
         // Cadastra nova compra de R$ 150 em 1/3 no Cartão Nubank
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Fone Bluetooth');
         await page.locator('#i_valor').fill('150.00');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');
@@ -131,11 +132,12 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
 
     test('7. [PARCELAMENTOS 2.0] Compra RECORRENTE e à vista ficam com grupo_parcela_id = null', async ({ page }) => {
         await setupAuthenticatedApp(page);
+        const today = new Date().toISOString().slice(0, 10);
 
         // 1. Cadastra compra recorrente
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Spotify Premium');
         await page.locator('#i_valor').fill('34.90');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');
@@ -150,7 +152,7 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
         // 2. Cadastra compra à vista no cartão
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Café Expresso');
         await page.locator('#i_valor').fill('12.00');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');
@@ -177,11 +179,12 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
 
     test('8. [PARCELAMENTOS 2.0] Edição de compra 2.0 preserva exatamente o mesmo grupo_parcela_id', async ({ page }) => {
         await setupAuthenticatedApp(page);
+        const today = new Date().toISOString().slice(0, 10);
 
         // 1. Cadastra nova compra parcelada
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Cadeira Ergonômica');
         await page.locator('#i_valor').fill('400.00');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');
@@ -247,11 +250,12 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
 
     test('10. [PARCELAMENTOS 2.0] Duas compras idênticas recebem UUIDs diferentes e coexistem na projeção', async ({ page }) => {
         await setupAuthenticatedApp(page);
+        const today = new Date().toISOString().slice(0, 10);
 
         // 1. Cadastra Compra 1: "Mercado Livre", R$ 100.00, Nubank, 1/3
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Mercado Livre');
         await page.locator('#i_valor').fill('100.00');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');
@@ -267,7 +271,7 @@ test.describe('Faturas e Parcelas - Geração Dinâmica e Projeção', () => {
         // 2. Cadastra Compra 2: EXATAMENTE IDÊNTICA (mesmo nome, valor, cartão, data e parcela)
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
         await page.locator('#i_tipo').selectOption('Despesa');
-        await page.locator('#i_data').fill('2026-08-18');
+        await page.locator('#i_data').fill(today);
         await page.locator('#i_descricao').fill('Mercado Livre');
         await page.locator('#i_valor').fill('100.00');
         await page.locator('#i_pagamento').selectOption('Cartão de Crédito');

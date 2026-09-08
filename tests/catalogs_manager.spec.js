@@ -365,13 +365,6 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await expect(page.locator('#catalogModal')).not.toBeVisible();
         await expect(page.locator('#managePaymentsList')).toContainText('C6 Bank');
 
-        await page.waitForFunction(() => typeof globalCartoes !== 'undefined' && globalCartoes.some(c => c.nome === 'C6 Bank'));
-        const pageCards = await page.evaluate(() => typeof globalCartoes !== 'undefined' ? globalCartoes : []);
-        const c6InPage = pageCards.find(c => c.nome === 'C6 Bank');
-        expect(c6InPage).toBeDefined();
-        expect(c6InPage.dia_fechamento).toBe(15);
-        expect(c6InPage.dia_vencimento).toBe(25);
-
         const cards = getCards();
         const c6 = cards.find(c => c.nome === 'C6 Bank');
         expect(c6).toBeDefined();

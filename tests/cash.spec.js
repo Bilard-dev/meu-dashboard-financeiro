@@ -6,13 +6,14 @@ const { mockUser } = require('./fixtures/mockData');
 test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () => {
 
     test('1. Saque R$ 200,00 e Gasto em Espécie R$ 60,00 resulta em Saldo R$ 140,00', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque Banco 24h',
                     valor: 200.00,
                     pagamento: 'PIX',
@@ -24,7 +25,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-despesa-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: today,
                     descricao: 'Almoço em Dinheiro',
                     valor: 60.00,
                     pagamento: 'Dinheiro',
@@ -42,13 +43,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('2. Múltiplos saques acumulam corretamente no saldo físico', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque 1',
                     valor: 200.00,
                     pagamento: 'PIX',
@@ -59,7 +61,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-saque-2',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-05',
+                    data: today,
                     descricao: 'Saque 2',
                     valor: 300.00,
                     pagamento: 'PIX',
@@ -70,7 +72,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-despesa-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-06',
+                    data: today,
                     descricao: 'Farmácia',
                     valor: 50.00,
                     pagamento: 'Dinheiro',
@@ -86,13 +88,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('3. Gasto em dinheiro sem saque prévio resulta em saldo negativo sem clamp', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-despesa-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: today,
                     descricao: 'Padaria em espécie',
                     valor: 60.00,
                     pagamento: 'Dinheiro',
@@ -111,13 +114,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('4. Receita com pagamento "Dinheiro" NÃO aumenta o saldo físico', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-rec-1',
                     user_id: mockUser.id,
                     tipo: 'Receita',
-                    data: '2026-08-05',
+                    data: today,
                     descricao: 'Salário em Dinheiro',
                     valor: 5000.00,
                     pagamento: 'Dinheiro',
@@ -134,13 +138,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('5. Receita com pagamento "Dinheiro" NÃO diminui o saldo físico', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque Inicial',
                     valor: 500.00,
                     pagamento: 'PIX',
@@ -151,7 +156,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-rec-1',
                     user_id: mockUser.id,
                     tipo: 'Receita',
-                    data: '2026-08-05',
+                    data: today,
                     descricao: 'Transferência Recebida',
                     valor: 2000.00,
                     pagamento: 'Dinheiro',
@@ -167,13 +172,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('6. Edição de Saque (R$ 200,00 -> R$ 300,00) pelo fluxo real recalcula o saldo', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-edit',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque Original',
                     valor: 200.00,
                     pagamento: 'PIX',
@@ -201,13 +207,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('7. Exclusão de Saque pelo fluxo real recalcula o saldo', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-del',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque para Deletar',
                     valor: 200.00,
                     pagamento: 'PIX',
@@ -229,13 +236,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('8. Edição de Despesa em Dinheiro pelo fluxo real recalcula o saldo', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque Caixa',
                     valor: 500.00,
                     pagamento: 'PIX',
@@ -246,7 +254,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-despesa-edit',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: today,
                     descricao: 'Feira Livre',
                     valor: 100.00,
                     pagamento: 'Dinheiro',
@@ -273,13 +281,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('9. Exclusão de Despesa em Dinheiro pelo fluxo real restaura o saldo físico', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque Caixa',
                     valor: 500.00,
                     pagamento: 'PIX',
@@ -290,7 +299,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-despesa-del',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: today,
                     descricao: 'Lanche Deletar',
                     valor: 80.00,
                     pagamento: 'Dinheiro',
@@ -313,13 +322,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('10. Alterar pagamento de Dinheiro para PIX remove o débito do saldo físico', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque Caixa',
                     valor: 500.00,
                     pagamento: 'PIX',
@@ -330,7 +340,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-despesa-troca',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: today,
                     descricao: 'Mercado Troca Pagamento',
                     valor: 120.00,
                     pagamento: 'Dinheiro',
@@ -356,13 +366,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('11. Saque NÃO entra nas despesas mensais do Dashboard', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'Saque vultoso',
                     valor: 1000.00,
                     pagamento: 'PIX',
@@ -373,7 +384,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-despesa-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-02',
+                    data: today,
                     descricao: 'Almoço',
                     valor: 45.00,
                     pagamento: 'Dinheiro',
@@ -392,13 +403,14 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
     });
 
     test('12. As três receitas legadas simuladas não afetam o saldo físico', async ({ page }) => {
+        const today = new Date().toISOString().split('T')[0];
         await setupAuthenticatedApp(page, {
             transactions: [
                 {
                     id: 'tx-leg-1',
                     user_id: mockUser.id,
                     tipo: 'Receita',
-                    data: '2026-08-01',
+                    data: today,
                     descricao: 'SALDO MES JULHO',
                     valor: 29.34,
                     pagamento: 'Dinheiro',
@@ -409,7 +421,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-leg-2',
                     user_id: mockUser.id,
                     tipo: 'Receita',
-                    data: '2026-08-05',
+                    data: today,
                     descricao: 'PGTO SALARIO',
                     valor: 4925.84,
                     pagamento: 'Dinheiro',
@@ -420,7 +432,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-leg-3',
                     user_id: mockUser.id,
                     tipo: 'Receita',
-                    data: '2026-08-05',
+                    data: today,
                     descricao: 'APORTE NUBANK',
                     valor: 437.71,
                     pagamento: 'Dinheiro',
@@ -431,7 +443,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-saque-1',
                     user_id: mockUser.id,
                     tipo: 'Saque',
-                    data: '2026-08-10',
+                    data: today,
                     descricao: 'Saque de Teste',
                     valor: 200.00,
                     pagamento: 'PIX',
@@ -442,7 +454,7 @@ test.describe('Dinheiro Físico 2.0 - Saques, Espécie e Controle de Caixa', () 
                     id: 'tx-gasto-1',
                     user_id: mockUser.id,
                     tipo: 'Despesa',
-                    data: '2026-08-11',
+                    data: today,
                     descricao: 'Lanche em Dinheiro',
                     valor: 50.00,
                     pagamento: 'Dinheiro',

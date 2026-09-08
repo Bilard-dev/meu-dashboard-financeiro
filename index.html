@@ -2395,6 +2395,12 @@
             formatFaturaBadge
         } from './src/core/formatters.js';
 
+        import {
+            getPrivacyMode,
+            setPrivacyMode,
+            togglePrivacyMode
+        } from './src/store/state.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -2408,7 +2414,10 @@
         window.parseLocalDate = parseLocalDate;
         window.formatCurrency = formatCurrency;
         window.formatFaturaBadge = formatFaturaBadge;
-        window.fmt = (val) => formatCurrency(val, typeof isPrivacyMode !== 'undefined' ? isPrivacyMode : false);
+        window.getPrivacyMode = getPrivacyMode;
+        window.setPrivacyMode = setPrivacyMode;
+        window.togglePrivacyMode = togglePrivacyMode;
+        window.fmt = (val) => formatCurrency(val, getPrivacyMode());
     </script>
 
     <script>
@@ -2425,7 +2434,6 @@
         let userBudgets = {};
         let currentFilteredExtratoData = [];
         let charts = {};
-        let isPrivacyMode = false;
 
         // ESTADO GLOBAL: Catálogos Gerenciados 2.0
         let globalCategorias = [];
@@ -4606,11 +4614,11 @@
         }
 
         function togglePrivacy() {
-            isPrivacyMode = !isPrivacyMode;
+            const isPrivacy = togglePrivacyMode();
             const btn = document.getElementById('privacyToggleBtn');
             if (btn) {
-                btn.style.backgroundColor = isPrivacyMode ? '#dbeafe' : 'var(--card-bg)';
-                btn.title = isPrivacyMode ? 'Modo Privacidade (Ativo - valores ocultos)' : 'Modo Privacidade (Ocultar/Exibir Valores)';
+                btn.style.backgroundColor = isPrivacy ? '#dbeafe' : 'var(--card-bg)';
+                btn.title = isPrivacy ? 'Modo Privacidade (Ativo - valores ocultos)' : 'Modo Privacidade (Ocultar/Exibir Valores)';
             }
             updateDashboard(document.getElementById('monthSelector').value);
         }

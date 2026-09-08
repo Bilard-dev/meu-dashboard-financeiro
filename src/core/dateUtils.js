@@ -32,3 +32,17 @@ export function parseLocalDate(dateStr) {
     const d = new Date(cleanStr + 'T12:00:00');
     return isNaN(d.getTime()) ? null : d;
 }
+
+/**
+ * Formata um objeto Date ou a data atual no formato civil 'YYYY-MM-DD' utilizando o fuso local do navegador.
+ * Previne anomalias de fuso horário UTC (ex: deslocamento para o dia seguinte após as 21h em UTC-3).
+ * @param {Date} [date=new Date()]
+ * @returns {string} 'YYYY-MM-DD'
+ */
+export function formatLocalDateInput(date = new Date()) {
+    const d = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}

@@ -2313,7 +2313,8 @@
         } from './src/core/security.js';
 
         import {
-            MONTH_NAMES_BR
+            MONTH_NAMES_BR,
+            formatLocalDateInput
         } from './src/core/dateUtils.js';
 
         import {
@@ -2386,6 +2387,7 @@
         window.extractTagsFromDesc = extractTagsFromDesc;
         window.buildDescWithTags = buildDescWithTags;
         window.monthNamesBR = MONTH_NAMES_BR;
+        window.formatLocalDateInput = formatLocalDateInput;
         window.formatFaturaBadge = formatFaturaBadge;
         window.togglePrivacyMode = togglePrivacyMode;
         window.getRoutingSync = getRoutingSync;
@@ -3066,7 +3068,7 @@
 
         function openMobileQuickView() {
             document.getElementById('mobileQuickView').style.display = 'block';
-            document.getElementById('m_data').valueAsDate = new Date();
+            document.getElementById('m_data').value = formatLocalDateInput();
             document.getElementById('m_categoria').innerHTML = document.getElementById('i_categoria').innerHTML;
             document.getElementById('m_cartao').innerHTML = document.getElementById('i_cartao').innerHTML;
             document.getElementById('m_parcela_select').value = 'À vista';
@@ -4430,7 +4432,7 @@
             if(tabId === 'investimentos') {
                 if(!document.getElementById('edit_inv_id')?.value) {
                     const invDataEl = document.getElementById('inv_data');
-                    if (invDataEl && !invDataEl.value) invDataEl.valueAsDate = new Date();
+                    if (invDataEl && !invDataEl.value) invDataEl.value = formatLocalDateInput();
                     populateInvestFormDropdowns();
                 }
                 renderInvestmentsTab();
@@ -4438,7 +4440,7 @@
             if(tabId === 'gerenciar-listas') renderManageLists();
             if(tabId === 'novo') {
                 if(!document.getElementById('edit_id').value) {
-                    document.getElementById('i_data').valueAsDate = new Date();
+                    document.getElementById('i_data').value = formatLocalDateInput();
                     populateFormDropdowns();
                     renderTopCategoryChips();
                     togglePaymentFields();
@@ -4597,7 +4599,7 @@
             document.getElementById('inv_categoria').value = '';
             document.getElementById('inv_subcategoria').innerHTML = '<option value="">-- Selecione a Categoria Primeiro --</option>';
             document.getElementById('inv_custo').value = 'Renda Fixa';
-            document.getElementById('inv_data').value = new Date().toISOString().split('T')[0];
+            document.getElementById('inv_data').value = formatLocalDateInput();
 
             const title = document.getElementById('investFormTitle');
             if (title) title.innerText = '💼 Lançar Novo Aporte / Investimento';
@@ -5207,11 +5209,11 @@
                     if (inicioEl && !inicioEl.value) {
                         const now = new Date();
                         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-                        inicioEl.value = firstDay.toISOString().split('T')[0];
+                        inicioEl.value = formatLocalDateInput(firstDay);
                     }
                     if (fimEl && !fimEl.value) {
                         const now = new Date();
-                        fimEl.value = now.toISOString().split('T')[0];
+                        fimEl.value = formatLocalDateInput(now);
                     }
                 } else {
                     customContainer.style.display = 'none';

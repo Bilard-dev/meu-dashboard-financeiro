@@ -2401,6 +2401,8 @@
             togglePrivacyMode
         } from './src/store/state.js';
 
+        import { supabaseClient } from './src/services/supabaseClient.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -2418,14 +2420,10 @@
         window.setPrivacyMode = setPrivacyMode;
         window.togglePrivacyMode = togglePrivacyMode;
         window.fmt = (val) => formatCurrency(val, getPrivacyMode());
+        window._supabase = supabaseClient;
     </script>
 
     <script>
-        const SUPABASE_URL = 'https://zrlkexqogahoeryqkeyr.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpybGtleHFvZ2Fob2VyeXFrZXlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDkzMzcsImV4cCI6MjEwMjEyNTMzN30.ZKx2BYKAt4HrfAIyROr115I0uMvKdQcZqdZ4Yfuvvt8';
-
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         let currentUser = null;
         let rawSupabaseData = [];
         let globalData = [];

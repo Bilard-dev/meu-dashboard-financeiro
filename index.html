@@ -2361,6 +2361,18 @@
             callCatalogRpc
         } from './src/services/catalogsService.js';
 
+        import {
+            fetchTransactions,
+            insertTransactions,
+            updateTransaction,
+            deleteTransaction,
+            deleteTransactionsByGroup,
+            updateTransactionCategory,
+            updateTransactionSubcategory,
+            updateTransactionCard,
+            updateTransactionDescription
+        } from './src/services/transactionsService.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -2401,6 +2413,15 @@
         window.catalogUpdateItem = updateCatalogItem;
         window.catalogDeleteItem = deleteCatalogItem;
         window.catalogCallRpc = callCatalogRpc;
+        window.transactionsFetch = fetchTransactions;
+        window.transactionsInsert = insertTransactions;
+        window.transactionsUpdate = updateTransaction;
+        window.transactionsDelete = deleteTransaction;
+        window.transactionsDeleteByGroup = deleteTransactionsByGroup;
+        window.transactionsUpdateCategory = updateTransactionCategory;
+        window.transactionsUpdateSubcategory = updateTransactionSubcategory;
+        window.transactionsUpdateCard = updateTransactionCard;
+        window.transactionsUpdateDescription = updateTransactionDescription;
     </script>
 
     <script>
@@ -2673,10 +2694,7 @@
             document.getElementById('dashboard').style.display = 'none';
 
             try {
-                const { data, error } = await _supabase
-                    .from('transacoes')
-                    .select('*')
-                    .order('data', { ascending: false });
+                const { data, error } = await transactionsFetch();
 
                 if (error) throw error;
 
@@ -3111,7 +3129,7 @@
                 subcategoria: document.getElementById('m_subcategoria').value || ''
             };
 
-            const res = await _supabase.from('transacoes').insert([payload]);
+            const res = await transactionsInsert([payload]);
 
             if (res.error) {
                 showToast('Erro ao lançar: ' + res.error.message, 'error');
@@ -3515,10 +3533,7 @@
 
             // 2. Atualiza transações e metas conforme o tipo
             if (type === 'categoria') {
-                const { error: txErr } = await _supabase.from('transacoes')
-                    .update({ categoria: newName })
-                    .eq('user_id', currentUser.id)
-                    .eq('categoria', oldName);
+                const { error: txErr } = await transactionsUpdateCategory(currentUser.id, oldName, newName);
                 if (txErr) throw txErr;
 
                 if (metaAction === 'UPDATE') {
@@ -3528,18 +3543,11 @@
             } else if (type === 'subcategoria') {
                 const parentCat = globalCategorias.find(c => c.id === payload.categoria_id);
                 if (parentCat) {
-                    const { error: txErr } = await _supabase.from('transacoes')
-                        .update({ subcategoria: newName })
-                        .eq('user_id', currentUser.id)
-                        .eq('categoria', parentCat.nome)
-                        .eq('subcategoria', oldName);
+                    const { error: txErr } = await transactionsUpdateSubcategory(currentUser.id, parentCat.nome, oldName, newName);
                     if (txErr) throw txErr;
                 }
             } else if (type === 'cartao') {
-                const { error: txErr } = await _supabase.from('transacoes')
-                    .update({ cartao: newName })
-                    .eq('user_id', currentUser.id)
-                    .eq('cartao', oldName);
+                const { error: txErr } = await transactionsUpdateCard(currentUser.id, oldName, newName);
                 if (txErr) throw txErr;
             } else if (type === 'tag') {
                 const affectedTxs = globalData.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normOld));
@@ -3549,9 +3557,7 @@
                         const tagsList = match[1].split(',').map(t => t.trim()).filter(Boolean);
                         const replacedTags = tagsList.map(t => normalizeCatalogName(t) === normOld ? newName : t);
                         const newDesc = `[${replacedTags.join(', ')}] ${match[2]}`;
-                        const { error: txErr } = await _supabase.from('transacoes')
-                            .update({ descricao: newDesc })
-                            .eq('id', tx.id);
+                        const { error: txErr } = await transactionsUpdateDescription(tx.id, newDesc);
                         if (txErr) throw txErr;
                     }
                 }
@@ -4508,9 +4514,9 @@
 
             let res;
             if (editId) {
-                res = await _supabase.from('transacoes').update(payload).eq('id', editId);
+                res = await transactionsUpdate(editId, payload);
             } else {
-                res = await _supabase.from('transacoes').insert([payload]);
+                res = await transactionsInsert([payload]);
             }
 
             if (res.error) {
@@ -4564,9 +4570,9 @@
 
             let res;
             if (editId) {
-                res = await _supabase.from('transacoes').update(payload).eq('id', editId);
+                res = await transactionsUpdate(editId, payload);
             } else {
-                res = await _supabase.from('transacoes').insert([payload]);
+                res = await transactionsInsert([payload]);
             }
 
             if (res.error) {
@@ -4757,10 +4763,10 @@
             if (confirm(`Excluir o lançamento "${item.desc}" de R$ ${item.value.toFixed(2)}?`)) {
                 let error = null;
                 if (item.grupo_parcela_id) {
-                    const res = await _supabase.from('transacoes').delete().eq('user_id', currentUser.id).eq('grupo_parcela_id', item.grupo_parcela_id);
+                    const res = await transactionsDeleteByGroup(currentUser.id, item.grupo_parcela_id);
                     error = res.error;
                 } else {
-                    const res = await _supabase.from('transacoes').delete().eq('user_id', currentUser.id).eq('id', item.id);
+                    const res = await transactionsDelete(currentUser.id, item.id);
                     error = res.error;
                 }
 

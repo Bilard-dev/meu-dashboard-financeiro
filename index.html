@@ -2339,6 +2339,15 @@
             requestPasswordReset
         } from './src/services/authService.js';
 
+        import {
+            fetchMetas,
+            fetchMetasOrdered,
+            upsertMeta,
+            deleteMeta,
+            insertMetas,
+            updateMetaCategory
+        } from './src/services/metasService.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -2363,6 +2372,12 @@
         window.authSignOut = signOut;
         window.authUpdatePassword = updatePassword;
         window.authRequestPasswordReset = requestPasswordReset;
+        window.metasFetch = fetchMetas;
+        window.metasFetchOrdered = fetchMetasOrdered;
+        window.metasUpsert = upsertMeta;
+        window.metasDelete = deleteMeta;
+        window.metasInsertMany = insertMetas;
+        window.metasUpdateCategory = updateMetaCategory;
     </script>
 
     <script>
@@ -2715,11 +2730,7 @@
         async function loadMetasData() {
             if (!currentUser) return;
             try {
-                const { data, error } = await _supabase
-                    .from('metas')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .order('categoria', { ascending: true });
+                const { data, error } = await metasFetchOrdered(currentUser.id);
 
                 if (!error && data) {
                     rawMetas = data;
@@ -3488,10 +3499,7 @@
                 if (txErr) throw txErr;
 
                 if (metaAction === 'UPDATE') {
-                    const { error: metaErr } = await _supabase.from('metas')
-                        .update({ categoria: newName })
-                        .eq('user_id', currentUser.id)
-                        .eq('categoria', oldName);
+                    const { error: metaErr } = await metasUpdateCategory(currentUser.id, oldName, newName);
                     if (metaErr) throw metaErr;
                 }
             } else if (type === 'subcategoria') {
@@ -5784,7 +5792,7 @@
                 updated_at: new Date().toISOString()
             };
 
-            const { error } = await _supabase.from('metas').upsert(payload, {
+            const { error } = await metasUpsert(payload, {
                 onConflict: 'user_id,categoria_normalizada'
             });
 
@@ -5806,11 +5814,7 @@
                 return;
             }
 
-            const { error } = await _supabase
-                .from('metas')
-                .delete()
-                .eq('id', id)
-                .eq('user_id', currentUser.id);
+            const { error } = await metasDelete(id, currentUser.id);
 
             if (error) {
                 showToast('Erro ao excluir meta: ' + error.message, 'error');
@@ -5948,12 +5952,9 @@
                         updated_at: new Date().toISOString()
                     }));
 
-                    const { error } = await _supabase.from('metas').insert(payloads);
+                    const { error } = await metasInsertMany(payloads);
                     if (!error) {
-                        const { data: reFetched, error: refError } = await _supabase
-                            .from('metas')
-                            .select('*')
-                            .eq('user_id', currentUser.id);
+                        const { data: reFetched, error: refError } = await metasFetch(currentUser.id);
 
                         if (!refError && reFetched && reFetched.length >= payloads.length) {
                             localStorage.removeItem('userBudgets');
@@ -5998,9 +5999,9 @@
                         valor_limite: item.valor_limite,
                         updated_at: new Date().toISOString()
                     }));
-                    const { error: insErr } = await _supabase.from('metas').insert(payloads);
+                    const { error: insErr } = await metasInsertMany(payloads);
                     if (!insErr) {
-                        const { data: updatedCloud } = await _supabase.from('metas').select('*').eq('user_id', currentUser.id);
+                        const { data: updatedCloud } = await metasFetch(currentUser.id);
                         if (updatedCloud) {
                             rawMetas = updatedCloud;
                             userBudgets = {};
@@ -6076,7 +6077,7 @@
                         valor_limite: c.localLimit,
                         updated_at: new Date().toISOString()
                     };
-                    const { error } = await _supabase.from('metas').upsert(payload, {
+                    const { error } = await metasUpsert(payload, {
                         onConflict: 'user_id,categoria_normalizada'
                     });
                     if (error) {

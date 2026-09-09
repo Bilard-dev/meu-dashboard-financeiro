@@ -2335,6 +2335,10 @@
         } from './src/domain/competence/competenceEngine.js';
 
         import {
+            calculateFinancialForecast
+        } from './src/domain/forecast/forecastEngine.js';
+
+        import {
             getPrivacyMode,
             togglePrivacyMode,
             getRoutingSync,
@@ -2404,6 +2408,7 @@
         window.calculateCashBalance = calculateCashBalance;
         window.calculateInvoiceSummary = calculateInvoiceSummary;
         window.getExpensesByCompetence = getExpensesByCompetence;
+        window.calculateFinancialForecast = calculateFinancialForecast;
         window.togglePrivacyMode = togglePrivacyMode;
         window.getRoutingSync = getRoutingSync;
         window.setRoutingSync = setRoutingSync;
@@ -6820,81 +6825,7 @@
         let selectedForecastYm = null;
 
         function getFinancialForecast(startYm, horizonMonths = 6) {
-            let startYear, startMonth;
-            if (startYm && startYm !== 'all' && startYm.includes('-')) {
-                const parts = startYm.split('-').map(Number);
-                startYear = parts[0];
-                startMonth = parts[1];
-            } else {
-                const now = new Date();
-                startYear = now.getFullYear();
-                startMonth = now.getMonth();
-            }
-
-            const months = [];
-
-            for (let i = 0; i < horizonMonths; i++) {
-                const d = new Date(startYear, startMonth + i, 1);
-                const y = d.getFullYear();
-                const m = d.getMonth();
-                const ymKey = `${y}-${m}`;
-
-                // Reutilização do motor financeiro central de competência
-                const items = getFinancialExpensesForMonth(ymKey);
-
-                // Cálculo algébrico de total comprometido (estornos / valores negativos reduzem o total)
-                const totalComprometido = items.reduce((acc, item) => acc + item.value, 0);
-
-                const cartaoItems = items.filter(item => item.cartao || item.pagamento === 'Cartão de Crédito');
-                const parcelasItems = items.filter(item => item.isParcelado);
-                const recorrentesItems = items.filter(item => item.isRecorrente);
-                const outrosItems = items.filter(item => !item.cartao && item.pagamento !== 'Cartão de Crédito' && !item.isParcelado && !item.isRecorrente);
-
-                // Breakdown por cartão
-                const byCard = {};
-                cartaoItems.forEach(item => {
-                    const cardName = item.cartao || 'Cartão';
-                    byCard[cardName] = (byCard[cardName] || 0) + item.value;
-                });
-
-                // Breakdown por categoria
-                const byCategory = {};
-                items.forEach(item => {
-                    const catName = item.category || 'Outros';
-                    byCategory[catName] = (byCategory[catName] || 0) + item.value;
-                });
-
-                // Receitas e Investimentos futuros confirmados (explícitos no banco)
-                const receitasConfirmadas = globalData
-                    .filter(d => d.type === 'RECEITA' && `${d.year}-${d.month}` === ymKey)
-                    .reduce((acc, d) => acc + d.value, 0);
-
-                const investimentosConfirmados = globalData
-                    .filter(d => d.type === 'INVESTIMENTO' && `${d.year}-${d.month}` === ymKey)
-                    .reduce((acc, d) => acc + d.value, 0);
-
-                months.push({
-                    index: i,
-                    isCurrentMonth: (i === 0),
-                    year: y,
-                    month: m,
-                    yearMonth: ymKey,
-                    label: `${monthNamesBR[m]}/${y}`,
-                    shortLabel: `${monthNamesBR[m].substring(0, 3).toUpperCase()}/${String(y).slice(-2)}`,
-                    totalComprometido,
-                    totalCartao: cartaoItems.reduce((acc, d) => acc + d.value, 0),
-                    totalParcelas: parcelasItems.reduce((acc, d) => acc + d.value, 0),
-                    totalRecorrentes: recorrentesItems.reduce((acc, d) => acc + d.value, 0),
-                    totalOutros: outrosItems.reduce((acc, d) => acc + d.value, 0),
-                    receitasConfirmadas,
-                    investimentosConfirmados,
-                    byCard,
-                    byCategory,
-                    items
-                });
-            }
-
-            return months;
+            return calculateFinancialForecast(startYm, horizonMonths, globalData);
         }
 
         function setForecastHorizon(months) {

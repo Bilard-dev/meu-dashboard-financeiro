@@ -2327,6 +2327,10 @@
         } from './src/domain/cash/cashCalculator.js';
 
         import {
+            calculateInvoiceSummary
+        } from './src/domain/creditCard/invoiceCalculator.js';
+
+        import {
             getExpensesByCompetence
         } from './src/domain/competence/competenceEngine.js';
 
@@ -2398,6 +2402,7 @@
         window.formatLocalDateInput = formatLocalDateInput;
         window.formatFaturaBadge = formatFaturaBadge;
         window.calculateCashBalance = calculateCashBalance;
+        window.calculateInvoiceSummary = calculateInvoiceSummary;
         window.getExpensesByCompetence = getExpensesByCompetence;
         window.togglePrivacyMode = togglePrivacyMode;
         window.getRoutingSync = getRoutingSync;
@@ -6181,131 +6186,18 @@
             const monthSelector = document.getElementById('faturaMonthSelector');
             if (!monthSelector || !monthSelector.value) return;
 
-            const [targetYear, targetMonth] = monthSelector.value.split('-').map(Number);
-
-            const nextMonthDate = new Date(targetYear, targetMonth + 1, 1);
-            const nextYear = nextMonthDate.getFullYear();
-            const nextMonth = nextMonthDate.getMonth();
-
-            const despesasCartao = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
-
-            const purchasesMap = new Map();
-            const avistaItems = [];
-
-            despesasCartao.forEach(item => {
-                const pDate = new Date(item.rawDate + 'T12:00:00');
-                const pYear = pDate.getFullYear();
-                const pMonth = pDate.getMonth();
-
-                let initAtual = 1, total = 1;
-                let isParcelado = false;
-                let isRecorrente = item.parcela === 'RECORRENTE';
-
-                if (!isRecorrente && item.parcela && item.parcela.includes('/')) {
-                    const parts = item.parcela.split('/');
-                    initAtual = parseInt(parts[0]) || 1;
-                    total = parseInt(parts[1]) || 1;
-                    isParcelado = true;
-                }
-
-                if (isParcelado || isRecorrente) {
-                    const safeDesc = (item.desc || '').replace(/\[.*?\]/g, '').trim().toLowerCase().replace(/\s+/g, '');
-                    const safeCartao = (item.cartao || item.pagamento || '').trim().toLowerCase().replace(/\s+/g, '');
-                    const safeValue = Math.round(item.value);
-
-                    let key = '';
-                    if (item.grupo_parcela_id) {
-                        // Parcelamentos 2.0: Agrupamento exato e infalível por UUID
-                        key = `GROUP_${item.grupo_parcela_id}`;
-                    } else if (isRecorrente) {
-                        key = `${safeDesc}_${safeCartao}_${safeValue}_REC`;
-                    } else {
-                        // Legado: fallback para agrupamento heurístico anterior
-                        let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
-
-                        // Tratamento caso a fatura destino seja uma chave fixa absoluta (ex: '2026-7' para Agosto 2026)
-                        if (item.faturaDestino && item.faturaDestino.includes('-')) {
-                            const [absY, absM] = item.faturaDestino.split('-').map(Number);
-                            faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
-                        }
-
-                        let baseMonth = pMonth + faturaOffset;
-                        let baseYear = pYear;
-
-                        let originalMonth = baseMonth - (initAtual - 1);
-                        let originalYear = baseYear;
-                        while (originalMonth < 0) {
-                            originalMonth += 12;
-                            originalYear -= 1;
-                        }
-                        key = `${safeDesc}_${safeCartao}_${safeValue}_${total}_${originalYear}_${originalMonth}`;
-                    }
-
-                    if (!purchasesMap.has(key)) {
-                        purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
-                    } else {
-                        const existing = purchasesMap.get(key);
-                        if (pDate < existing.seedDate) {
-                            purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
-                        }
-                    }
-                } else {
-                    avistaItems.push({ ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
-                }
-            });
-
-            const baseItemsToProject = [...Array.from(purchasesMap.values()), ...avistaItems];
-
-            let totalFaturaSelecionada = 0;
-            let totalFaturaSeguinte = 0;
-            let totalRestanteFuturo = 0;
-            const itemsNoMes = [];
-
-            baseItemsToProject.forEach(item => {
-                const pDate = new Date(item.rawDate + 'T12:00:00');
-                const pYear = pDate.getFullYear();
-                let pMonth = pDate.getMonth();
-
-                let faturaOffset = item.faturaDestino === 'PROXIMA' ? 1 : 0;
-                if (item.faturaDestino && item.faturaDestino.includes('-')) {
-                    const [absY, absM] = item.faturaDestino.split('-').map(Number);
-                    faturaOffset = (absY * 12 + absM) - (pYear * 12 + pMonth);
-                }
-
-                pMonth += faturaOffset;
-
-                const deltaTarget = (targetYear * 12 + targetMonth) - (pYear * 12 + pMonth);
-                const deltaNext = (nextYear * 12 + nextMonth) - (pYear * 12 + pMonth);
-
-                const parcelaNoMesTarget = item.initAtual + deltaTarget;
-                const parcelaNoMesNext = item.initAtual + deltaNext;
-
-                const pertenceNoMesTarget = item.isRecorrente ? (deltaTarget >= 0) : (parcelaNoMesTarget >= 1 && parcelaNoMesTarget <= item.total);
-                const pertenceNoMesNext = item.isRecorrente ? (deltaNext >= 0) : (parcelaNoMesNext >= 1 && parcelaNoMesNext <= item.total);
-
-                if (pertenceNoMesTarget) {
-                    totalFaturaSelecionada += item.value;
-                    itemsNoMes.push({
-                        ...item,
-                        parcelaExibida: item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${parcelaNoMesTarget}/${item.total}` : 'À vista'),
-                        restanteAposEsteMes: item.isRecorrente ? 0 : Math.max(0, item.total - parcelaNoMesTarget) * item.value
-                    });
-                }
-
-                if (pertenceNoMesNext) {
-                    totalFaturaSeguinte += item.value;
-                }
-
-                if (!item.isRecorrente) {
-                    let parcelasAposEsteMes = 0;
-                    if (deltaTarget < 0) {
-                        parcelasAposEsteMes = item.total;
-                    } else if (parcelaNoMesTarget <= item.total) {
-                        parcelasAposEsteMes = Math.max(0, item.total - parcelaNoMesTarget);
-                    }
-                    totalRestanteFuturo += (parcelasAposEsteMes * item.value);
-                }
-            });
+            const selectedYm = monthSelector.value;
+            const {
+                targetYear,
+                targetMonth,
+                nextYear,
+                nextMonth,
+                totalFaturaSelecionada,
+                totalFaturaSeguinte,
+                totalRestanteFuturo,
+                itemsNoMes,
+                cartoesMap
+            } = calculateInvoiceSummary(selectedYm, globalData);
 
             document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
             document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
@@ -6313,12 +6205,6 @@
             document.getElementById('kpi-fatura-atual').innerText = fmt(totalFaturaSelecionada);
             document.getElementById('kpi-fatura-proxima').innerText = fmt(totalFaturaSeguinte);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteFuturo);
-
-            const cartoesMap = {};
-            itemsNoMes.forEach(item => {
-                const nomeCartao = item.cartao || 'Cartão';
-                cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
-            });
 
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
             cartoesContainer.innerHTML = '';

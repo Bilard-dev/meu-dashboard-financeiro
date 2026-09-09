@@ -2323,6 +2323,10 @@
         } from './src/core/formatters.js';
 
         import {
+            calculateCashBalance
+        } from './src/domain/cash/cashCalculator.js';
+
+        import {
             getPrivacyMode,
             togglePrivacyMode,
             getRoutingSync,
@@ -2389,6 +2393,7 @@
         window.monthNamesBR = MONTH_NAMES_BR;
         window.formatLocalDateInput = formatLocalDateInput;
         window.formatFaturaBadge = formatFaturaBadge;
+        window.calculateCashBalance = calculateCashBalance;
         window.togglePrivacyMode = togglePrivacyMode;
         window.getRoutingSync = getRoutingSync;
         window.setRoutingSync = setRoutingSync;
@@ -5772,9 +5777,7 @@
 
             const saldo = receitas - despesas - invest;
 
-            const totalSaques = globalData.filter(d => d.type === 'SAQUE').reduce((a, b) => a + b.value, 0);
-            const totalGastoEspecie = globalData.filter(d => d.type === 'DESPESA' && (d.pagamento === 'Dinheiro' || d.pagamento === 'Dinheiro Vivo (Espécie)')).reduce((a, b) => a + b.value, 0);
-            const saldoDinheiroVivo = totalSaques - totalGastoEspecie;
+            const { saldoDinheiroVivo } = calculateCashBalance(globalData);
 
             document.getElementById('kpi-receitas').innerText = fmt(receitas);
             document.getElementById('kpi-despesas').innerText = fmt(despesas);

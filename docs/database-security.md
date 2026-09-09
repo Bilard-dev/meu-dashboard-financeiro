@@ -1,35 +1,37 @@
 # 🛡️ Política de Segurança, Índices e RLS do Banco de Dados (Supabase)
 
-**Data da Implementação e Validação:** 09/09/2026
-**Status:** ✅ Concluído e Validado em Produção (Base 3.0)
+**Data da Última Revisão:** 09/09/2026
+**Status de Segurança (RLS):** ✅ Concluído e Ativo em Produção
+**Status da Migration Base 3.0:** ⏳ **Criada e Versionada — Aplicação Manual Pendente no Supabase SQL Editor**
 **Schema:** `public`
 
 ---
 
 ## 1. Visão Geral
-Este documento registra a arquitetura de segurança de dados em nível de linha (*Row Level Security* - RLS), índices e integridade referencial aplicadas às tabelas do sistema financeiro no Supabase.
+Este documento registra a arquitetura de segurança de dados em nível de linha (*Row Level Security* - RLS), políticas de acesso e integridade referencial aplicadas às tabelas do sistema financeiro no Supabase.
 
 O objetivo principal desta configuração é garantir o **isolamento estrito entre usuários**: nenhum usuário autenticado tem permissão para visualizar, inserir, modificar ou excluir registros financeiros ou catálogos pertencentes a outra conta.
 
 ---
 
-## 2. Tabelas Protegidas com RLS
-O Row Level Security (RLS) está explicitamente habilitado em 100% das tabelas da aplicação:
+## 2. Tabelas Protegidas com RLS (Estado em Produção)
+O Row Level Security (RLS) está explicitamente habilitado em todas as tabelas atualmente existentes no banco de produção:
 * `public.transacoes`
 * `public.app_categorias`
 * `public.app_subcategorias`
 * `public.app_cartoes`
 * `public.app_tags`
 * `public.metas`
+* `public.gastos_compartilhados` *(legado aguardando execução da migration de limpeza)*
 
 > [!NOTE]
-> **Base 3.0 — Remoção de Gastos Compartilhados:** O módulo legado de Gastos Compartilhados foi descontinuado do frontend e a migration versionada `20260909103000_base3_database_cleanup.sql` define a remoção definitiva da tabela `public.gastos_compartilhados`, da coluna `gasto_compartilhado_id` e da FK correspondente.
+> **Base 3.0 — Remoção de Gastos Compartilhados:** A funcionalidade de Gastos Compartilhados foi completamente removida do frontend. A tabela `public.gastos_compartilhados` e a coluna `gasto_compartilhado_id` permanecem temporariamente no banco de produção protegidas por RLS até a execução manual da migration `20260909103000_base3_database_cleanup.sql`.
 
 ---
 
-## 3. Políticas Ativas (Estado Consolidado)
+## 3. Políticas Ativas em Produção
 
-Existem exatamente **4 políticas ativas por tabela** (uma para cada operação CRUD: `SELECT`, `INSERT`, `UPDATE`, `DELETE`), todas restritas ao papel `authenticated` e otimizadas com `(SELECT auth.uid())`.
+Existem exatamente **4 políticas ativas por tabela** (uma para cada operação CRUD: `SELECT`, `INSERT`, `UPDATE`, `DELETE`), todas restritas ao papel `authenticated` e otimizadas com a subconsulta `(SELECT auth.uid())`.
 
 ### 📋 Tabela `public.transacoes`
 
@@ -47,22 +49,32 @@ Todas possuem políticas simétricas no padrão:
 * `UPDATE`: `USING (user_id = (SELECT auth.uid())) WITH CHECK (user_id = (SELECT auth.uid()))`
 * `DELETE`: `USING (user_id = (SELECT auth.uid()))`
 
+### 📋 Tabela `public.gastos_compartilhados` (Ativa em Produção até Aplicação da Migration)
+* `SELECT / UPDATE / DELETE`: `USING (created_by = (SELECT auth.uid()))`
+* `INSERT / UPDATE`: `WITH CHECK (created_by = (SELECT auth.uid()))`
+
 ---
 
-## 4. Índices Estratégicos (Base 3.0)
+## 4. Índices Estratégicos
 
+### Índices Ativos no Banco de Produção:
+* Chaves primárias (PKs) em todas as tabelas.
+* Índices únicos compostos por `(user_id, nome_normalizado)` em todas as tabelas de catálogos e metas.
+* `idx_transacoes_grupo_parcela`: `(grupo_parcela_id) WHERE (grupo_parcela_id IS NOT NULL)`.
+* `unique_transacao_por_gasto_compartilhado`: `(gasto_compartilhado_id) WHERE (gasto_compartilhado_id IS NOT NULL)` *(legado)*.
+
+### Índices Definidos na Migration Base 3.0 (Pendentes de Aplicação):
 1. **`idx_transacoes_user_data` (`user_id, data DESC`):**
-   Otimiza a consulta principal do dashboard (`loadDashboardData`), eliminando a necessidade de sequential scan e ordenação em memória, além de cobrir a Foreign Key `transacoes_user_id_fkey`.
+   Otimiza a consulta principal do dashboard (`loadDashboardData`), eliminando sequential scan e ordenação em memória, e cobrindo a FK `transacoes_user_id_fkey`.
 2. **`idx_app_subcategorias_categoria_id` (`categoria_id`):**
    Cobre a integridade referencial da FK `app_subcategorias_categoria_id_fkey` para operações de restrição de exclusão (`ON DELETE RESTRICT`).
-3. **Índices Únicos por Usuário:**
-   Garantem a unicidade de nomes normalizados por conta em `app_categorias`, `app_subcategorias`, `app_cartoes`, `app_tags` e `metas`.
 
 ---
 
-## 5. Migration Versionada (Base 3.0)
+## 5. Migration Versionada (Base 3.0) — Pendente de Aplicação Manual
 
-Arquivo: `supabase/migrations/20260909103000_base3_database_cleanup.sql`
+* **Arquivo:** `supabase/migrations/20260909103000_base3_database_cleanup.sql`
+* **Status:** ⏳ **Pendente de execução manual no Supabase SQL Editor**
 
 ```sql
 BEGIN;
@@ -100,7 +112,7 @@ COMMIT;
    Garante que o usuário só consiga editar suas próprias linhas e impede a troca do campo `user_id` para outro identificador durante atualizações.
 2. **Otimização com `(SELECT auth.uid())`:**
    A subconsulta isolada garante que o Postgres avalie a identidade do usuário uma única vez por statement.
-3. **Integridade de `user_id NOT NULL`:**
-   Garante a nível de banco que nenhum lançamento financeiro possa ser persistido sem vínculo a um usuário autenticado.
-4. **Governança de Migrations:**
-   A partir da Base 3.0, todas as alterações DDL são versionadas formalmente no diretório `supabase/migrations/`.
+3. **Governança de Migrations:**
+   A partir da Base 3.0, todas as alterações DDL são versionadas formalmente no repositório Git em `supabase/migrations/` antes de sua aplicação em produção.
+4. **Isolamento de Ferramentas de Auditoria:**
+   As integrações automatizadas (como MCP Supabase) operam em modo somente-leitura por padrão de segurança, exigindo que migrações DDL sejam aplicadas via console administrativo / SQL Editor.

@@ -4,6 +4,7 @@
   "description": "Sistema Financeiro Pessoal",
   "scripts": {
     "test": "playwright test",
+    "test:unit": "node --no-warnings=MODULE_TYPELESS_PACKAGE_JSON --test \"tests/unit/*.test.js\"",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report"
   },

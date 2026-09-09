@@ -290,4 +290,57 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
         assert.equal(forecast[2].items[0].isLiquidado, false);
     });
 
+    it('18. Invariância canônica por permutação de ordem: grupo_parcela_id resolve a mesma parcela em qualquer ordem de chegada', () => {
+        const p1 = { id: 'tx-p1', grupo_parcela_id: 'grp-100', type: 'DESPESA', value: 100, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-08-10', year: 2026, month: 7, parcela: '1/3' };
+        const p2 = { id: 'tx-p2', grupo_parcela_id: 'grp-100', type: 'DESPESA', value: 100, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-09-10', year: 2026, month: 8, parcela: '2/3' };
+        const p3 = { id: 'tx-p3', grupo_parcela_id: 'grp-100', type: 'DESPESA', value: 100, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-10-10', year: 2026, month: 9, parcela: '3/3' };
+
+        // Liquidação da 2ª parcela referenciando o grupo_parcela_id
+        const settlements = [
+            { id: 's-p2', user_id: 'u-1', grupo_parcela_id: 'grp-100', transacao_id: 'tx-p2', parcela_numero: 2, valor: 100, data_liquidacao: '2026-08-15', forma_liquidacao: 'PIX' }
+        ];
+
+        // Testar as 3 ordens possíveis de array
+        const order1 = [p1, p2, p3];
+        const order2 = [p3, p1, p2];
+        const order3 = [p2, p3, p1];
+
+        for (const order of [order1, order2, order3]) {
+            const resAug = calculateInvoiceSummary('2026-7', order, settlements);
+            const resSep = calculateInvoiceSummary('2026-8', order, settlements);
+            const resOct = calculateInvoiceSummary('2026-9', order, settlements);
+
+            // Agosto (1/3 pendente)
+            assert.equal(resAug.totalFaturaSelecionada, 100, 'Agosto deve ter R$ 100 em aberto');
+            // Setembro (2/3 liquidado)
+            assert.equal(resSep.totalFaturaSelecionada, 0, 'Setembro deve ter R$ 0 em aberto');
+            assert.equal(resSep.itemsNoMes[0].isLiquidado, true, 'Setembro deve marcar item como liquidado');
+            // Outubro (3/3 pendente)
+            assert.equal(resOct.totalFaturaSelecionada, 100, 'Outubro deve ter R$ 100 em aberto');
+        }
+    });
+
+    it('19. Dual-key lookup: liquidação vinculada via grupo_parcela_id casa com item cujo transacao_id é o seed', () => {
+        const item = { id: 'tx-seed-1', grupo_parcela_id: 'grp-abc', parcelaNoMes: 2 };
+        const settlements = [
+            { id: 's-group', user_id: 'u-1', grupo_parcela_id: 'grp-abc', transacao_id: 'tx-other-id', parcela_numero: 2, valor: 150, forma_liquidacao: 'PIX' }
+        ];
+        const settleMap = createSettlementMap(settlements);
+
+        const result = isInstallmentSettled(settleMap, item, 2);
+        assert.ok(result, 'Deve encontrar a liquidação pela chave de grupo');
+        assert.equal(result.id, 's-group');
+    });
+
+    it('20. Bloqueio de liquidação em assinaturas recorrentes (isRecorrente: true)', () => {
+        const recurringItem = { id: 'tx-rec', isRecorrente: true, parcela: 'RECORRENTE', parcelaNoMes: 1 };
+        const settlements = [
+            { id: 's-rec', user_id: 'u-1', transacao_id: 'tx-rec', parcela_numero: 1, valor: 50, forma_liquidacao: 'PIX' }
+        ];
+        const settleMap = createSettlementMap(settlements);
+
+        assert.equal(isInstallmentSettled(settleMap, recurringItem, 1), null, 'Recorrente não pode ser liquidada');
+        assert.equal(isInstallmentSettled(settlements, recurringItem, 1), null, 'Recorrente não pode ser liquidada via lista');
+    });
+
 });

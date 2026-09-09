@@ -5,17 +5,20 @@
 
 /**
  * Constrói uma chave única determinística para identificar a liquidação de uma parcela de transação.
- * @param {string} transacaoId - UUID da transação original
+ * @param {string} idOrGroupId - UUID da transação ou do grupo_parcela_id
  * @param {number} [parcelaNumero=1] - Número da parcela (1 para à vista)
  * @returns {string} Chave única composta
  */
-export function buildSettlementKey(transacaoId, parcelaNumero = 1) {
-    if (!transacaoId) return '';
-    return `${transacaoId}_${Number(parcelaNumero) || 1}`;
+export function buildSettlementKey(idOrGroupId, parcelaNumero = 1) {
+    if (!idOrGroupId) return '';
+    return `${idOrGroupId}_${Number(parcelaNumero) || 1}`;
 }
 
 /**
  * Constrói um Mapa de busca indexado em O(1) a partir da lista de liquidações.
+ * Indexa tanto por transacao_id quanto por grupo_parcela_id (se houver) para garantir
+ * resolução canônica independente da semente do parcelamento.
+ *
  * @param {Array<object>} settlements - Lista de liquidações do banco de dados
  * @returns {Map<string, object>} Mapa indexado por buildSettlementKey
  */
@@ -26,10 +29,23 @@ export function createSettlementMap(settlements) {
     }
 
     settlements.forEach(s => {
-        if (!s || !s.transacao_id) return;
-        const key = buildSettlementKey(s.transacao_id, s.parcela_numero);
-        if (key && !map.has(key)) {
-            map.set(key, s);
+        if (!s) return;
+        const pNum = Number(s.parcela_numero) || 1;
+
+        // 1. Indexação por transacao_id
+        if (s.transacao_id) {
+            const keyTx = buildSettlementKey(s.transacao_id, pNum);
+            if (keyTx && !map.has(keyTx)) {
+                map.set(keyTx, s);
+            }
+        }
+
+        // 2. Indexação canônica por grupo_parcela_id (se presente)
+        if (s.grupo_parcela_id) {
+            const keyGroup = buildSettlementKey(s.grupo_parcela_id, pNum);
+            if (keyGroup && !map.has(keyGroup)) {
+                map.set(keyGroup, s);
+            }
         }
     });
 
@@ -38,27 +54,54 @@ export function createSettlementMap(settlements) {
 
 /**
  * Verifica se uma parcela ou compra à vista específica está liquidada antecipadamente.
+ * Recorrentes (RECORRENTE) nunca são liquidadas sem identidade mensal finita.
+ *
  * @param {Map<string, object>|Array<object>} settlementMapOrList - Mapa ou Array de liquidações
- * @param {string} transacaoId - UUID da transação
+ * @param {object|string} itemOrId - Objeto do item ou UUID da transação / grupo
  * @param {number} [parcelaNumero=1] - Número da parcela
  * @returns {object|null} Objeto da liquidação se quitada, ou null se pendente
  */
-export function isInstallmentSettled(settlementMapOrList, transacaoId, parcelaNumero = 1) {
-    if (!transacaoId) return null;
+export function isInstallmentSettled(settlementMapOrList, itemOrId, parcelaNumero = 1) {
+    if (!itemOrId) return null;
+
+    // Se for objeto de item e for assinatura recorrente, não permite liquidação
+    if (typeof itemOrId === 'object' && itemOrId.isRecorrente) {
+        return null;
+    }
+
+    const pNum = Number(parcelaNumero) || 1;
+    const transacaoId = typeof itemOrId === 'object' ? itemOrId.id : itemOrId;
+    const grupoId = (typeof itemOrId === 'object' && itemOrId.grupo_parcela_id) ? itemOrId.grupo_parcela_id : null;
 
     if (settlementMapOrList instanceof Map) {
-        const key = buildSettlementKey(transacaoId, parcelaNumero);
-        return settlementMapOrList.get(key) || null;
+        // Prioridade 1: grupo_parcela_id
+        if (grupoId) {
+            const groupKey = buildSettlementKey(grupoId, pNum);
+            const foundByGroup = settlementMapOrList.get(groupKey);
+            if (foundByGroup) return foundByGroup;
+        }
+
+        // Prioridade 2: transacao_id
+        if (transacaoId) {
+            const txKey = buildSettlementKey(transacaoId, pNum);
+            return settlementMapOrList.get(txKey) || null;
+        }
+
+        return null;
     }
 
     if (Array.isArray(settlementMapOrList)) {
-        const num = Number(parcelaNumero) || 1;
-        const found = settlementMapOrList.find(s =>
-            s &&
-            s.transacao_id === transacaoId &&
-            (Number(s.parcela_numero) || 1) === num
-        );
-        return found || null;
+        return settlementMapOrList.find(s => {
+            if (!s) return false;
+            const sNum = Number(s.parcela_numero) || 1;
+            if (sNum !== pNum) return false;
+
+            if (grupoId && s.grupo_parcela_id && s.grupo_parcela_id === grupoId) {
+                return true;
+            }
+
+            return s.transacao_id && s.transacao_id === transacaoId;
+        }) || null;
     }
 
     return null;
@@ -79,7 +122,7 @@ export function enrichItemsWithSettlement(items, settlements) {
 
     return items.map(item => {
         const pNum = item.parcelaNoMes || item.initAtual || 1;
-        const settlement = isInstallmentSettled(settleMap, item.id, pNum);
+        const settlement = isInstallmentSettled(settleMap, item, pNum);
 
         return {
             ...item,

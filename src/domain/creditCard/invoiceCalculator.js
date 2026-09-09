@@ -71,7 +71,11 @@ export function groupCreditCardPurchases(transactions) {
                 purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
             } else {
                 const existing = purchasesMap.get(key);
-                if (pDate < existing.seedDate) {
+                const isEarlier = pDate < existing.seedDate;
+                const isSameDateLowerInit = (pDate.getTime() === existing.seedDate.getTime()) && (initAtual < existing.initAtual);
+                const isSameDateSameInitLowerId = (pDate.getTime() === existing.seedDate.getTime()) && (initAtual === existing.initAtual) && (String(item.id).localeCompare(String(existing.id)) < 0);
+
+                if (isEarlier || isSameDateLowerInit || isSameDateSameInitLowerId) {
                     purchasesMap.set(key, { ...item, initAtual, total, isParcelado, isRecorrente, seedDate: pDate });
                 }
             }
@@ -218,7 +222,7 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
         if (pertenceNoMesTarget) {
             totalFaturaBruta += item.value;
 
-            const settlementThisMonth = item.isRecorrente ? null : isInstallmentSettled(settleMap, item.id, parcelaNoMesTarget);
+            const settlementThisMonth = item.isRecorrente ? null : isInstallmentSettled(settleMap, item, parcelaNoMesTarget);
             const isLiquidadoThisMonth = Boolean(settlementThisMonth);
 
             if (isLiquidadoThisMonth) {
@@ -230,7 +234,7 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
             let restanteAposEsteMes = 0;
             if (!item.isRecorrente) {
                 for (let p = parcelaNoMesTarget + 1; p <= item.total; p++) {
-                    if (!isInstallmentSettled(settleMap, item.id, p)) {
+                    if (!isInstallmentSettled(settleMap, item, p)) {
                         restanteAposEsteMes += item.value;
                     }
                 }
@@ -247,7 +251,7 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
         }
 
         if (pertenceNoMesNext) {
-            const settlementNext = item.isRecorrente ? null : isInstallmentSettled(settleMap, item.id, parcelaNoMesNext);
+            const settlementNext = item.isRecorrente ? null : isInstallmentSettled(settleMap, item, parcelaNoMesNext);
             if (!settlementNext) {
                 totalFaturaSeguinte += item.value;
             }
@@ -262,7 +266,7 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
             }
 
             for (let p = Math.max(1, startP); p <= item.total; p++) {
-                if (!isInstallmentSettled(settleMap, item.id, p)) {
+                if (!isInstallmentSettled(settleMap, item, p)) {
                     totalRestanteFuturo += item.value;
                 }
             }

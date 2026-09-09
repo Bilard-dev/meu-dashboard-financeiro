@@ -54,7 +54,7 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
         const items = rawItems.map(item => {
             const isCard = item.cartao || item.pagamento === 'Cartão de Crédito';
             const pNum = item.parcelaNoMes || item.initAtual || 1;
-            const settlement = (!item.isRecorrente && isCard) ? isInstallmentSettled(settleMap, item.id, pNum) : null;
+            const settlement = (!item.isRecorrente && isCard) ? isInstallmentSettled(settleMap, item, pNum) : null;
             return {
                 ...item,
                 isLiquidado: Boolean(settlement),

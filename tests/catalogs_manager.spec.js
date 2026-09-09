@@ -125,10 +125,9 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         const alimRowInactive = page.locator('#manageCategoriesList div:has-text("Alimentação")').first();
         await alimRowInactive.locator('button[title="Reativar"]').click();
+        await expect(alimRowInactive.locator('button[title="Desativar"]')).toBeVisible();
 
-        cats = getCategories();
-        alimCat = cats.find(c => c.nome === 'Alimentação');
-        expect(alimCat.ativo).toBe(true);
+        await expect.poll(() => getCategories().find(c => c.nome === 'Alimentação')?.ativo).toBe(true);
 
         // Confirma que volta a aparecer
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
@@ -294,10 +293,9 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await page.getByRole('button', { name: '⚙️ Categorias' }).click();
         const subInactive = page.locator('#manageSubcategoriesList div:has-text("Restaurante")').first();
         await subInactive.locator('button[title="Reativar"]').click();
+        await expect(subInactive.locator('button[title="Desativar"]')).toBeVisible();
 
-        subcats = getSubcategories();
-        rest = subcats.find(s => s.nome === 'Restaurante');
-        expect(rest.ativo).toBe(true);
+        await expect.poll(() => getSubcategories().find(s => s.nome === 'Restaurante')?.ativo).toBe(true);
     });
 
     test('14. Excluir Subcategoria sem histórico tem sucesso definitivo', async ({ page }) => {
@@ -365,9 +363,8 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await expect(page.locator('#catalogModal')).not.toBeVisible();
         await expect(page.locator('#managePaymentsList')).toContainText('C6 Bank');
 
-        const cards = getCards();
-        const c6 = cards.find(c => c.nome === 'C6 Bank');
-        expect(c6).toBeDefined();
+        await expect.poll(() => getCards().find(c => c.nome === 'C6 Bank')).toBeDefined();
+        const c6 = getCards().find(c => c.nome === 'C6 Bank');
         expect(c6.dia_fechamento).toBe(15);
         expect(c6.dia_vencimento).toBe(25);
     });
@@ -551,10 +548,9 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         // Reativa
         const tagInactive = page.locator('#manageTagsList div:has-text("Viagem")').first();
         await tagInactive.locator('button[title="Reativar"]').click();
+        await expect(tagInactive.locator('button[title="Desativar"]')).toBeVisible();
 
-        tags = getTags();
-        viagem = tags.find(t => t.nome === 'Viagem');
-        expect(viagem.ativo).toBe(true);
+        await expect.poll(() => getTags().find(t => t.nome === 'Viagem')?.ativo).toBe(true);
     });
 
     test('26. Excluir Tag sem histórico tem sucesso definitivo', async ({ page }) => {

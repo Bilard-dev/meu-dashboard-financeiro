@@ -1,7 +1,4 @@
-/**
- * Calculadora Pura de Faturas e Parcelamentos de Cartão de Crédito — Base 3.0
- * Módulo ES6 desacoplado de DOM, Supabase e Estado Global.
- */
+import { createSettlementMap, isInstallmentSettled } from '../creditSettlement/settlementEngine.js';
 
 /**
  * Agrupa compras de cartão de crédito identificando sementes de parcelamentos,
@@ -140,9 +137,10 @@ export function projectCardExpensesForCompetence(targetYear, targetMonth, baseIt
  *
  * @param {string} selectedYm - Competência no formato 'YYYY-M' (base 0)
  * @param {Array<object>} transactions - Lista de transações brutas
+ * @param {Array<object>|Map<string, object>} [settlements=[]] - Lista ou mapa de liquidações antecipadas
  * @returns {object} Resumo financeiro puro da fatura
  */
-export function calculateInvoiceSummary(selectedYm, transactions) {
+export function calculateInvoiceSummary(selectedYm, transactions, settlements = []) {
     if (!selectedYm || typeof selectedYm !== 'string' || !selectedYm.includes('-')) {
         return {
             targetYear: 0,
@@ -150,6 +148,8 @@ export function calculateInvoiceSummary(selectedYm, transactions) {
             nextYear: 0,
             nextMonth: 0,
             totalFaturaSelecionada: 0,
+            totalFaturaBruta: 0,
+            totalLiquidadoNaCompetencia: 0,
             totalFaturaSeguinte: 0,
             totalRestanteFuturo: 0,
             itemsNoMes: [],
@@ -165,6 +165,8 @@ export function calculateInvoiceSummary(selectedYm, transactions) {
             nextYear: 0,
             nextMonth: 0,
             totalFaturaSelecionada: 0,
+            totalFaturaBruta: 0,
+            totalLiquidadoNaCompetencia: 0,
             totalFaturaSeguinte: 0,
             totalRestanteFuturo: 0,
             itemsNoMes: [],
@@ -177,8 +179,11 @@ export function calculateInvoiceSummary(selectedYm, transactions) {
     const nextMonth = nextMonthDate.getMonth();
 
     const baseItemsToProject = groupCreditCardPurchases(transactions);
+    const settleMap = settlements instanceof Map ? settlements : createSettlementMap(settlements);
 
     let totalFaturaSelecionada = 0;
+    let totalFaturaBruta = 0;
+    let totalLiquidadoNaCompetencia = 0;
     let totalFaturaSeguinte = 0;
     let totalRestanteFuturo = 0;
     const itemsNoMes = [];
@@ -211,34 +216,65 @@ export function calculateInvoiceSummary(selectedYm, transactions) {
             : (item.isParcelado ? (parcelaNoMesNext >= 1 && parcelaNoMesNext <= item.total) : (deltaNext === 0));
 
         if (pertenceNoMesTarget) {
-            totalFaturaSelecionada += item.value;
+            totalFaturaBruta += item.value;
+
+            const settlementThisMonth = item.isRecorrente ? null : isInstallmentSettled(settleMap, item.id, parcelaNoMesTarget);
+            const isLiquidadoThisMonth = Boolean(settlementThisMonth);
+
+            if (isLiquidadoThisMonth) {
+                totalLiquidadoNaCompetencia += item.value;
+            } else {
+                totalFaturaSelecionada += item.value;
+            }
+
+            let restanteAposEsteMes = 0;
+            if (!item.isRecorrente) {
+                for (let p = parcelaNoMesTarget + 1; p <= item.total; p++) {
+                    if (!isInstallmentSettled(settleMap, item.id, p)) {
+                        restanteAposEsteMes += item.value;
+                    }
+                }
+            }
+
             itemsNoMes.push({
                 ...item,
                 parcelaExibida: item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${parcelaNoMesTarget}/${item.total}` : 'À vista'),
                 parcelaNoMes: parcelaNoMesTarget,
-                restanteAposEsteMes: item.isRecorrente ? 0 : Math.max(0, item.total - parcelaNoMesTarget) * item.value
+                restanteAposEsteMes,
+                isLiquidado: isLiquidadoThisMonth,
+                liquidacao: settlementThisMonth || null
             });
         }
 
         if (pertenceNoMesNext) {
-            totalFaturaSeguinte += item.value;
+            const settlementNext = item.isRecorrente ? null : isInstallmentSettled(settleMap, item.id, parcelaNoMesNext);
+            if (!settlementNext) {
+                totalFaturaSeguinte += item.value;
+            }
         }
 
         if (!item.isRecorrente) {
-            let parcelasAposEsteMes = 0;
+            let startP = 1;
             if (deltaTarget < 0) {
-                parcelasAposEsteMes = item.total;
-            } else if (parcelaNoMesTarget <= item.total) {
-                parcelasAposEsteMes = Math.max(0, item.total - parcelaNoMesTarget);
+                startP = 1;
+            } else {
+                startP = parcelaNoMesTarget + 1;
             }
-            totalRestanteFuturo += (parcelasAposEsteMes * item.value);
+
+            for (let p = Math.max(1, startP); p <= item.total; p++) {
+                if (!isInstallmentSettled(settleMap, item.id, p)) {
+                    totalRestanteFuturo += item.value;
+                }
+            }
         }
     });
 
     const cartoesMap = {};
     itemsNoMes.forEach(item => {
-        const nomeCartao = item.cartao || 'Cartão';
-        cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
+        if (!item.isLiquidado) {
+            const nomeCartao = item.cartao || 'Cartão';
+            cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
+        }
     });
 
     return {
@@ -247,6 +283,8 @@ export function calculateInvoiceSummary(selectedYm, transactions) {
         nextYear,
         nextMonth,
         totalFaturaSelecionada,
+        totalFaturaBruta,
+        totalLiquidadoNaCompetencia,
         totalFaturaSeguinte,
         totalRestanteFuturo,
         itemsNoMes,

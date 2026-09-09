@@ -376,7 +376,12 @@ describe('forecastEngine — Motor Puro de Previsão Financeira 2.0', () => {
                 const y = d.getFullYear();
                 const m = d.getMonth();
                 const ymKey = `${y}-${m}`;
-                const items = legacyGetFinancialExpensesForMonth(ymKey, globalData);
+                const rawItems = legacyGetFinancialExpensesForMonth(ymKey, globalData);
+                const items = rawItems.map(item => ({
+                    ...item,
+                    isLiquidado: false,
+                    liquidacao: null
+                }));
                 const totalComprometido = items.reduce((acc, item) => acc + item.value, 0);
                 const cartaoItems = items.filter(item => item.cartao || item.pagamento === 'Cartão de Crédito');
                 const parcelasItems = items.filter(item => item.isParcelado);

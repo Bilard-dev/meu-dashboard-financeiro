@@ -25,6 +25,7 @@ const {
  * @param {Array} [options.subcategorias] - Lista inicial de subcategorias mockadas
  * @param {Array} [options.cartoes] - Lista inicial de cartões mockados
  * @param {Array} [options.tags] - Lista inicial de tags mockadas
+ * @param {Array} [options.settlements] - Lista inicial de liquidações de crédito mockadas
  * @param {Object|null} [options.budgets=null] - Dados legados de userBudgets no LocalStorage
  * @param {boolean} [options.autoAcceptDialogs=true] - Se deve aceitar automaticamente diálogos
  */
@@ -36,6 +37,7 @@ async function setupAuthenticatedApp(page, {
     subcategorias = JSON.parse(JSON.stringify(mockSubcategorias)),
     cartoes = JSON.parse(JSON.stringify(mockCartoes)),
     tags = JSON.parse(JSON.stringify(mockTags)),
+    settlements = [],
     budgets = null,
     autoAcceptDialogs = true,
     initialUrl = '/'
@@ -47,6 +49,7 @@ async function setupAuthenticatedApp(page, {
     let inMemorySubcategorias = [...subcategorias];
     let inMemoryCartoes = [...cartoes];
     let inMemoryTags = [...tags];
+    let inMemorySettlements = [...settlements];
 
     const normalize = s => String(s || '').replace(/[\u00a0\s]+/g, ' ').trim().toLowerCase();
     const getQueryParam = (search, param) => {
@@ -251,6 +254,74 @@ async function setupAuthenticatedApp(page, {
                     if (targetId) {
                         inMemoryMetas = inMemoryMetas.filter(m => m.id !== targetId);
                     }
+                    return route.fulfill({
+                        status: 204,
+                        body: ''
+                    });
+                }
+            }
+
+            // Mock de Liquidações Antecipadas de Crédito (REST)
+            if (pathname.includes('/rest/v1/liquidacoes_credito')) {
+                if (method === 'GET') {
+                    let filtered = [...inMemorySettlements];
+                    const userMatch = urlObj.search.match(/user_id=eq\.([^&]+)/);
+                    if (userMatch) {
+                        filtered = filtered.filter(s => s.user_id === userMatch[1]);
+                    }
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        headers: { 'content-range': `0-${filtered.length - 1}/${filtered.length}` },
+                        body: JSON.stringify(filtered)
+                    });
+                }
+                if (method === 'POST') {
+                    const postData = route.request().postDataJSON();
+                    const newItems = Array.isArray(postData) ? postData : [postData];
+                    const resultItems = [];
+
+                    for (let idx = 0; idx < newItems.length; idx++) {
+                        const item = newItems[idx];
+                        const created = {
+                            id: item.id || `settle-created-${Date.now()}-${idx}`,
+                            user_id: item.user_id || mockUser.id,
+                            transacao_id: item.transacao_id,
+                            parcela_numero: Number(item.parcela_numero) || 1,
+                            valor: Number(item.valor) || 0,
+                            data_liquidacao: item.data_liquidacao || new Date().toISOString().split('T')[0],
+                            forma_liquidacao: item.forma_liquidacao || 'PIX',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        };
+                        inMemorySettlements = inMemorySettlements.filter(s =>
+                            !(s.user_id === created.user_id && s.transacao_id === created.transacao_id && s.parcela_numero === created.parcela_numero)
+                        );
+                        inMemorySettlements.push(created);
+                        resultItems.push(created);
+                    }
+
+                    return route.fulfill({
+                        status: 201,
+                        contentType: 'application/json',
+                        body: JSON.stringify(resultItems)
+                    });
+                }
+                if (method === 'DELETE') {
+                    const targetId = getQueryParam(urlObj.search, 'id');
+                    const targetTx = getQueryParam(urlObj.search, 'transacao_id');
+                    const targetParcela = getQueryParam(urlObj.search, 'parcela_numero');
+
+                    if (targetId) {
+                        inMemorySettlements = inMemorySettlements.filter(s => s.id !== targetId);
+                    } else if (targetTx && targetParcela) {
+                        inMemorySettlements = inMemorySettlements.filter(s =>
+                            !(s.transacao_id === targetTx && String(s.parcela_numero) === String(targetParcela))
+                        );
+                    } else if (targetTx) {
+                        inMemorySettlements = inMemorySettlements.filter(s => s.transacao_id !== targetTx);
+                    }
+
                     return route.fulfill({
                         status: 204,
                         body: ''

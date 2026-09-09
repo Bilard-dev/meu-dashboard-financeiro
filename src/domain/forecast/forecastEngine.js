@@ -4,6 +4,7 @@
  */
 
 import { getExpensesByCompetence } from '../competence/competenceEngine.js';
+import { createSettlementMap, isInstallmentSettled } from '../creditSettlement/settlementEngine.js';
 import { MONTH_NAMES_BR } from '../../core/dateUtils.js';
 
 /**
@@ -14,11 +15,13 @@ import { MONTH_NAMES_BR } from '../../core/dateUtils.js';
  * @param {string} startYm - Mês inicial no formato 'YYYY-M' (base 0) ou 'all'/null para o mês atual
  * @param {number} horizonMonths - Quantidade de meses a projetar (padrão: 6)
  * @param {Array<object>} transactions - Lista de transações brutas
+ * @param {Array<object>|Map<string, object>} [settlements=[]] - Lista ou mapa de liquidações antecipadas
  * @returns {Array<object>} Lista estruturada de dados de projeção por mês
  */
-export function calculateFinancialForecast(startYm, horizonMonths = 6, transactions = []) {
+export function calculateFinancialForecast(startYm, horizonMonths = 6, transactions = [], settlements = []) {
     const txs = Array.isArray(transactions) ? transactions : [];
     const horizon = typeof horizonMonths === 'number' && horizonMonths > 0 ? horizonMonths : 6;
+    const settleMap = settlements instanceof Map ? settlements : createSettlementMap(settlements);
 
     let startYear, startMonth;
     if (startYm && typeof startYm === 'string' && startYm !== 'all' && startYm.includes('-')) {
@@ -46,15 +49,29 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
         const ymKey = `${y}-${m}`;
 
         // Reutilização do motor financeiro central de competência
-        const items = getExpensesByCompetence(ymKey, txs);
+        const rawItems = getExpensesByCompetence(ymKey, txs);
+
+        const items = rawItems.map(item => {
+            const isCard = item.cartao || item.pagamento === 'Cartão de Crédito';
+            const pNum = item.parcelaNoMes || item.initAtual || 1;
+            const settlement = (!item.isRecorrente && isCard) ? isInstallmentSettled(settleMap, item.id, pNum) : null;
+            return {
+                ...item,
+                isLiquidado: Boolean(settlement),
+                liquidacao: settlement || null
+            };
+        });
+
+        // Itens não-liquidados que continuam gerando comprometimento orçamentário
+        const activeItems = items.filter(item => !item.isLiquidado);
 
         // Cálculo algébrico de total comprometido (estornos / valores negativos reduzem o total)
-        const totalComprometido = items.reduce((acc, item) => acc + item.value, 0);
+        const totalComprometido = activeItems.reduce((acc, item) => acc + item.value, 0);
 
-        const cartaoItems = items.filter(item => item.cartao || item.pagamento === 'Cartão de Crédito');
-        const parcelasItems = items.filter(item => item.isParcelado);
-        const recorrentesItems = items.filter(item => item.isRecorrente);
-        const outrosItems = items.filter(item => !item.cartao && item.pagamento !== 'Cartão de Crédito' && !item.isParcelado && !item.isRecorrente);
+        const cartaoItems = activeItems.filter(item => item.cartao || item.pagamento === 'Cartão de Crédito');
+        const parcelasItems = activeItems.filter(item => item.isParcelado);
+        const recorrentesItems = activeItems.filter(item => item.isRecorrente);
+        const outrosItems = activeItems.filter(item => !item.cartao && item.pagamento !== 'Cartão de Crédito' && !item.isParcelado && !item.isRecorrente);
 
         // Breakdown por cartão
         const byCard = {};
@@ -65,7 +82,7 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
 
         // Breakdown por categoria
         const byCategory = {};
-        items.forEach(item => {
+        activeItems.forEach(item => {
             const catName = item.category || 'Outros';
             byCategory[catName] = (byCategory[catName] || 0) + item.value;
         });

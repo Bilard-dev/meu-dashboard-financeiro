@@ -533,7 +533,9 @@ describe('invoiceCalculator — Calculadora Pura de Faturas e Parcelamentos', ()
                         ...item,
                         parcelaExibida: item.isRecorrente ? '🔄 Recorrente' : (item.isParcelado ? `${parcelaNoMesTarget}/${item.total}` : 'À vista'),
                         parcelaNoMes: parcelaNoMesTarget,
-                        restanteAposEsteMes: item.isRecorrente ? 0 : Math.max(0, item.total - parcelaNoMesTarget) * item.value
+                        restanteAposEsteMes: item.isRecorrente ? 0 : ((Math.max(0, item.total - parcelaNoMesTarget) * item.value) || 0),
+                        isLiquidado: false,
+                        liquidacao: null
                     });
                 }
 
@@ -564,6 +566,8 @@ describe('invoiceCalculator — Calculadora Pura de Faturas e Parcelamentos', ()
                 nextYear,
                 nextMonth,
                 totalFaturaSelecionada,
+                totalFaturaBruta: totalFaturaSelecionada,
+                totalLiquidadoNaCompetencia: 0,
                 totalFaturaSeguinte,
                 totalRestanteFuturo,
                 itemsNoMes,

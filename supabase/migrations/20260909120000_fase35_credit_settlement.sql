@@ -1,5 +1,5 @@
 -- Migration: 20260909120000_fase35_credit_settlement.sql
--- Descrição: Fase 3.5 — Tabela de liquidações antecipadas de cartão de crédito, integridade referencial, soft reversal, RLS cross-user e trigger updated_at
+-- Descrição: Fase 3.5 — Tabela de liquidações antecipadas de cartão de crédito, integridade canônica por grupo/transação, validação de coerência no banco, soft reversal, RLS cross-user e trigger updated_at
 
 BEGIN;
 
@@ -22,29 +22,37 @@ CREATE TABLE IF NOT EXISTS public.liquidacoes_credito (
 );
 
 -- ============================================================================
--- 2. Índices de Alta Eficiência e Unicidade Parcial (Soft Reversal Auditável)
+-- 2. Índices de Unicidade Canônica Parcial (Garantia Estrutural de Unicidade Ativa)
 -- ============================================================================
--- Garante que exista no máximo UMA liquidação ATIVA por parcela/transação,
--- permitindo múltiplos registros históricos cancelados para a mesma obrigação.
-CREATE UNIQUE INDEX IF NOT EXISTS unique_liquidacao_ativa_por_transacao
-ON public.liquidacoes_credito (user_id, transacao_id, parcela_numero)
-WHERE status = 'ATIVA';
 
--- Índice para busca rápida por transacao_id
+-- 2.1 Garantia Canônica para Parcelamento 2.0 (grupo_parcela_id):
+-- Impede duas liquidações ATIVAS para a mesma parcela do grupo, mesmo que
+-- enviadas com transacao_id diferente pertencente ao mesmo grupo.
+CREATE UNIQUE INDEX IF NOT EXISTS unique_liquidacao_ativa_por_grupo
+ON public.liquidacoes_credito (user_id, grupo_parcela_id, parcela_numero)
+WHERE status = 'ATIVA' AND grupo_parcela_id IS NOT NULL;
+
+-- 2.2 Garantia Canônica para Compras À Vista / Sem Grupo (transacao_id):
+-- Impede duas liquidações ATIVAS para a mesma compra à vista/avulsa.
+CREATE UNIQUE INDEX IF NOT EXISTS unique_liquidacao_ativa_por_transacao_avulsa
+ON public.liquidacoes_credito (user_id, transacao_id, parcela_numero)
+WHERE status = 'ATIVA' AND grupo_parcela_id IS NULL;
+
+-- ============================================================================
+-- 3. Índices de Alta Eficiência para Consultas e Ordenação
+-- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_liquidacoes_credito_user_transacao
 ON public.liquidacoes_credito (user_id, transacao_id);
 
--- Índice para busca rápida por grupo_parcela_id (Parcelamentos 2.0)
 CREATE INDEX IF NOT EXISTS idx_liquidacoes_credito_user_grupo
 ON public.liquidacoes_credito (user_id, grupo_parcela_id)
 WHERE grupo_parcela_id IS NOT NULL;
 
--- Índice para ordenação temporal por data de liquidação
 CREATE INDEX IF NOT EXISTS idx_liquidacoes_credito_user_data
 ON public.liquidacoes_credito (user_id, data_liquidacao DESC);
 
 -- ============================================================================
--- 3. Trigger Automático para updated_at
+-- 4. Trigger Automático para updated_at
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.handle_liquidacoes_credito_updated_at()
 RETURNS TRIGGER AS $$
@@ -61,11 +69,61 @@ FOR EACH ROW
 EXECUTE FUNCTION public.handle_liquidacoes_credito_updated_at();
 
 -- ============================================================================
--- 4. Row Level Security (RLS) com Validação Estrita de Ownership Cross-User
+-- 5. Trigger de Validação Estrita de Coerência (transacao_id ↔ grupo_parcela_id)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION public.handle_liquidacoes_credito_validate_coherence()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_tx_user_id UUID;
+    v_tx_grupo_id UUID;
+BEGIN
+    -- Busca os metadados da transação física vinculada
+    SELECT user_id, grupo_parcela_id INTO v_tx_user_id, v_tx_grupo_id
+    FROM public.transacoes
+    WHERE id = NEW.transacao_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Transação referenciada não existe: %', NEW.transacao_id;
+    END IF;
+
+    -- 5.1 Validação de Ownership: a transação DEVE pertencer ao mesmo user_id
+    IF v_tx_user_id <> NEW.user_id THEN
+        RAISE EXCEPTION 'Inconsistência de propriedade: a transação % pertence a outro usuário.', NEW.transacao_id;
+    END IF;
+
+    -- 5.2 Validação e Sincronização de Coerência de Grupo
+    IF v_tx_grupo_id IS NOT NULL THEN
+        -- Transação é parte de um parcelamento 2.0
+        IF NEW.grupo_parcela_id IS NOT NULL AND NEW.grupo_parcela_id <> v_tx_grupo_id THEN
+            RAISE EXCEPTION 'Incoerência de grupo: transação % pertence ao grupo %, mas a liquidação informou grupo %.',
+                NEW.transacao_id, v_tx_grupo_id, NEW.grupo_parcela_id;
+        END IF;
+        -- Garante que grupo_parcela_id fique preenchido com a identidade canônica do grupo
+        NEW.grupo_parcela_id := v_tx_grupo_id;
+    ELSE
+        -- Transação é compra à vista / avulsa (sem grupo)
+        IF NEW.grupo_parcela_id IS NOT NULL THEN
+            RAISE EXCEPTION 'Incoerência de grupo: transação % é à vista/avulsa (sem grupo), mas a liquidação informou grupo %.',
+                NEW.transacao_id, NEW.grupo_parcela_id;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_liquidacoes_credito_validate_coherence ON public.liquidacoes_credito;
+CREATE TRIGGER trg_liquidacoes_credito_validate_coherence
+BEFORE INSERT OR UPDATE ON public.liquidacoes_credito
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_liquidacoes_credito_validate_coherence();
+
+-- ============================================================================
+-- 6. Row Level Security (RLS) com Validação de Ownership Cross-User
 -- ============================================================================
 ALTER TABLE public.liquidacoes_credito ENABLE ROW LEVEL SECURITY;
 
--- SELECT: Usuário autenticado só lê seus próprios registros
+-- 6.1 SELECT: Usuário autenticado só lê seus próprios registros
 DROP POLICY IF EXISTS "liquidacoes_credito_select_policy" ON public.liquidacoes_credito;
 CREATE POLICY "liquidacoes_credito_select_policy"
 ON public.liquidacoes_credito
@@ -73,7 +131,7 @@ FOR SELECT
 TO authenticated
 USING (user_id = (SELECT auth.uid()));
 
--- INSERT: Garante que user_id seja auth.uid() E que a transacao_id referenciada pertença ao mesmo usuário
+-- 6.2 INSERT: Usuário autenticado só insere com user_id = auth.uid() e transação própria coerente
 DROP POLICY IF EXISTS "liquidacoes_credito_insert_policy" ON public.liquidacoes_credito;
 CREATE POLICY "liquidacoes_credito_insert_policy"
 ON public.liquidacoes_credito
@@ -85,10 +143,15 @@ WITH CHECK (
         SELECT 1 FROM public.transacoes t
         WHERE t.id = liquidacoes_credito.transacao_id
           AND t.user_id = (SELECT auth.uid())
+          AND (
+              (liquidacoes_credito.grupo_parcela_id IS NULL)
+              OR
+              (liquidacoes_credito.grupo_parcela_id IS NOT NULL AND t.grupo_parcela_id = liquidacoes_credito.grupo_parcela_id)
+          )
     )
 );
 
--- UPDATE: Garante que user_id seja auth.uid() E que a transação pertença ao mesmo usuário
+-- 6.3 UPDATE: Usuário autenticado só atualiza registros próprios mantendo integridade
 DROP POLICY IF EXISTS "liquidacoes_credito_update_policy" ON public.liquidacoes_credito;
 CREATE POLICY "liquidacoes_credito_update_policy"
 ON public.liquidacoes_credito
@@ -108,10 +171,18 @@ WITH CHECK (
         SELECT 1 FROM public.transacoes t
         WHERE t.id = liquidacoes_credito.transacao_id
           AND t.user_id = (SELECT auth.uid())
+          AND (
+              (liquidacoes_credito.grupo_parcela_id IS NULL AND t.grupo_parcela_id IS NULL)
+              OR
+              (liquidacoes_credito.grupo_parcela_id IS NOT NULL AND t.grupo_parcela_id = liquidacoes_credito.grupo_parcela_id)
+          )
     )
 );
 
--- DELETE: Usuário autenticado só pode deletar seus próprios registros
+-- 6.4 DELETE: Usuário autenticado só pode deletar seus próprios registros.
+-- (Aviso: O fluxo normal de reversão na aplicação é Soft Reversal via status = 'CANCELADA'.
+-- Esta policy DELETE é mantida estritamente para suporte a ON DELETE CASCADE ao excluir a compra
+-- e conformidade LGPD/GDPR de expurgo de dados do usuário).
 DROP POLICY IF EXISTS "liquidacoes_credito_delete_policy" ON public.liquidacoes_credito;
 CREATE POLICY "liquidacoes_credito_delete_policy"
 ON public.liquidacoes_credito

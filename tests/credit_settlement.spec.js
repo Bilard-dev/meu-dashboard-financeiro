@@ -285,4 +285,51 @@ test.describe('Fase 3.5 — Liquidação Antecipada do Crédito (Early Credit Se
         await expect(page.locator('.toast')).toContainText('Não é possível excluir esta compra pois ela possui quitações antecipadas ativas');
     });
 
+    test('7. Garantir que tentativa de quitação duplicada ativa na mesma parcela seja rejeitada', async ({ page }) => {
+        const transactions = [
+            {
+                id: 'tx-card-dup',
+                user_id: mockUser.id,
+                grupo_parcela_id: 'grp-dup-test',
+                tipo: 'Despesa',
+                data: '2026-08-10',
+                descricao: 'Compra Parcelada Duplicada',
+                categoria: 'Lazer',
+                subcategoria: 'Cinema',
+                valor: 100.00,
+                pagamento: 'Cartão de Crédito',
+                cartao: 'Nubank',
+                parcela: '1/2',
+                fatura_destino: 'ATUAL',
+                created_at: new Date().toISOString()
+            }
+        ];
+        const settlements = [
+            {
+                id: 'settle-existente',
+                user_id: mockUser.id,
+                transacao_id: 'tx-card-dup',
+                grupo_parcela_id: 'grp-dup-test',
+                parcela_numero: 1,
+                valor: 100.00,
+                status: 'ATIVA',
+                data_liquidacao: '2026-08-11',
+                forma_liquidacao: 'PIX',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }
+        ];
+
+        await setupAuthenticatedApp(page, { transactions, settlements });
+        await page.getByRole('button', { name: 'Parcelas / Fatura Cartão' }).click();
+        await page.selectOption('#faturaMonthSelector', '2026-7');
+
+        // A parcela 1 já consta como quitada
+        const row = page.locator('#parcelasTableBody tr').first();
+        await expect(row.locator('.tag-done')).toHaveText(/Quitada \(PIX\)/);
+        // O botão de quitar não está visível para a parcela já quitada
+        await expect(row.locator('.settle-btn')).toBeHidden();
+    });
+
 });
+

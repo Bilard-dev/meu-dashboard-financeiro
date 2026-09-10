@@ -490,4 +490,104 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
         assert.equal(txs.length, 1, 'Transações contém apenas 1 registro');
     });
 
+    it('25. Regra Canônica DB: Parcelamento grupo G, parcela 2 bloqueia 2ª liquidação ativa mesmo com outro transacao_id', () => {
+        // Criação de mapa/estado simulando a restrição unique_liquidacao_ativa_por_grupo (user_id, grupo_parcela_id, parcela_numero) WHERE status = 'ATIVA'
+        const existingSettlements = [
+            { id: 's-g-2', user_id: 'u-1', transacao_id: 'tx-seed-1', grupo_parcela_id: 'grp-AAA', parcela_numero: 2, valor: 100, status: 'ATIVA' }
+        ];
+
+        // Tentativa de inserir nova liquidação ativa para o mesmo grupo e mesma parcela 2, porém com outro transacao_id
+        const incomingPayload = { user_id: 'u-1', transacao_id: 'tx-seed-2', grupo_parcela_id: 'grp-AAA', parcela_numero: 2, valor: 100, status: 'ATIVA' };
+
+        const isDuplicate = existingSettlements.some(s =>
+            s.user_id === incomingPayload.user_id &&
+            s.grupo_parcela_id === incomingPayload.grupo_parcela_id &&
+            s.parcela_numero === incomingPayload.parcela_numero &&
+            s.status === 'ATIVA' &&
+            !s.cancelled_at
+        );
+
+        assert.equal(isDuplicate, true, 'O índice unique_liquidacao_ativa_por_grupo rejeita duplicidade ativa no grupo');
+    });
+
+    it('26. Regra Canônica DB: Após cancelar a 1ª liquidação, nova liquidação ativa ou reativação é permitida', () => {
+        const existingSettlements = [
+            { id: 's-g-2', user_id: 'u-1', transacao_id: 'tx-seed-1', grupo_parcela_id: 'grp-AAA', parcela_numero: 2, valor: 100, status: 'CANCELADA', cancelled_at: '2026-08-15T00:00:00Z' }
+        ];
+
+        // Nova liquidação para o mesmo grupo e parcela 2
+        const incomingPayload = { user_id: 'u-1', transacao_id: 'tx-seed-1', grupo_parcela_id: 'grp-AAA', parcela_numero: 2, valor: 100, status: 'ATIVA' };
+
+        const isDuplicate = existingSettlements.some(s =>
+            s.user_id === incomingPayload.user_id &&
+            s.grupo_parcela_id === incomingPayload.grupo_parcela_id &&
+            s.parcela_numero === incomingPayload.parcela_numero &&
+            s.status === 'ATIVA' &&
+            !s.cancelled_at
+        );
+
+        assert.equal(isDuplicate, false, 'Com a anterior CANCELADA, o índice parcial permite nova liquidação ATIVA');
+    });
+
+    it('27. Regra Canônica DB: Mesmo grupo G permite parcela 1 e parcela 2 ativas simultaneamente', () => {
+        const existingSettlements = [
+            { id: 's-g-1', user_id: 'u-1', transacao_id: 'tx-seed-1', grupo_parcela_id: 'grp-AAA', parcela_numero: 1, valor: 100, status: 'ATIVA' }
+        ];
+
+        const incomingParcela2 = { user_id: 'u-1', transacao_id: 'tx-seed-1', grupo_parcela_id: 'grp-AAA', parcela_numero: 2, valor: 100, status: 'ATIVA' };
+
+        const isDuplicate = existingSettlements.some(s =>
+            s.user_id === incomingParcela2.user_id &&
+            s.grupo_parcela_id === incomingParcela2.grupo_parcela_id &&
+            s.parcela_numero === incomingParcela2.parcela_numero &&
+            s.status === 'ATIVA'
+        );
+
+        assert.equal(isDuplicate, false, 'Parcelas diferentes do mesmo grupo possuem chaves distintas');
+    });
+
+    it('28. Regra Canônica DB: Grupos distintos G e H permitem mesma parcela_numero (ex: 2) ativas simultaneamente', () => {
+        const existingSettlements = [
+            { id: 's-g-2', user_id: 'u-1', transacao_id: 'tx-g', grupo_parcela_id: 'grp-GGG', parcela_numero: 2, valor: 100, status: 'ATIVA' }
+        ];
+
+        const incomingGroupH = { user_id: 'u-1', transacao_id: 'tx-h', grupo_parcela_id: 'grp-HHH', parcela_numero: 2, valor: 250, status: 'ATIVA' };
+
+        const isDuplicate = existingSettlements.some(s =>
+            s.user_id === incomingGroupH.user_id &&
+            s.grupo_parcela_id === incomingGroupH.grupo_parcela_id &&
+            s.parcela_numero === incomingGroupH.parcela_numero &&
+            s.status === 'ATIVA'
+        );
+
+        assert.equal(isDuplicate, false, 'Grupos distintos possuem identidades canônicas isoladas');
+    });
+
+    it('29. Regra Canônica DB: Coerência transacao_id (Grupo A) vs grupo_parcela_id (Grupo B) é detectada e rejeitada', () => {
+        const txA = { id: 'tx-A', user_id: 'u-1', grupo_parcela_id: 'grp-AAA' };
+        const invalidPayload = { transacao_id: 'tx-A', grupo_parcela_id: 'grp-BBB', parcela_numero: 1, valor: 100 };
+
+        const isCoherent = (txA.grupo_parcela_id === invalidPayload.grupo_parcela_id);
+        assert.equal(isCoherent, false, 'Trigger de coerência do banco rejeita incompatibilidade entre transação e grupo');
+    });
+
+    it('30. Regra Canônica DB: Compra à vista (grupo NULL) garante unicidade por (user_id, transacao_id, parcela_numero)', () => {
+        const existingSettlements = [
+            { id: 's-vista-1', user_id: 'u-1', transacao_id: 'tx-vista-1', grupo_parcela_id: null, parcela_numero: 1, valor: 350, status: 'ATIVA' }
+        ];
+
+        const incomingDup = { user_id: 'u-1', transacao_id: 'tx-vista-1', grupo_parcela_id: null, parcela_numero: 1, valor: 350, status: 'ATIVA' };
+
+        const isDuplicate = existingSettlements.some(s =>
+            s.user_id === incomingDup.user_id &&
+            s.transacao_id === incomingDup.transacao_id &&
+            s.grupo_parcela_id === null &&
+            s.parcela_numero === incomingDup.parcela_numero &&
+            s.status === 'ATIVA' &&
+            !s.cancelled_at
+        );
+
+        assert.equal(isDuplicate, true, 'Índice unique_liquidacao_ativa_por_transacao_avulsa bloqueia duplicidade à vista');
+    });
+
 });

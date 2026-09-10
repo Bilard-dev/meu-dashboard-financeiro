@@ -285,7 +285,7 @@ async function setupAuthenticatedApp(page, {
                         const item = newItems[idx];
                         const userId = item.user_id || mockUser.id;
 
-                        // Validação estrita de RLS Cross-User: a transação referenciada DEVE pertencer ao mesmo usuário
+                        // 1. Validação estrita de RLS Cross-User: a transação referenciada DEVE existir e pertencer ao mesmo usuário
                         const targetTx = inMemoryTransactions.find(t => t.id === item.transacao_id);
                         if (!targetTx || targetTx.user_id !== userId) {
                             return route.fulfill({
@@ -295,23 +295,80 @@ async function setupAuthenticatedApp(page, {
                             });
                         }
 
+                        // 2. Validação estrita de Coerência (Trigger handle_liquidacoes_credito_validate_coherence)
+                        let effectiveGroupId = null;
+                        if (targetTx.grupo_parcela_id) {
+                            if (item.grupo_parcela_id && item.grupo_parcela_id !== targetTx.grupo_parcela_id) {
+                                return route.fulfill({
+                                    status: 400,
+                                    contentType: 'application/json',
+                                    body: JSON.stringify({ message: `Incoerência de grupo: transação ${item.transacao_id} pertence ao grupo ${targetTx.grupo_parcela_id}, mas a liquidação informou grupo ${item.grupo_parcela_id}.` })
+                                });
+                            }
+                            effectiveGroupId = targetTx.grupo_parcela_id;
+                        } else {
+                            if (item.grupo_parcela_id) {
+                                return route.fulfill({
+                                    status: 400,
+                                    contentType: 'application/json',
+                                    body: JSON.stringify({ message: `Incoerência de grupo: transação ${item.transacao_id} é à vista/avulsa (sem grupo), mas a liquidação informou grupo ${item.grupo_parcela_id}.` })
+                                });
+                            }
+                            effectiveGroupId = null;
+                        }
+
+                        const parcelaNum = Number(item.parcela_numero) || 1;
+                        const statusVal = item.status || 'ATIVA';
+
+                        // 3. Garantia Estrutural de Unicidade Ativa (Índices Únicos Parciais)
+                        if (statusVal === 'ATIVA') {
+                            if (effectiveGroupId) {
+                                const hasDupGroup = inMemorySettlements.some(s =>
+                                    s.user_id === userId &&
+                                    s.grupo_parcela_id === effectiveGroupId &&
+                                    Number(s.parcela_numero) === parcelaNum &&
+                                    s.status === 'ATIVA' &&
+                                    !s.cancelled_at
+                                );
+                                if (hasDupGroup) {
+                                    return route.fulfill({
+                                        status: 409,
+                                        contentType: 'application/json',
+                                        body: JSON.stringify({ message: 'duplicate key value violates unique constraint "unique_liquidacao_ativa_por_grupo"' })
+                                    });
+                                }
+                            } else {
+                                const hasDupTx = inMemorySettlements.some(s =>
+                                    s.user_id === userId &&
+                                    s.transacao_id === targetTx.id &&
+                                    Number(s.parcela_numero) === parcelaNum &&
+                                    s.status === 'ATIVA' &&
+                                    !s.cancelled_at
+                                );
+                                if (hasDupTx) {
+                                    return route.fulfill({
+                                        status: 409,
+                                        contentType: 'application/json',
+                                        body: JSON.stringify({ message: 'duplicate key value violates unique constraint "unique_liquidacao_ativa_por_transacao_avulsa"' })
+                                    });
+                                }
+                            }
+                        }
+
                         const created = {
                             id: item.id || `settle-created-${Date.now()}-${idx}`,
                             user_id: userId,
-                            transacao_id: item.transacao_id,
-                            grupo_parcela_id: item.grupo_parcela_id || targetTx.grupo_parcela_id || null,
-                            parcela_numero: Number(item.parcela_numero) || 1,
+                            transacao_id: targetTx.id,
+                            grupo_parcela_id: effectiveGroupId,
+                            parcela_numero: parcelaNum,
                             valor: Number(item.valor) || 0,
                             data_liquidacao: item.data_liquidacao || new Date().toISOString().split('T')[0],
                             forma_liquidacao: item.forma_liquidacao || 'PIX',
-                            status: item.status || 'ATIVA',
-                            cancelled_at: item.cancelled_at || null,
+                            status: statusVal,
+                            cancelled_at: item.cancelled_at || (statusVal === 'CANCELADA' ? new Date().toISOString() : null),
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         };
-                        inMemorySettlements = inMemorySettlements.filter(s =>
-                            !(s.user_id === created.user_id && s.transacao_id === created.transacao_id && s.parcela_numero === created.parcela_numero && s.status === 'ATIVA')
-                        );
                         inMemorySettlements.push(created);
                         resultItems.push(created);
                     }

@@ -177,10 +177,10 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         expect(dialogMessage).toContain('Deseja DESATIVAR o item em vez de excluir?');
 
         // Confirma que a categoria foi desativada em vez de deletada
+        await expect.poll(() => getCategories().find(c => c.nome === 'Alimentação')?.ativo).toBe(false);
         const cats = getCategories();
         const alim = cats.find(c => c.nome === 'Alimentação');
         expect(alim).toBeDefined();
-        expect(alim.ativo).toBe(false);
     });
 
     // ==========================================
@@ -338,10 +338,10 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await superRow.locator('button[title="Excluir"]').click();
 
         expect(dialogMessage).toContain('vinculado no seu histórico financeiro');
+        await expect.poll(() => getSubcategories().find(s => s.nome === 'Supermercado')?.ativo).toBe(false);
         const subcats = getSubcategories();
         const superSub = subcats.find(s => s.nome === 'Supermercado');
         expect(superSub).toBeDefined();
-        expect(superSub.ativo).toBe(false);
     });
 
     // ==========================================
@@ -471,10 +471,10 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
 
         expect(dialogMessage).toContain('histórico financeiro');
         await expect(page.locator('#managePaymentsList div:has-text("Nubank") .tag-status')).toHaveText('Inativo');
+        await expect.poll(() => getCards().find(c => c.nome === 'Nubank')?.ativo).toBe(false);
         const cards = getCards();
         const nubank = cards.find(c => c.nome === 'Nubank');
         expect(nubank).toBeDefined();
-        expect(nubank.ativo).toBe(false);
     });
 
     // ==========================================
@@ -592,10 +592,10 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await tagRow.locator('button[title="Excluir"]').click();
 
         expect(dialogMessage).toContain('vinculado no seu histórico financeiro');
+        await expect.poll(() => getTags().find(t => t.nome === 'Viagem')?.ativo).toBe(false);
         const tags = getTags();
         const viagem = tags.find(t => t.nome === 'Viagem');
         expect(viagem).toBeDefined();
-        expect(viagem.ativo).toBe(false);
     });
 
     // ==========================================

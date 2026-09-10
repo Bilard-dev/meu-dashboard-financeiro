@@ -199,9 +199,9 @@ test.describe('Fase 4.0 — M4.0-A: Fundação Responsiva e Eliminação de Over
         const bottomNav = page.locator('#mobileBottomNav');
         await expect(bottomNav).toBeVisible();
         await expect(page.locator('#bnav-resumo')).toBeVisible();
-        await expect(page.locator('#bnav-analise')).toBeVisible();
+        await expect(page.locator('#bnav-parcelas')).toBeVisible();
         await expect(page.locator('#bnav-fab')).toBeVisible();
-        await expect(page.locator('#bnav-previsao')).toBeVisible();
+        await expect(page.locator('#bnav-investimentos')).toBeVisible();
         await expect(page.locator('#bnav-mais')).toBeVisible();
 
         // Abas tradicionais (.nav-tabs) ocultas em mobile

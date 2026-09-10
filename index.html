@@ -1221,24 +1221,31 @@
             .mobile-more-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 0.65rem;
+                gap: 0.5rem;
+                width: 100%;
+                box-sizing: border-box;
             }
 
             .mobile-more-btn {
                 display: flex;
                 align-items: center;
-                gap: 0.65rem;
+                gap: 0.5rem;
                 background: var(--bg-color);
                 border: 1px solid var(--border);
                 border-radius: var(--radius-md);
-                padding: 0.75rem 0.85rem;
+                padding: 0.65rem 0.7rem;
                 text-align: left;
                 color: var(--text-main);
                 cursor: pointer;
                 transition: border-color var(--transition-fast), background var(--transition-fast);
                 min-height: 52px;
                 width: 100%;
+                min-width: 0;
                 box-sizing: border-box;
+            }
+
+            .mobile-more-btn.mobile-more-btn-full {
+                grid-column: 1 / -1;
             }
 
             .mobile-more-btn:hover, .mobile-more-btn:focus-visible {
@@ -1247,31 +1254,36 @@
             }
 
             .mobile-more-icon {
-                font-size: 1.3rem;
+                font-size: 1.25rem;
                 flex-shrink: 0;
+                line-height: 1;
             }
 
             .mobile-more-text {
                 display: flex;
                 flex-direction: column;
                 min-width: 0;
+                flex: 1;
                 overflow: hidden;
             }
 
             .mobile-more-text strong {
-                font-size: 0.85rem;
+                font-size: 0.82rem;
                 color: var(--text-main);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                line-height: 1.2;
             }
 
             .mobile-more-text small {
-                font-size: 0.72rem;
+                font-size: 0.68rem;
                 color: var(--text-muted);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                line-height: 1.2;
+                margin-top: 2px;
             }
 
             .mobile-more-actions {
@@ -1438,6 +1450,379 @@
                 left: 0.75rem;
                 width: auto;
                 max-width: 100%;
+            }
+
+            /* ==========================================================
+               FASE 4.0 (M4.0-D) — MOBILE FINANCIAL CARDS & HIERARCHY
+               ========================================================== */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .data-table {
+                display: block;
+                width: 100%;
+                min-width: 0 !important;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+
+            .data-table thead {
+                display: none;
+            }
+
+            .data-table tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                width: 100%;
+            }
+
+            .data-table tbody tr {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                row-gap: 0.35rem;
+                column-gap: 0.6rem;
+                align-items: center;
+                background: var(--card-bg);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 0.85rem 1rem;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+                box-sizing: border-box;
+                width: 100%;
+                position: relative;
+                transition: transform var(--transition-fast), border-color var(--transition-fast);
+            }
+
+            .data-table tbody tr:active {
+                border-color: var(--primary);
+            }
+
+            .data-table tbody td {
+                display: block;
+                padding: 0;
+                border: none;
+                font-size: 0.85rem;
+                box-sizing: border-box;
+                min-width: 0;
+            }
+
+            .data-table tbody tr td[colspan] {
+                grid-column: 1 / -1 !important;
+                text-align: center !important;
+                padding: 1.25rem 0.5rem !important;
+                color: var(--text-muted);
+            }
+
+            /* Resumo Extrato (#resumoExtratoTableBody tr) */
+            #resumoExtratoTableBody tr .cell-desc {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-main);
+                word-break: break-word;
+            }
+            #resumoExtratoTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 1rem;
+                white-space: nowrap;
+            }
+            #resumoExtratoTableBody tr .cell-cat {
+                grid-column: 1 / 3;
+                grid-row: 2;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+            #resumoExtratoTableBody tr .cell-meio {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                flex-wrap: wrap;
+                font-size: 0.775rem;
+            }
+            #resumoExtratoTableBody tr .cell-date {
+                grid-column: 1 / 2;
+                grid-row: 4;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+            #resumoExtratoTableBody tr .cell-actions {
+                grid-column: 2 / 3;
+                grid-row: 3 / 5;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.4rem;
+            }
+
+            /* Análise Avançada / Extrato (#analiseTableBody tr) */
+            #analiseTableBody tr .cell-desc {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-main);
+                word-break: break-word;
+            }
+            #analiseTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 1rem;
+                white-space: nowrap;
+            }
+            #analiseTableBody tr .cell-cat {
+                grid-column: 1 / 3;
+                grid-row: 2;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+            #analiseTableBody tr .cell-type {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                display: inline-flex;
+                align-items: center;
+                font-size: 0.775rem;
+            }
+            #analiseTableBody tr .cell-meio {
+                grid-column: 1 / 2;
+                grid-row: 4;
+                display: inline-flex;
+                align-items: center;
+                font-size: 0.775rem;
+            }
+            #analiseTableBody tr .cell-date {
+                grid-column: 1 / 2;
+                grid-row: 5;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+            #analiseTableBody tr .cell-actions {
+                grid-column: 2 / 3;
+                grid-row: 3 / 6;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.4rem;
+            }
+
+            /* Faturas & Parcelas (#parcelasTableBody tr) */
+            #parcelasTableBody tr .cell-desc {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-main);
+                word-break: break-word;
+            }
+            #parcelasTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 1rem;
+                white-space: nowrap;
+                color: var(--danger);
+            }
+            #parcelasTableBody tr .cell-cartao {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                font-size: 0.775rem;
+            }
+            #parcelasTableBody tr .cell-parcela {
+                grid-column: 2 / 3;
+                grid-row: 2;
+                text-align: right;
+                font-size: 0.775rem;
+                font-weight: 600;
+            }
+            #parcelasTableBody tr .cell-status {
+                grid-column: 1 / 3;
+                grid-row: 3;
+                font-size: 0.775rem;
+            }
+            #parcelasTableBody tr .cell-date {
+                grid-column: 1 / 2;
+                grid-row: 4;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+            #parcelasTableBody tr .cell-restante {
+                grid-column: 1 / 2;
+                grid-row: 5;
+                font-size: 0.775rem;
+                color: var(--text-muted);
+            }
+            #parcelasTableBody tr .cell-actions {
+                grid-column: 2 / 3;
+                grid-row: 4 / 6;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.35rem;
+            }
+
+            /* Previsão Itens (#forecastItemsTableBody tr) */
+            #forecastItemsTableBody tr .cell-desc {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-main);
+            }
+            #forecastItemsTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 1rem;
+            }
+            #forecastItemsTableBody tr .cell-cat {
+                grid-column: 1 / 3;
+                grid-row: 2;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+            #forecastItemsTableBody tr .cell-meio {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                display: inline-flex;
+                align-items: center;
+                font-size: 0.775rem;
+            }
+            #forecastItemsTableBody tr .cell-parcela {
+                grid-column: 1 / 2;
+                grid-row: 4;
+                display: inline-flex;
+                align-items: center;
+            }
+            #forecastItemsTableBody tr .cell-date {
+                grid-column: 2 / 3;
+                grid-row: 3 / 5;
+                text-align: right;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            /* Investimentos Consolidado (#investSummaryTableBody tr) */
+            #investSummaryTableBody tr .cell-asset {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 700;
+                font-size: 0.95rem;
+            }
+            #investSummaryTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 1rem;
+            }
+            #investSummaryTableBody tr .cell-cat {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+            #investSummaryTableBody tr .cell-progress {
+                grid-column: 2 / 3;
+                grid-row: 2;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+            }
+            #investSummaryTableBody tr .cell-count {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                text-align: left !important;
+            }
+            #investSummaryTableBody tr .cell-date {
+                grid-column: 2 / 3;
+                grid-row: 3;
+                text-align: right;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            /* Investimentos Histórico (#investTableBody tr) */
+            #investTableBody tr .cell-desc {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-main);
+            }
+            #investTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 1rem;
+            }
+            #investTableBody tr .cell-subcat {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                font-size: 0.8rem;
+            }
+            #investTableBody tr .cell-cat {
+                grid-column: 2 / 3;
+                grid-row: 2;
+                text-align: right;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+            #investTableBody tr .cell-date {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+            #investTableBody tr .cell-actions {
+                grid-column: 2 / 3;
+                grid-row: 3;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.4rem;
+            }
+
+            /* Categoria Detalhes (#catDetailTableBody tr) */
+            #catDetailTableBody tr .cell-desc {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                font-weight: 600;
+                font-size: 0.95rem;
+            }
+            #catDetailTableBody tr .cell-val {
+                grid-column: 2 / 3;
+                grid-row: 1;
+                text-align: right;
+                font-weight: 700;
+                font-size: 0.95rem;
+            }
+            #catDetailTableBody tr .cell-subcat {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                font-size: 0.8rem;
+                color: var(--text-muted);
+            }
+            #catDetailTableBody tr .cell-date {
+                grid-column: 2 / 3;
+                grid-row: 2;
+                text-align: right;
+                font-size: 0.75rem;
+                color: var(--text-muted);
             }
         }
 
@@ -1638,7 +2023,6 @@
             <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
             <button class="tab-btn" onclick="switchTab('previsao')">🔮 Previsão Financeira</button>
-            <button class="tab-btn" onclick="switchTab('metas')">🎯 Metas</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
             <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
@@ -2550,16 +2934,16 @@
                 <span class="bnav-icon" aria-hidden="true">🏠</span>
                 <span class="bnav-label">Início</span>
             </button>
-            <button type="button" class="bottom-nav-item" id="bnav-analise" onclick="switchTab('analise')" aria-label="Extrato">
-                <span class="bnav-icon" aria-hidden="true">📄</span>
-                <span class="bnav-label">Extrato</span>
+            <button type="button" class="bottom-nav-item" id="bnav-parcelas" onclick="switchTab('parcelas')" aria-label="Faturas / Parcelas / Cartão">
+                <span class="bnav-icon" aria-hidden="true">💳</span>
+                <span class="bnav-label">Faturas</span>
             </button>
             <button type="button" class="bottom-nav-fab" id="bnav-fab" onclick="openMobileQuickView()" aria-label="Lançador Celular / Novo Lançamento Rápido">
                 <span class="bnav-fab-icon" aria-hidden="true">➕</span>
             </button>
-            <button type="button" class="bottom-nav-item" id="bnav-previsao" onclick="switchTab('previsao')" aria-label="Previsão">
-                <span class="bnav-icon" aria-hidden="true">🔮</span>
-                <span class="bnav-label">Previsão</span>
+            <button type="button" class="bottom-nav-item" id="bnav-investimentos" onclick="switchTab('investimentos')" aria-label="Investimentos">
+                <span class="bnav-icon" aria-hidden="true">💼</span>
+                <span class="bnav-label">Investimentos</span>
             </button>
             <button type="button" class="bottom-nav-item" id="bnav-mais" onclick="toggleMobileMoreSheet()" aria-label="Mais opções e menus" aria-haspopup="dialog" aria-expanded="false">
                 <span class="bnav-icon" aria-hidden="true">☰</span>
@@ -2594,18 +2978,25 @@
                             <small>Aportes e patrimônio</small>
                         </span>
                     </button>
-                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('metas')">
-                        <span class="mobile-more-icon">🎯</span>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('analise')">
+                        <span class="mobile-more-icon">📄</span>
                         <span class="mobile-more-text">
-                            <strong>Metas</strong>
-                            <small>Objetivos e limites</small>
+                            <strong>Extrato & Análise</strong>
+                            <small>Histórico e filtros</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('previsao')">
+                        <span class="mobile-more-icon">🔮</span>
+                        <span class="mobile-more-text">
+                            <strong>Previsão</strong>
+                            <small>Fluxo de caixa futuro</small>
                         </span>
                     </button>
                     <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('gerenciar-listas')">
                         <span class="mobile-more-icon">⚙️</span>
                         <span class="mobile-more-text">
                             <strong>Categorias</strong>
-                            <small>Gerenciar catálogos e cartões</small>
+                            <small>Gerenciar categorias</small>
                         </span>
                     </button>
                     <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('conta')">
@@ -2613,13 +3004,6 @@
                         <span class="mobile-more-text">
                             <strong>Minha Conta</strong>
                             <small>Segurança e perfil</small>
-                        </span>
-                    </button>
-                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('novo')">
-                        <span class="mobile-more-icon">📝</span>
-                        <span class="mobile-more-text">
-                            <strong>Novo Registro Completo</strong>
-                            <small>Formulário com tags e parcelas</small>
                         </span>
                     </button>
                 </div>
@@ -5277,14 +5661,14 @@
             if (tabId === 'resumo') {
                 const item = document.getElementById('bnav-resumo');
                 if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
-            } else if (tabId === 'analise') {
-                const item = document.getElementById('bnav-analise');
+            } else if (tabId === 'parcelas') {
+                const item = document.getElementById('bnav-parcelas');
                 if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
-            } else if (tabId === 'previsao') {
-                const item = document.getElementById('bnav-previsao');
+            } else if (tabId === 'investimentos') {
+                const item = document.getElementById('bnav-investimentos');
                 if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
             } else {
-                // Rotas secundárias no menu "Mais" (parcelas, metas, investimentos, gerenciar-listas, conta, novo)
+                // Rotas secundárias no menu "Mais" (analise, previsao, metas, gerenciar-listas, conta, novo)
                 const item = document.getElementById('bnav-mais');
                 if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
             }
@@ -6630,13 +7014,13 @@
                 const badge = typeBadgeColors[item.type] || typeBadgeColors.DESPESA;
 
                 tr.innerHTML = `
-                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td><span style="font-size:0.75rem; background:${badge.bg}; color:${badge.color}; padding:2px 8px; border-radius:4px; font-weight:600;">${badge.label}</span></td>
-                    <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
-                    <td>${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
-                    <td><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
-                    <td style="font-weight:700; color:${badge.color};">${fmt(item.value)}</td>
-                    <td style="text-align: center; white-space: nowrap;">
+                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td class="cell-type"><span style="font-size:0.75rem; background:${badge.bg}; color:${badge.color}; padding:2px 8px; border-radius:4px; font-weight:600;">${badge.label}</span></td>
+                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                    <td class="cell-cat">${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
+                    <td class="cell-meio"><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
+                    <td class="cell-val" style="font-weight:700; color:${badge.color};">${fmt(item.value)}</td>
+                    <td class="cell-actions" style="text-align: center; white-space: nowrap;">
                         <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
                     </td>
                 `;
@@ -7114,12 +7498,12 @@
                 }
 
                 tr.innerHTML = `
-                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td><span style="font-size:0.7rem; background:var(--border); padding:2px 5px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
-                    <td style="font-weight:500;">${escapeHtml(item.desc) || '-'}</td>
-                    <td>${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
-                    <td style="font-weight:700; color:${color};">${fmt(item.value)}</td>
-                    <td style="text-align: center; white-space: nowrap;">
+                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td class="cell-meio"><span style="font-size:0.7rem; background:var(--border); padding:2px 5px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
+                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc) || '-'}</td>
+                    <td class="cell-cat">${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
+                    <td class="cell-val" style="font-weight:700; color:${color};">${fmt(item.value)}</td>
+                    <td class="cell-actions" style="text-align: center; white-space: nowrap;">
                         ${actionsHtml}
                     </td>
                 `;
@@ -7178,10 +7562,10 @@
                 const tr = document.createElement('tr');
                 const parcelaTag = item.parcelaExibida && item.parcelaExibida !== 'À vista' ? ` <small style="color:var(--text-muted);">(${escapeHtml(item.parcelaExibida)})</small>` : '';
                 tr.innerHTML = `
-                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td>${escapeHtml(item.subCat || '-')}</td>
-                    <td>${escapeHtml(item.desc)}${parcelaTag}</td>
-                    <td style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
+                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td class="cell-subcat">${escapeHtml(item.subCat || '-')}</td>
+                    <td class="cell-desc">${escapeHtml(item.desc)}${parcelaTag}</td>
+                    <td class="cell-val" style="color:var(--danger); font-weight:600;">${fmt(item.value)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -7328,14 +7712,14 @@
                 }
 
                 tr.innerHTML = `
-                    <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
-                    <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(item.cartao || 'Cartão')}</span></td>
-                    <td>${statusBadge}</td>
-                    <td style="font-weight:600;">${escapeHtml(item.parcelaExibida)}</td>
-                    <td style="font-weight:700; color:var(--danger);">${valorHtml}</td>
-                    <td style="font-weight:700; color:${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
-                    <td style="text-align: center; white-space: nowrap;">${actionBtns}</td>
+                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                    <td class="cell-cartao"><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(item.cartao || 'Cartão')}</span></td>
+                    <td class="cell-status">${statusBadge}</td>
+                    <td class="cell-parcela" style="font-weight:600;">${escapeHtml(item.parcelaExibida)}</td>
+                    <td class="cell-val" style="font-weight:700; color:var(--danger);">${valorHtml}</td>
+                    <td class="cell-restante" style="font-weight:700; color:${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
+                    <td class="cell-actions" style="text-align: center; white-space: nowrap;">${actionBtns}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -7940,10 +8324,10 @@
                         const pct = ((s.total / (totalInvestido || 1)) * 100).toFixed(1);
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td style="font-weight:600;"><span style="background:var(--bg-color); padding:3px 8px; border-radius:4px; border:1px solid var(--border);">${escapeHtml(s.subcat)}</span></td>
-                            <td>${escapeHtml(s.cat)}</td>
-                            <td style="color:var(--invest); font-weight:700;">${fmt(s.total)}</td>
-                            <td>
+                            <td class="cell-asset" style="font-weight:600;"><span style="background:var(--bg-color); padding:3px 8px; border-radius:4px; border:1px solid var(--border);">${escapeHtml(s.subcat)}</span></td>
+                            <td class="cell-cat">${escapeHtml(s.cat)}</td>
+                            <td class="cell-val" style="color:var(--invest); font-weight:700;">${fmt(s.total)}</td>
+                            <td class="cell-progress">
                                 <div style="display:flex; align-items:center; gap:0.5rem;">
                                     <div class="progress-bar-bg" style="width:70px; height:6px; margin:0;">
                                         <div class="progress-bar-fill" style="width:${pct}%; background-color:var(--invest);"></div>
@@ -7951,8 +8335,8 @@
                                     <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">${pct}%</span>
                                 </div>
                             </td>
-                            <td style="text-align:center; font-weight:600;">${s.count}</td>
-                            <td style="font-size:0.85rem; color:var(--text-muted);">${s.latestDate.toLocaleDateString('pt-BR')}</td>
+                            <td class="cell-count" style="text-align:center; font-weight:600;">${s.count}</td>
+                            <td class="cell-date" style="font-size:0.85rem; color:var(--text-muted);">${s.latestDate.toLocaleDateString('pt-BR')}</td>
                         `;
                         summaryTbody.appendChild(tr);
                     });
@@ -7974,12 +8358,12 @@
                 filtered.sort((a, b) => b.date - a.date).forEach(item => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                        <td style="font-weight:500;">${escapeHtml(item.desc)}</td>
-                        <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-size:0.8rem;">${escapeHtml(item.subCat || 'Geral')}</span></td>
-                        <td>${escapeHtml(item.category)}</td>
-                        <td style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
-                        <td style="text-align: center; white-space:nowrap;">
+                        <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                        <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                        <td class="cell-subcat"><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; border:1px solid var(--border); font-size:0.8rem;">${escapeHtml(item.subCat || 'Geral')}</span></td>
+                        <td class="cell-cat">${escapeHtml(item.category)}</td>
+                        <td class="cell-val" style="color:var(--invest); font-weight:700;">${fmt(item.value)}</td>
+                        <td class="cell-actions" style="text-align: center; white-space:nowrap;">
                             <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
                             <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
                         </td>
@@ -8231,12 +8615,12 @@
                         const tr = document.createElement('tr');
                         const meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
                         tr.innerHTML = `
-                            <td>${item.date.toLocaleDateString('pt-BR')}</td>
-                            <td style="font-weight:600;">${escapeHtml(item.desc)}</td>
-                            <td><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(meioInfo || 'Geral')}</span></td>
-                            <td>${escapeHtml(item.category)}</td>
-                            <td><span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span></td>
-                            <td style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
+                            <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                            <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                            <td class="cell-meio"><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(meioInfo || 'Geral')}</span></td>
+                            <td class="cell-cat">${escapeHtml(item.category)}</td>
+                            <td class="cell-parcela"><span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span></td>
+                            <td class="cell-val" style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
                         `;
                         tbody.appendChild(tr);
                     });

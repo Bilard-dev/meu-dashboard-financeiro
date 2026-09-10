@@ -67,14 +67,14 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-resumo')).toBeVisible();
         await expect(page.locator('#bnav-resumo')).toContainText('Início');
 
-        await expect(page.locator('#bnav-analise')).toBeVisible();
-        await expect(page.locator('#bnav-analise')).toContainText('Extrato');
+        await expect(page.locator('#bnav-parcelas')).toBeVisible();
+        await expect(page.locator('#bnav-parcelas')).toContainText('Faturas');
 
         await expect(page.locator('#bnav-fab')).toBeVisible();
         await expect(page.locator('#bnav-fab')).toContainText('➕');
 
-        await expect(page.locator('#bnav-previsao')).toBeVisible();
-        await expect(page.locator('#bnav-previsao')).toContainText('Previsão');
+        await expect(page.locator('#bnav-investimentos')).toBeVisible();
+        await expect(page.locator('#bnav-investimentos')).toContainText('Investimentos');
 
         await expect(page.locator('#bnav-mais')).toBeVisible();
         await expect(page.locator('#bnav-mais')).toContainText('Mais');
@@ -93,18 +93,18 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await page.goto('#/dashboard');
         await expect(page.locator('#bnav-resumo')).toHaveClass(/active/);
         await expect(page.locator('#bnav-resumo')).toHaveAttribute('aria-current', 'page');
-        await expect(page.locator('#bnav-analise')).not.toHaveClass(/active/);
+        await expect(page.locator('#bnav-parcelas')).not.toHaveClass(/active/);
 
-        // Carrega direto em #/extrato
-        await page.goto('#/extrato');
-        await expect(page.locator('#bnav-analise')).toHaveClass(/active/);
-        await expect(page.locator('#bnav-analise')).toHaveAttribute('aria-current', 'page');
+        // Carrega direto em #/faturas
+        await page.goto('#/faturas');
+        await expect(page.locator('#bnav-parcelas')).toHaveClass(/active/);
+        await expect(page.locator('#bnav-parcelas')).toHaveAttribute('aria-current', 'page');
         await expect(page.locator('#bnav-resumo')).not.toHaveClass(/active/);
 
-        // Carrega direto em #/previsao
-        await page.goto('#/previsao');
-        await expect(page.locator('#bnav-previsao')).toHaveClass(/active/);
-        await expect(page.locator('#bnav-previsao')).toHaveAttribute('aria-current', 'page');
+        // Carrega direto em #/investimentos
+        await page.goto('#/investimentos');
+        await expect(page.locator('#bnav-investimentos')).toHaveClass(/active/);
+        await expect(page.locator('#bnav-investimentos')).toHaveAttribute('aria-current', 'page');
     });
 
     test('5. Navegação direta via itens do Bottom Nav altera abas e atualiza Hash URL', async ({ page }) => {
@@ -116,17 +116,17 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
             cartoes: mockCartoes
         });
 
-        // Clica em Extrato
-        await page.locator('#bnav-analise').click();
-        await expect(page.locator('#tab-analise')).toBeVisible();
-        await expect(page).toHaveURL(/#\/extrato/);
-        await expect(page.locator('#bnav-analise')).toHaveClass(/active/);
+        // Clica em Faturas
+        await page.locator('#bnav-parcelas').click();
+        await expect(page.locator('#tab-parcelas')).toBeVisible();
+        await expect(page).toHaveURL(/#\/(parcelas|faturas)/);
+        await expect(page.locator('#bnav-parcelas')).toHaveClass(/active/);
 
-        // Clica em Previsão
-        await page.locator('#bnav-previsao').click();
-        await expect(page.locator('#tab-previsao')).toBeVisible();
-        await expect(page).toHaveURL(/#\/previsao/);
-        await expect(page.locator('#bnav-previsao')).toHaveClass(/active/);
+        // Clica em Investimentos
+        await page.locator('#bnav-investimentos').click();
+        await expect(page.locator('#tab-investimentos')).toBeVisible();
+        await expect(page).toHaveURL(/#\/investimentos/);
+        await expect(page.locator('#bnav-investimentos')).toHaveClass(/active/);
 
         // Retorna para Início
         await page.locator('#bnav-resumo').click();
@@ -174,9 +174,9 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
             cartoes: mockCartoes
         });
 
-        // Abre aba de Extrato
-        await page.goto('#/extrato');
-        await expect(page.locator('#bnav-analise')).toHaveClass(/active/);
+        // Abre aba de Faturas
+        await page.goto('#/faturas');
+        await expect(page.locator('#bnav-parcelas')).toHaveClass(/active/);
 
         // Abre Lançador Rápido
         await page.locator('#bnav-fab').click();
@@ -187,10 +187,10 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await quickModal.getByRole('button', { name: /Fechar/i }).click();
         await expect(quickModal).toBeHidden();
 
-        // Permanece na aba Extrato com estado ativo intacto
-        await expect(page.locator('#tab-analise')).toBeVisible();
-        await expect(page.locator('#bnav-analise')).toHaveClass(/active/);
-        await expect(page).toHaveURL(/#\/extrato/);
+        // Permanece na aba Faturas com estado ativo intacto
+        await expect(page.locator('#tab-parcelas')).toBeVisible();
+        await expect(page.locator('#bnav-parcelas')).toHaveClass(/active/);
+        await expect(page).toHaveURL(/#\/(parcelas|faturas)/);
     });
 
     test('8. Botão Mais abre Bottom Sheet e exibe overlay com acessibilidade correta', async ({ page }) => {
@@ -227,31 +227,23 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
             cartoes: mockCartoes
         });
 
-        // 9.1 Faturas & Parcelas
+        // 9.1 Extrato & Análise
         await page.locator('#bnav-mais').click();
-        await page.getByRole('button', { name: /Faturas & Parcelas/i }).click();
-        await expect(page.locator('#tab-parcelas')).toBeVisible();
-        await expect(page).toHaveURL(/#\/(parcelas|faturas)/);
+        await page.getByRole('button', { name: /Extrato/i }).click();
+        await expect(page.locator('#tab-analise')).toBeVisible();
+        await expect(page).toHaveURL(/#\/(analise|extrato)/);
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.2 Investimentos
+        // 9.2 Previsão
         await page.locator('#bnav-mais').click();
-        await page.getByRole('button', { name: /Investimentos/i }).click();
-        await expect(page.locator('#tab-investimentos')).toBeVisible();
-        await expect(page).toHaveURL(/#\/investimentos/);
+        await page.getByRole('button', { name: /Previsão/i }).click();
+        await expect(page.locator('#tab-previsao')).toBeVisible();
+        await expect(page).toHaveURL(/#\/previsao/);
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.3 Metas
-        await page.locator('#bnav-mais').click();
-        await page.getByRole('button', { name: /Metas/i }).click();
-        await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page).toHaveURL(/#\/metas/);
-        await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
-        await expect(page.locator('#mobileMoreSheet')).toBeHidden();
-
-        // 9.4 Categorias
+        // 9.3 Categorias
         await page.locator('#bnav-mais').click();
         await page.getByRole('button', { name: /Categorias/i }).click();
         await expect(page.locator('#tab-gerenciar-listas')).toBeVisible();
@@ -259,7 +251,7 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.5 Minha Conta
+        // 9.4 Minha Conta
         await page.locator('#bnav-mais').click();
         await page.getByRole('button', { name: /Minha Conta/i }).click();
         await expect(page.locator('#tab-conta')).toBeVisible();
@@ -267,13 +259,12 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.6 Novo Registro Completo
+        // 9.5 Confirma exatamente 6 atalhos no menu Mais Opções (Metas e Novo Registro Completo removidos)
         await page.locator('#bnav-mais').click();
-        await page.getByRole('button', { name: /Novo Registro Completo/i }).click();
-        await expect(page.locator('#tab-novo')).toBeVisible();
-        await expect(page).toHaveURL(/#\/novo/);
-        await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
-        await expect(page.locator('#mobileMoreSheet')).toBeHidden();
+        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn')).toHaveCount(6);
+        await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Metas/i })).toHaveCount(0);
+        await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Novo Registro Completo/i })).toHaveCount(0);
+        await page.locator('#mobileMoreSheetOverlay').click({ position: { x: 5, y: 5 } });
     });
 
     test('10. Fechamento do Bottom Sheet por clique no botão Fechar (✕), clique no overlay e tecla ESC', async ({ page }) => {
@@ -367,7 +358,7 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
             cartoes: mockCartoes
         });
 
-        const targets = ['#bnav-resumo', '#bnav-analise', '#bnav-fab', '#bnav-previsao', '#bnav-mais'];
+        const targets = ['#bnav-resumo', '#bnav-parcelas', '#bnav-fab', '#bnav-investimentos', '#bnav-mais'];
         for (const selector of targets) {
             const box = await page.locator(selector).boundingBox();
             expect(box, `Elemento ${selector} deve ter boundingBox`).not.toBeNull();
@@ -453,25 +444,25 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
             cartoes: mockCartoes
         });
 
-        // Navega para Extrato
-        await page.locator('#bnav-analise').click();
-        await expect(page.locator('#bnav-analise')).toHaveClass(/active/);
+        // Navega para Faturas
+        await page.locator('#bnav-parcelas').click();
+        await expect(page.locator('#bnav-parcelas')).toHaveClass(/active/);
 
-        // Navega para Previsão
-        await page.locator('#bnav-previsao').click();
-        await expect(page.locator('#bnav-previsao')).toHaveClass(/active/);
+        // Navega para Investimentos
+        await page.locator('#bnav-investimentos').click();
+        await expect(page.locator('#bnav-investimentos')).toHaveClass(/active/);
 
         // Volta (Back)
         await page.goBack();
-        await expect(page).toHaveURL(/#\/extrato/);
-        await expect(page.locator('#bnav-analise')).toHaveClass(/active/);
-        await expect(page.locator('#bnav-previsao')).not.toHaveClass(/active/);
+        await expect(page).toHaveURL(/#\/(parcelas|faturas)/);
+        await expect(page.locator('#bnav-parcelas')).toHaveClass(/active/);
+        await expect(page.locator('#bnav-investimentos')).not.toHaveClass(/active/);
 
         // Avança (Forward)
         await page.goForward();
-        await expect(page).toHaveURL(/#\/previsao/);
-        await expect(page.locator('#bnav-previsao')).toHaveClass(/active/);
-        await expect(page.locator('#bnav-analise')).not.toHaveClass(/active/);
+        await expect(page).toHaveURL(/#\/investimentos/);
+        await expect(page.locator('#bnav-investimentos')).toHaveClass(/active/);
+        await expect(page.locator('#bnav-parcelas')).not.toHaveClass(/active/);
     });
 
 });

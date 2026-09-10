@@ -1,4 +1,4 @@
-﻿// @ts-check
+// @ts-check
 const { test, expect } = require('@playwright/test');
 const { setupAuthenticatedApp } = require('./helpers/setupApp');
 
@@ -92,7 +92,8 @@ test.describe('Mobile - Lançador Rápido de Bolso', () => {
         await expect(page.locator('#resumoExtratoTableBody')).toContainText('Tênis Esportivo');
 
         // Verifica que a compra parcelada foi devidamente projetada na aba Parcelas
-        await page.getByRole('button', { name: /Parcelas/i }).click();
+        await page.locator('#bnav-mais').click();
+        await page.getByRole('button', { name: /Faturas & Parcelas/i }).click();
         await expect(page.locator('#parcelasTableBody')).toContainText('Tênis Esportivo');
         await expect(page.locator('#parcelasTableBody')).toContainText('1/3');
     });
@@ -119,7 +120,8 @@ test.describe('Mobile - Lançador Rápido de Bolso', () => {
         await expect(page.locator('#resumoExtratoTableBody')).toContainText('Notebook Dell');
 
         // Verifica que a compra parcelada customizada consta na aba Parcelas
-        await page.getByRole('button', { name: /Parcelas/i }).click();
+        await page.locator('#bnav-mais').click();
+        await page.getByRole('button', { name: /Faturas & Parcelas/i }).click();
         await expect(page.locator('#parcelasTableBody')).toContainText('Notebook Dell');
         await expect(page.locator('#parcelasTableBody')).toContainText('1/12');
     });
@@ -144,7 +146,8 @@ test.describe('Mobile - Lançador Rápido de Bolso', () => {
         await expect(page.locator('#resumoExtratoTableBody')).toContainText('Assinatura Spotify Duo');
 
         // Verifica na aba Parcelas como recorrente
-        await page.getByRole('button', { name: /Parcelas/i }).click();
+        await page.locator('#bnav-mais').click();
+        await page.getByRole('button', { name: /Faturas & Parcelas/i }).click();
         await expect(page.locator('#parcelasTableBody')).toContainText('Assinatura Spotify Duo');
         await expect(page.locator('#parcelasTableBody')).toContainText('Recorrente');
     });

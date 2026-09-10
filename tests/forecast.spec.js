@@ -410,11 +410,14 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         await page.setViewportSize({ width: 390, height: 844 });
         await setupAuthenticatedApp(page);
 
-        await page.click('button:has-text("🔮 Previsão Financeira")');
+        // Navega para Previsão usando bottom nav mobile
+        await page.locator('#bnav-previsao').click();
         await expect(page.locator('#tab-previsao')).toBeVisible();
         await expect(page.locator('#forecastMonthGrid')).toBeVisible();
 
-        await page.click('button:has-text("🔒 Minha Conta")');
+        // Navega para Minha Conta usando menu Mais
+        await page.locator('#bnav-mais').click();
+        await page.getByRole('button', { name: /Minha Conta/i }).click();
         await expect(page.locator('#tab-conta')).toBeVisible();
 
         await page.click('#themeToggleBtn');

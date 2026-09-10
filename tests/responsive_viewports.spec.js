@@ -176,7 +176,7 @@ test.describe('Fase 4.0 — M4.0-A: Fundação Responsiva e Eliminação de Over
         await expect(quickModal).toBeHidden();
     });
 
-    test('4. Controles e botões essenciais permanecem visíveis e operacionais em mobile e desktop', async ({ page }) => {
+    test('4. Controles e navegação essenciais permanecem visíveis e operacionais em mobile e desktop', async ({ page }) => {
         // Mobile 390x844
         await page.setViewportSize({ width: 390, height: 844 });
 
@@ -189,20 +189,33 @@ test.describe('Fase 4.0 — M4.0-A: Fundação Responsiva e Eliminação de Over
 
         await page.goto('#/dashboard');
 
-        // Controles de header
-        await expect(page.locator('#tabNovoBtn')).toBeVisible();
-        await expect(page.getByRole('button', { name: /Lançador Celular/i })).toBeVisible();
+        // Controles de header essenciais em mobile
         await expect(page.locator('#syncBtn')).toBeVisible();
         await expect(page.locator('#privacyToggleBtn')).toBeVisible();
         await expect(page.locator('#monthSelector')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
 
-        // Navegação por abas
+        // Bottom Navigation ativa em mobile
+        const bottomNav = page.locator('#mobileBottomNav');
+        await expect(bottomNav).toBeVisible();
+        await expect(page.locator('#bnav-resumo')).toBeVisible();
+        await expect(page.locator('#bnav-analise')).toBeVisible();
+        await expect(page.locator('#bnav-fab')).toBeVisible();
+        await expect(page.locator('#bnav-previsao')).toBeVisible();
+        await expect(page.locator('#bnav-mais')).toBeVisible();
+
+        // Abas tradicionais (.nav-tabs) ocultas em mobile
         const tabsContainer = page.locator('.nav-tabs');
+        await expect(tabsContainer).toBeHidden();
+
+        // Desktop 1366x768: Abas tradicionais visíveis e Bottom Nav oculta
+        await page.setViewportSize({ width: 1366, height: 768 });
         await expect(tabsContainer).toBeVisible();
+        await expect(page.locator('#tabNovoBtn')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Resumo Geral' })).toBeVisible();
         await expect(page.getByRole('button', { name: /Análise de Gastos/ })).toBeVisible();
         await expect(page.getByRole('button', { name: /Parcelas \/ Fatura Cartão/ })).toBeVisible();
+        await expect(bottomNav).toBeHidden();
     });
 
     test('5. Preservação estrutural completa no Desktop (1366x768 e 1920x1080)', async ({ page }) => {

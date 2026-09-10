@@ -1003,6 +1003,18 @@
             min-width: 0;
         }
 
+        .mobile-bottom-nav {
+            display: none;
+        }
+
+        .mobile-more-overlay {
+            display: none;
+        }
+
+        .mobile-more-sheet {
+            display: none;
+        }
+
         /* BREAKPOINT: TABLET & TELAS INTERMEDIÁRIAS (max-width: 1024px) */
         @media (max-width: 1024px) {
             .nav-tabs {
@@ -1017,7 +1029,230 @@
         /* BREAKPOINT: MOBILE (max-width: 768px) */
         @media (max-width: 768px) {
             body {
-                padding: 0.85rem;
+                padding: 0.85rem 0.85rem calc(4.5rem + env(safe-area-inset-bottom, 0px)) 0.85rem;
+            }
+
+            .nav-tabs {
+                display: none !important;
+            }
+
+            .header-controls #tabNovoBtn,
+            .header-controls button[onclick="openMobileQuickView()"] {
+                display: none !important;
+            }
+
+            /* BOTTOM NAVIGATION MOBILE */
+            .mobile-bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: calc(3.8rem + env(safe-area-inset-bottom, 0px));
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+                background: var(--card-bg);
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+                z-index: 990;
+                align-items: center;
+                justify-content: space-around;
+                user-select: none;
+            }
+
+            .bottom-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 0.15rem;
+                background: transparent;
+                border: none;
+                color: var(--text-muted);
+                padding: 0.35rem 0.25rem;
+                font-size: 0.72rem;
+                font-weight: 500;
+                cursor: pointer;
+                min-height: 44px;
+                transition: color var(--transition-fast), transform var(--transition-fast);
+                outline: none;
+                text-decoration: none;
+            }
+
+            .bottom-nav-item:hover, .bottom-nav-item:focus-visible {
+                color: var(--primary);
+            }
+
+            .bottom-nav-item.active {
+                color: var(--primary);
+                font-weight: 700;
+            }
+
+            .bottom-nav-item .bnav-icon {
+                font-size: 1.25rem;
+                line-height: 1;
+            }
+
+            .bottom-nav-item.active .bnav-icon {
+                transform: scale(1.1);
+            }
+
+            /* BOTÃO CENTRAL "+" (FAB) */
+            .bottom-nav-fab {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: var(--primary);
+                color: white;
+                border: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+                cursor: pointer;
+                margin-top: -16px;
+                transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+                outline: none;
+                flex-shrink: 0;
+            }
+
+            .bottom-nav-fab:hover, .bottom-nav-fab:focus-visible {
+                background: var(--primary-hover);
+                transform: scale(1.08);
+                box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+            }
+
+            .bottom-nav-fab:active {
+                transform: scale(0.94);
+            }
+
+            /* OVERLAY & BOTTOM SHEET MAIS OPÇÕES */
+            .mobile-more-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 995;
+                backdrop-filter: blur(2px);
+            }
+
+            .mobile-more-sheet {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--card-bg);
+                border-top-left-radius: var(--radius-xl);
+                border-top-right-radius: var(--radius-xl);
+                border-top: 1px solid var(--border);
+                box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                max-height: 85vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0.75rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px)) 1.25rem;
+                animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            @keyframes slideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+
+            .mobile-more-handle-bar {
+                display: flex;
+                justify-content: center;
+                padding-bottom: 0.5rem;
+            }
+
+            .mobile-more-handle {
+                width: 36px;
+                height: 4px;
+                background: var(--border);
+                border-radius: var(--radius-full);
+            }
+
+            .mobile-more-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-bottom: 0.85rem;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 1rem;
+            }
+
+            .mobile-more-section-title {
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 0.6rem;
+            }
+
+            .mobile-more-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.65rem;
+            }
+
+            .mobile-more-btn {
+                display: flex;
+                align-items: center;
+                gap: 0.65rem;
+                background: var(--bg-color);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-md);
+                padding: 0.75rem 0.85rem;
+                text-align: left;
+                color: var(--text-main);
+                cursor: pointer;
+                transition: border-color var(--transition-fast), background var(--transition-fast);
+                min-height: 52px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .mobile-more-btn:hover, .mobile-more-btn:focus-visible {
+                border-color: var(--primary);
+                background: rgba(37, 99, 235, 0.05);
+            }
+
+            .mobile-more-icon {
+                font-size: 1.3rem;
+                flex-shrink: 0;
+            }
+
+            .mobile-more-text {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .mobile-more-text strong {
+                font-size: 0.85rem;
+                color: var(--text-main);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-more-text small {
+                font-size: 0.72rem;
+                color: var(--text-muted);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .mobile-more-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
             }
 
             .filter-bar {
@@ -1184,7 +1419,7 @@
         /* BREAKPOINT: SMALL MOBILE (max-width: 480px) */
         @media (max-width: 480px) {
             body {
-                padding: 0.6rem 0.5rem;
+                padding: 0.6rem 0.5rem calc(4.5rem + env(safe-area-inset-bottom, 0px)) 0.5rem;
             }
 
             header h1 {
@@ -1224,6 +1459,28 @@
 
             .filter-bar {
                 padding: 0.75rem 0.85rem;
+            }
+
+            .mobile-more-sheet {
+                padding: 0.6rem 0.85rem calc(1.25rem + env(safe-area-inset-bottom, 0px)) 0.85rem;
+            }
+
+            .mobile-more-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.45rem;
+            }
+
+            .mobile-more-btn {
+                padding: 0.6rem 0.65rem;
+                gap: 0.45rem;
+            }
+
+            .mobile-more-btn .mobile-more-icon {
+                font-size: 1.15rem;
+            }
+
+            .mobile-more-text strong {
+                font-size: 0.8rem;
             }
         }
         .toast {
@@ -2261,6 +2518,101 @@
             </div>
 
         </div>
+
+        <!-- BOTTOM NAVIGATION MOBILE (<= 768px) -->
+        <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação Principal Mobile">
+            <button type="button" class="bottom-nav-item active" id="bnav-resumo" onclick="switchTab('resumo')" aria-label="Início" aria-current="page">
+                <span class="bnav-icon" aria-hidden="true">🏠</span>
+                <span class="bnav-label">Início</span>
+            </button>
+            <button type="button" class="bottom-nav-item" id="bnav-analise" onclick="switchTab('analise')" aria-label="Extrato">
+                <span class="bnav-icon" aria-hidden="true">📄</span>
+                <span class="bnav-label">Extrato</span>
+            </button>
+            <button type="button" class="bottom-nav-fab" id="bnav-fab" onclick="openMobileQuickView()" aria-label="Lançador Celular / Novo Lançamento Rápido">
+                <span class="bnav-fab-icon" aria-hidden="true">➕</span>
+            </button>
+            <button type="button" class="bottom-nav-item" id="bnav-previsao" onclick="switchTab('previsao')" aria-label="Previsão">
+                <span class="bnav-icon" aria-hidden="true">🔮</span>
+                <span class="bnav-label">Previsão</span>
+            </button>
+            <button type="button" class="bottom-nav-item" id="bnav-mais" onclick="toggleMobileMoreSheet()" aria-label="Mais opções e menus" aria-haspopup="dialog" aria-expanded="false">
+                <span class="bnav-icon" aria-hidden="true">☰</span>
+                <span class="bnav-label">Mais</span>
+            </button>
+        </nav>
+
+        <!-- BOTTOM SHEET / PAINEL MOBILE: MAIS OPÇÕES -->
+        <div id="mobileMoreSheetOverlay" class="mobile-more-overlay" onclick="closeMobileMoreSheet()" style="display: none;" aria-hidden="true"></div>
+        <div id="mobileMoreSheet" class="mobile-more-sheet" role="dialog" aria-modal="true" aria-label="Menu de Funções Secundárias" style="display: none;">
+            <div class="mobile-more-handle-bar" aria-hidden="true"><div class="mobile-more-handle"></div></div>
+            <div class="mobile-more-header">
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>☰</span> Mais Opções
+                </h3>
+                <button type="button" class="action-icon-btn" onclick="closeMobileMoreSheet()" aria-label="Fechar menu mais opções" style="border: none; background: transparent; font-size: 1.25rem;">✕</button>
+            </div>
+            <div class="mobile-more-body">
+                <div class="mobile-more-section-title">Navegação & Finanças</div>
+                <div class="mobile-more-grid">
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('parcelas')">
+                        <span class="mobile-more-icon">💳</span>
+                        <span class="mobile-more-text">
+                            <strong>Faturas & Parcelas</strong>
+                            <small>Cartões e compras futuras</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('investimentos')">
+                        <span class="mobile-more-icon">💼</span>
+                        <span class="mobile-more-text">
+                            <strong>Investimentos</strong>
+                            <small>Aportes e patrimônio</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('metas')">
+                        <span class="mobile-more-icon">🎯</span>
+                        <span class="mobile-more-text">
+                            <strong>Metas</strong>
+                            <small>Objetivos e limites</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('gerenciar-listas')">
+                        <span class="mobile-more-icon">⚙️</span>
+                        <span class="mobile-more-text">
+                            <strong>Categorias</strong>
+                            <small>Gerenciar catálogos e cartões</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('conta')">
+                        <span class="mobile-more-icon">🔒</span>
+                        <span class="mobile-more-text">
+                            <strong>Minha Conta</strong>
+                            <small>Segurança e perfil</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('novo')">
+                        <span class="mobile-more-icon">📝</span>
+                        <span class="mobile-more-text">
+                            <strong>Novo Registro Completo</strong>
+                            <small>Formulário com tags e parcelas</small>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="mobile-more-section-title" style="margin-top: 1rem;">Ações Rápidas</div>
+                <div class="mobile-more-actions">
+                    <button type="button" class="btn-secondary" style="width: 100%; justify-content: flex-start; gap: 0.6rem; padding: 0.7rem 1rem;" onclick="togglePrivacy(); closeMobileMoreSheet();">
+                        <span>👁️</span> Alternar Modo Privacidade
+                    </button>
+                    <button type="button" class="btn-secondary" style="width: 100%; justify-content: flex-start; gap: 0.6rem; padding: 0.7rem 1rem;" onclick="manualSync(); closeMobileMoreSheet();">
+                        <span>🔄</span> Sincronizar com Nuvem
+                    </button>
+                    <button type="button" class="btn-danger" style="width: 100%; justify-content: flex-start; gap: 0.6rem; padding: 0.7rem 1rem;" onclick="logout()">
+                        <span>🚪</span> Sair da Conta
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL DE CONFLITO DE SINCRONIZAÇÃO DE METAS -->
@@ -2760,6 +3112,7 @@
         window.calculateInvoiceSummary = calculateInvoiceSummary;
         window.getExpensesByCompetence = getExpensesByCompetence;
         window.calculateFinancialForecast = calculateFinancialForecast;
+        window.getPrivacyMode = getPrivacyMode;
         window.togglePrivacyMode = togglePrivacyMode;
         window.getRoutingSync = getRoutingSync;
         window.setRoutingSync = setRoutingSync;
@@ -4789,6 +5142,79 @@
 
         window.addEventListener('hashchange', handleHashChange);
 
+        function updateBottomNavActive(tabId) {
+            const bnavItems = document.querySelectorAll('.bottom-nav-item');
+            bnavItems.forEach(item => {
+                item.classList.remove('active');
+                item.removeAttribute('aria-current');
+            });
+
+            if (tabId === 'resumo') {
+                const item = document.getElementById('bnav-resumo');
+                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+            } else if (tabId === 'analise') {
+                const item = document.getElementById('bnav-analise');
+                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+            } else if (tabId === 'previsao') {
+                const item = document.getElementById('bnav-previsao');
+                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+            } else {
+                // Rotas secundárias no menu "Mais" (parcelas, metas, investimentos, gerenciar-listas, conta, novo)
+                const item = document.getElementById('bnav-mais');
+                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+            }
+        }
+
+        function openMobileMoreSheet() {
+            const sheet = document.getElementById('mobileMoreSheet');
+            const overlay = document.getElementById('mobileMoreSheetOverlay');
+            const maisBtn = document.getElementById('bnav-mais');
+            if (sheet && overlay) {
+                overlay.style.display = 'block';
+                sheet.style.display = 'block';
+                if (maisBtn) maisBtn.setAttribute('aria-expanded', 'true');
+                document.addEventListener('keydown', handleMoreSheetKeydown);
+            }
+        }
+
+        function closeMobileMoreSheet() {
+            const sheet = document.getElementById('mobileMoreSheet');
+            const overlay = document.getElementById('mobileMoreSheetOverlay');
+            const maisBtn = document.getElementById('bnav-mais');
+            if (sheet && overlay) {
+                overlay.style.display = 'none';
+                sheet.style.display = 'none';
+                if (maisBtn) maisBtn.setAttribute('aria-expanded', 'false');
+                document.removeEventListener('keydown', handleMoreSheetKeydown);
+            }
+        }
+
+        function toggleMobileMoreSheet() {
+            const sheet = document.getElementById('mobileMoreSheet');
+            if (sheet && sheet.style.display === 'block') {
+                closeMobileMoreSheet();
+            } else {
+                openMobileMoreSheet();
+            }
+        }
+
+        function handleMoreSheetKeydown(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                closeMobileMoreSheet();
+            }
+        }
+
+        function navigateToFromMore(tabId) {
+            closeMobileMoreSheet();
+            switchTab(tabId);
+        }
+
+        window.openMobileMoreSheet = openMobileMoreSheet;
+        window.closeMobileMoreSheet = closeMobileMoreSheet;
+        window.toggleMobileMoreSheet = toggleMobileMoreSheet;
+        window.navigateToFromMore = navigateToFromMore;
+        window.updateBottomNavActive = updateBottomNavActive;
+
         function switchTab(tabId, updateUrl = true) {
             if (!tabId || !document.getElementById(`tab-${tabId}`)) {
                 tabId = 'resumo';
@@ -4802,6 +5228,9 @@
 
             const contentEl = document.getElementById(`tab-${tabId}`);
             if (contentEl) contentEl.classList.add('active');
+
+            updateBottomNavActive(tabId);
+            closeMobileMoreSheet();
 
             if (tabId === 'resumo') {
                 document.getElementById('filterContainer').style.visibility = 'visible';

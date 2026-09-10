@@ -408,4 +408,94 @@ test.describe('Fase 3.5 — Efeitos Financeiros da Liquidação Antecipada via P
         await expect(page.locator('#an-detail-media-cartao')).toContainText('0,00');
     });
 
+    test('8. Cenário Obrigatório Seção 24: Compra Agosto R$ 600 Cartão quitada em Setembro (05/09/2026) via PIX -> Sem Reload -> Com Reload -> Reversão', async ({ page }) => {
+        const transactions = [
+            {
+                id: 'tx-aug-card-600',
+                user_id: mockUser.id,
+                tipo: 'Despesa',
+                data: '2026-08-10',
+                descricao: 'Smartphone Teste Agosto',
+                categoria: 'Eletrônicos',
+                subcategoria: 'Celular',
+                valor: 600.00,
+                pagamento: 'Cartão de Crédito',
+                cartao: 'Nubank',
+                parcela: 'À vista',
+                fatura_destino: 'ATUAL',
+                created_at: new Date().toISOString()
+            }
+        ];
+
+        await setupAuthenticatedApp(page, { transactions, autoAcceptDialogs: true });
+
+        // 1. Estado Inicial em Agosto (2026-7): Despesa 600, Cartão 600, PIX 0
+        await page.selectOption('#monthSelector', '2026-7');
+        await expect(page.locator('#kpi-despesas')).toHaveText(/600,00/);
+        await expect(page.locator('#kpi-despesas-detalhes')).toContainText('Cartão de Crédito');
+        await expect(page.locator('#kpi-despesas-detalhes')).toContainText('600,00');
+
+        // 2. Navega para a aba de Faturas e executa a quitação via PIX com data_liquidacao em SETEMBRO (2026-09-05)
+        await page.getByRole('button', { name: 'Parcelas / Fatura Cartão' }).click();
+        await page.selectOption('#faturaMonthSelector', '2026-7');
+        await expect(page.locator('#kpi-fatura-atual')).toHaveText(/600,00/);
+
+        await page.locator('.settle-btn').click();
+        await expect(page.locator('#creditSettlementModal')).toBeVisible();
+        await expect(page.locator('#settleItemValor')).toHaveText(/600,00/);
+
+        // Preenche data_liquidacao explicitamente no mês seguinte (Setembro)
+        await page.locator('#settleDataLiquidacao').fill('2026-09-05');
+        await expect(page.locator('#settleFormaLiquidacao')).toHaveValue('PIX');
+        await page.click('#btnConfirmSettlement');
+        await expect(page.locator('#creditSettlementModal')).toBeHidden();
+
+        // Na fatura, o status é Quitada e a fatura em aberto baixa para 0
+        const row = page.locator('#parcelasTableBody tr').first();
+        await expect(row.locator('.tag-done')).toHaveText(/Quitada \(PIX\)/);
+        await expect(page.locator('#kpi-fatura-atual')).toHaveText(/0,00/);
+
+        // 3. SEM RELOAD: Volta ao Resumo e seleciona SETEMBRO (2026-8)
+        await page.getByRole('button', { name: 'Resumo' }).click();
+        await page.selectOption('#monthSelector', '2026-8');
+
+        // Em Setembro: Saída PIX de R$ 600,00 deve aparecer imediatamente no detalhe do mês!
+        const detailsSetembroSemReload = page.locator('#kpi-despesas-detalhes');
+        await expect(detailsSetembroSemReload).toContainText('PIX');
+        await expect(detailsSetembroSemReload).toContainText('600,00');
+
+        // Ao voltar para Agosto (2026-7) sem reload:
+        await page.selectOption('#monthSelector', '2026-7');
+        await expect(page.locator('#kpi-despesas')).toHaveText(/600,00/);
+        const detailsAgostoSemReload = page.locator('#kpi-despesas-detalhes');
+        await expect(detailsAgostoSemReload).not.toContainText('PIX');
+
+        // 4. COM RELOAD (F5): Recarrega a página e valida persistência
+        await page.reload();
+        await page.selectOption('#monthSelector', '2026-8');
+        const detailsSetembroComReload = page.locator('#kpi-despesas-detalhes');
+        await expect(detailsSetembroComReload).toContainText('PIX');
+        await expect(detailsSetembroComReload).toContainText('600,00');
+
+        // 5. REVERSÃO: Volta para faturas e reverte a quitação
+        await page.getByRole('button', { name: 'Parcelas / Fatura Cartão' }).click();
+        await page.selectOption('#faturaMonthSelector', '2026-7');
+        await expect(page.locator('#kpi-fatura-atual')).toHaveText(/0,00/);
+
+        await page.locator('.settle-revert-btn').click();
+        await expect(page.locator('#kpi-fatura-atual')).toHaveText(/600,00/);
+
+        // Volta ao Resumo e verifica Setembro (PIX deve ter sido removido)
+        await page.getByRole('button', { name: 'Resumo' }).click();
+        await page.selectOption('#monthSelector', '2026-8');
+        const detailsSetembroAposReversao = page.locator('#kpi-despesas-detalhes');
+        await expect(detailsSetembroAposReversao).not.toContainText('PIX');
+
+        // Em Agosto, a obrigação de Cartão de Crédito volta a aparecer
+        await page.selectOption('#monthSelector', '2026-7');
+        const detailsAgostoAposReversao = page.locator('#kpi-despesas-detalhes');
+        await expect(detailsAgostoAposReversao).toContainText('Cartão de Crédito');
+        await expect(detailsAgostoAposReversao).toContainText('600,00');
+    });
+
 });

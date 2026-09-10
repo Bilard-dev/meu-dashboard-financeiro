@@ -728,4 +728,59 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
         assert.equal(revertido.totalDespesaEconomica, 600, 'REVERTIDO: Despesa econômica = 600');
     });
 
+    it('40. SEÇÃO 9: TESTE OBRIGATÓRIO CROSS-MONTH (Compra Agosto R$ 600 Cartão + Liquidação Setembro R$ 600 PIX)', () => {
+        const txs = [
+            { id: 'tx-cross-canon', type: 'DESPESA', desc: 'Compra Agosto', value: 600, rawDate: '2026-08-10', year: 2026, month: 7, pagamento: 'Cartão de Crédito', cartao: 'Nubank', faturaDestino: 'ATUAL', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-cross-canon', transacao_id: 'tx-cross-canon', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-05' }
+        ];
+
+        // Consulta Agosto (2026-7):
+        const resAgo = calculateEffectivePaymentOutflows('2026-7', txs, setts);
+        assert.equal(resAgo.totalDespesaEconomica, 600, 'Agosto: Despesa econômica da compra = R$ 600');
+        assert.equal(resAgo.byPaymentMethod['PIX'] || 0, 0, 'Agosto: PIX = R$ 0');
+        assert.equal(resAgo.obrigacaoCartaoTotal, 0, 'Agosto: Obrigação Cartão = R$ 0 (quitada antecipadamente)');
+        assert.equal(resAgo.totalSaidaFinanceira, 0, 'Agosto: Saída financeira efetiva no mês = R$ 0');
+
+        // Consulta Setembro (2026-8) — SEM transação econômica em setembro:
+        const resSet = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(resSet.totalDespesaEconomica, 0, 'Setembro: Despesa econômica = R$ 0');
+        assert.equal(resSet.byPaymentMethod['PIX'], 600, 'Setembro: Saída PIX = R$ 600');
+        assert.equal(resSet.obrigacaoCartaoTotal, 0, 'Setembro: Obrigação Cartão = R$ 0');
+        assert.equal(resSet.totalSaidaFinanceira, 600, 'Setembro: Saída financeira efetiva no mês = R$ 600');
+    });
+
+    it('41. SEÇÃO 10: TESTE OBRIGATÓRIO MESMO MÊS (Compra Setembro R$ 600 Cartão + Liquidação Setembro R$ 600 PIX)', () => {
+        const txs = [
+            { id: 'tx-same-canon', type: 'DESPESA', desc: 'Compra Setembro', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank', faturaDestino: 'ATUAL', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-same-canon', transacao_id: 'tx-same-canon', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-15' }
+        ];
+
+        const resSet = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(resSet.totalDespesaEconomica, 600, 'Setembro: Despesa econômica = R$ 600');
+        assert.equal(resSet.byPaymentMethod['PIX'], 600, 'Setembro: PIX = R$ 600');
+        assert.equal(resSet.obrigacaoCartaoTotal, 0, 'Setembro: Cartão residual = R$ 0');
+        assert.equal(resSet.totalSaidaFinanceira, 600, 'Setembro: Saída financeira = R$ 600');
+        assert.notEqual(resSet.totalDespesaEconomica, 1200, 'Sem despesa duplicada (nunca 1200)');
+    });
+
+    it('42. SEÇÃO 11: TESTE OBRIGATÓRIO REVERSÃO (Cancelamento de Liquidação restaura Cartão e zera PIX)', () => {
+        const txs = [
+            { id: 'tx-rev-canon', type: 'DESPESA', desc: 'Compra Setembro', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank', faturaDestino: 'ATUAL', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-rev-canon', transacao_id: 'tx-rev-canon', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'CANCELADA', cancelled_at: '2026-09-16T12:00:00Z', data_liquidacao: '2026-09-15' }
+        ];
+
+        const resSet = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(resSet.totalDespesaEconomica, 600, 'Setembro: Despesa econômica = R$ 600');
+        assert.equal(resSet.byPaymentMethod['PIX'] || 0, 0, 'Setembro: PIX = R$ 0');
+        assert.equal(resSet.obrigacaoCartaoTotal, 600, 'Setembro: Cartão volta a R$ 600');
+        assert.equal(resSet.byPaymentMethod['Cartão de Crédito'], 600, 'Setembro: Cartão de Crédito = R$ 600');
+        assert.equal(resSet.byCard['Nubank'], 600, 'Setembro: Nubank = R$ 600');
+    });
+
 });

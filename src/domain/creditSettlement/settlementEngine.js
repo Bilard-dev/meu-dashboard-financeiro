@@ -235,19 +235,27 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
             byCard[nomeCartao] = (byCard[nomeCartao] || 0) + d.value;
         } else {
             // Parcela LIQUIDADA: obrigação residual no cartão é R$ 0.
-            // Se selectedYm for 'all' ou se a data_liquidacao pertencer a selectedYm:
+            const formaLiq = settlement.forma_liquidacao || 'PIX';
             if (selectedYm === 'all') {
-                const formaLiq = settlement.forma_liquidacao || 'PIX';
                 byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + d.value;
             } else {
                 const liqDateStr = settlement.data_liquidacao;
                 let liqYm = '';
                 if (liqDateStr) {
-                    const [ly, lm] = liqDateStr.split('-').map(Number);
-                    liqYm = `${ly}-${lm - 1}`;
+                    if (typeof liqDateStr === 'string') {
+                        const parts = liqDateStr.split(/[-/T ]/);
+                        if (parts.length >= 2) {
+                            const ly = parseInt(parts[0], 10);
+                            const lm = parseInt(parts[1], 10);
+                            if (!isNaN(ly) && !isNaN(lm)) {
+                                liqYm = `${ly}-${lm - 1}`;
+                            }
+                        }
+                    } else if (liqDateStr instanceof Date && !isNaN(liqDateStr.getTime())) {
+                        liqYm = `${liqDateStr.getFullYear()}-${liqDateStr.getMonth()}`;
+                    }
                 }
                 if (liqYm === selectedYm) {
-                    const formaLiq = settlement.forma_liquidacao || 'PIX';
                     byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + d.value;
                 }
             }
@@ -258,25 +266,41 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
     // que quitaram parcelas cuja competência de fatura era DIFERENTE deste mês
     if (selectedYm !== 'all') {
         setts.forEach(s => {
-            if (!s || s.status !== 'ATIVA' || s.cancelled_at) return;
+            if (!s) return;
+            const isActive = (!s.status || s.status === 'ATIVA') && !s.cancelled_at;
+            if (!isActive) return;
+
             const liqDateStr = s.data_liquidacao;
             if (!liqDateStr) return;
-            const [ly, lm] = liqDateStr.split('-').map(Number);
-            const liqYm = `${ly}-${lm - 1}`;
+
+            let liqYm = '';
+            if (typeof liqDateStr === 'string') {
+                const parts = liqDateStr.split(/[-/T ]/);
+                if (parts.length >= 2) {
+                    const ly = parseInt(parts[0], 10);
+                    const lm = parseInt(parts[1], 10);
+                    if (!isNaN(ly) && !isNaN(lm)) {
+                        liqYm = `${ly}-${lm - 1}`;
+                    }
+                }
+            } else if (liqDateStr instanceof Date && !isNaN(liqDateStr.getTime())) {
+                liqYm = `${liqDateStr.getFullYear()}-${liqDateStr.getMonth()}`;
+            }
 
             if (liqYm === selectedYm) {
+                const sNum = Number(s.parcela_numero) || 1;
                 const alreadyComputed = expensesInMonth.some(d => {
                     const isCard = Boolean(d.cartao || d.pagamento === 'Cartão de Crédito');
                     if (!isCard || d.isRecorrente) return false;
                     const pNum = d.parcelaNoMes || d.initAtual || 1;
                     const matchTx = (s.transacao_id && d.id === s.transacao_id);
                     const matchGroup = (s.grupo_parcela_id && d.grupo_parcela_id === s.grupo_parcela_id);
-                    return (matchTx || matchGroup) && Number(s.parcela_numero) === pNum;
+                    return (matchTx || matchGroup) && sNum === pNum;
                 });
 
                 if (!alreadyComputed) {
                     const formaLiq = s.forma_liquidacao || 'PIX';
-                    const val = Number(s.valor) || 0;
+                    const val = Number(s.valor || s.value) || 0;
                     byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + val;
                 }
             }

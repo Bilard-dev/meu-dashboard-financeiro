@@ -5832,7 +5832,17 @@
                 }
             });
 
-            // 2. Inclui o mês atual e meses próximos para navegação natural
+            // 2. Meses de liquidações ativas
+            globalCreditSettlements.forEach(s => {
+                if (s && s.data_liquidacao) {
+                    const parts = s.data_liquidacao.split(/[-/T ]/).map(Number);
+                    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                        monthKeysSet.add(`${parts[0]}-${parts[1] - 1}`);
+                    }
+                }
+            });
+
+            // 3. Inclui o mês atual e meses próximos para navegação natural
             const now = new Date();
             for (let i = -1; i <= 6; i++) {
                 const nearDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
@@ -5876,6 +5886,15 @@
             const monthKeysSet = new Set();
             globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito')).forEach(d => {
                 monthKeysSet.add(`${d.year}-${d.month}`);
+            });
+
+            globalCreditSettlements.forEach(s => {
+                if (s && s.data_liquidacao) {
+                    const parts = s.data_liquidacao.split(/[-/T ]/).map(Number);
+                    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                        monthKeysSet.add(`${parts[0]}-${parts[1] - 1}`);
+                    }
+                }
             });
 
             for(let i = -3; i <= 12; i++) {
@@ -6394,14 +6413,26 @@
             const despesasPeriodo = baseFiltered.filter(d => d.type === 'DESPESA');
             const totalReceitas = receitasPeriodo.reduce((a, b) => a + b.value, 0);
             const totalDespesas = despesasPeriodo.reduce((a, b) => a + b.value, 0);
-            const outflowsAnalise = calculateEffectivePaymentOutflows(periodVal, baseFiltered, globalCreditSettlements);
+            const outflowsAnalise = calculateEffectivePaymentOutflows(periodVal, globalData, globalCreditSettlements);
             const totalPix = outflowsAnalise.byPaymentMethod['PIX'] || 0;
             const totalCartao = outflowsAnalise.byPaymentMethod['Cartão de Crédito'] || 0;
             const totalDinheiro = Object.keys(outflowsAnalise.byPaymentMethod)
                 .filter(k => k !== 'PIX' && k !== 'Cartão de Crédito')
                 .reduce((acc, k) => acc + outflowsAnalise.byPaymentMethod[k], 0);
 
-            const pixCount = despesasPeriodo.filter(d => (d.pagamento || '').toUpperCase() === 'PIX' || globalCreditSettlements.some(s => s.status === 'ATIVA' && s.forma_liquidacao === 'PIX' && (s.transacao_id === d.id || (s.grupo_parcela_id && s.grupo_parcela_id === d.grupo_parcela_id)))).length;
+            const activeSettlementsInPeriod = globalCreditSettlements.filter(s => {
+                if (!s || s.status !== 'ATIVA' || s.cancelled_at) return false;
+                if (!s.data_liquidacao) return false;
+                if (periodVal === 'all') return true;
+                const parts = s.data_liquidacao.split(/[-/T ]/).map(Number);
+                if (parts.length >= 2) {
+                    const liqYm = `${parts[0]}-${parts[1] - 1}`;
+                    return liqYm === periodVal;
+                }
+                return false;
+            });
+            const pixSettlementsCount = activeSettlementsInPeriod.filter(s => (s.forma_liquidacao || 'PIX') === 'PIX').length;
+            const pixCount = despesasPeriodo.filter(d => (d.pagamento || '').toUpperCase() === 'PIX').length + pixSettlementsCount;
             const cartaoCount = despesasPeriodo.filter(d => (d.pagamento || '').includes('Cartão') || d.cartao).length;
             const dinheiroCount = despesasPeriodo.filter(d => !((d.pagamento || '').toUpperCase() === 'PIX') && !((d.pagamento || '').includes('Cartão') || d.cartao)).length;
 
@@ -7255,8 +7286,9 @@
                     const dataLiq = item.liquidacao?.data_liquidacao ? item.liquidacao.data_liquidacao.split('-').reverse().join('/') : '';
                     statusBadge = `<span class="tag-status tag-done" title="Liquidada em ${escapeHtml(dataLiq)} via ${escapeHtml(forma)}">⚡ Quitada (${escapeHtml(forma)})</span>`;
                     valorHtml = `<span style="text-decoration: line-through; opacity: 0.65;">${fmt(item.value)}</span>`;
+                    const grupoIdParam = item.grupo_parcela_id ? `'${item.grupo_parcela_id}'` : "''";
                     actionBtns = `
-                        <button class="action-icon-btn settle-revert-btn" title="Reverter Quitação" onclick="revertCreditSettlement('${item.id}', ${item.parcelaNoMes})">↩️</button>
+                        <button class="action-icon-btn settle-revert-btn" title="Reverter Quitação" onclick="revertCreditSettlement('${item.id}', ${item.parcelaNoMes}, ${grupoIdParam})">↩️</button>
                         <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
                         <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
                     `;
@@ -7298,10 +7330,10 @@
         }
 
         /* ==========================================================
-           HANDLERS DE LIQUIDAÇÃO ANTECIPADA DE CRÉDITO (FASE 3.5)
+           14. MODAIS E AÇÕES DE LIQUIDAÇÃO ANTECIPADA (FASE 3.5)
            ========================================================== */
         function openCreditSettlementModal(transacaoId, grupoParcelaId, parcelaNumero, valor, desc) {
-            if (!window.creditSettlementAvailable) {
+            if (window.creditSettlementAvailable === false) {
                 showToast('Recurso indisponível: a migration do banco de dados (public.liquidacoes_credito) ainda não foi aplicada no Supabase.', 'error');
                 return;
             }
@@ -7367,13 +7399,18 @@
                 }
 
                 const createdItem = (Array.isArray(data) && data[0]) ? data[0] : payload;
-                globalCreditSettlements = globalCreditSettlements.filter(s =>
-                    !(s.transacao_id === transacaoId && (s.parcela_numero || 1) === parcelaNumero)
-                );
+                globalCreditSettlements = globalCreditSettlements.filter(s => {
+                    const sNum = Number(s.parcela_numero) || 1;
+                    if (sNum !== parcelaNumero) return true;
+                    if (grupoParcelaId && s.grupo_parcela_id && s.grupo_parcela_id === grupoParcelaId) return false;
+                    if (transacaoId && s.transacao_id && s.transacao_id === transacaoId) return false;
+                    return true;
+                });
                 globalCreditSettlements.push(createdItem);
 
                 closeCreditSettlementModal();
                 showToast('Quitação registrada com sucesso via PIX!', 'success');
+                setupMonthSelector();
                 renderParcelasTab();
                 updateDashboard(document.getElementById('monthSelector')?.value);
             } catch (err) {
@@ -7384,8 +7421,8 @@
             }
         }
 
-        async function revertCreditSettlement(transacaoId, parcelaNumero = 1) {
-            if (!currentUser || !transacaoId) return;
+        async function revertCreditSettlement(transacaoId, parcelaNumero = 1, grupoParcelaId = null) {
+            if (!currentUser || (!transacaoId && !grupoParcelaId)) return;
 
             if (!confirm('Deseja reverter a quitação desta obrigação? Ela voltará a constar como pendente na fatura.')) {
                 return;
@@ -7400,13 +7437,17 @@
                 }
 
                 globalCreditSettlements = globalCreditSettlements.map(s => {
-                    if (s.transacao_id === transacaoId && (s.parcela_numero || 1) === Number(parcelaNumero)) {
+                    const sNum = Number(s.parcela_numero) || 1;
+                    const matchTx = (transacaoId && s.transacao_id === transacaoId);
+                    const matchGroup = (grupoParcelaId && s.grupo_parcela_id === grupoParcelaId);
+                    if ((matchTx || matchGroup) && sNum === Number(parcelaNumero)) {
                         return { ...s, status: 'CANCELADA', cancelled_at: new Date().toISOString() };
                     }
                     return s;
                 });
 
                 showToast('Quitação revertida com sucesso!', 'success');
+                setupMonthSelector();
                 renderParcelasTab();
                 updateDashboard(document.getElementById('monthSelector')?.value);
             } catch (err) {

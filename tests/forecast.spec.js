@@ -410,8 +410,9 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         await page.setViewportSize({ width: 390, height: 844 });
         await setupAuthenticatedApp(page);
 
-        // Navega para Previsão usando bottom nav mobile
-        await page.locator('#bnav-previsao').click();
+        // Navega para Previsão usando menu Mais (conforme Bottom Nav atualizada M4.0-D)
+        await page.locator('#bnav-mais').click();
+        await page.locator('#mobileMoreSheet').getByRole('button', { name: /Previsão/i }).click();
         await expect(page.locator('#tab-previsao')).toBeVisible();
         await expect(page.locator('#forecastMonthGrid')).toBeVisible();
 

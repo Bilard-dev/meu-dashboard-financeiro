@@ -75,13 +75,15 @@ test.describe('Reorganização dos Botões do Cabeçalho & Aba Minha Conta', () 
         await expect(syncBtn).toHaveAttribute('title', /Atualizado/);
     });
 
-    test('4. Botões renomeados para "Metas" e "Categorias" e remoção de Gastos Compartilhados', async ({ page }) => {
+    test('4. Botão "Categorias" presente, Metas oculta da navegação e remoção de Gastos Compartilhados', async ({ page }) => {
         await setupAuthenticatedApp(page);
 
-        // Verifica botão 🎯 Metas
+        // Verifica que o botão 🎯 Metas está oculto da navegação visível no frontend
         const metasBtn = page.getByRole('button', { name: '🎯 Metas' });
-        await expect(metasBtn).toBeVisible();
-        await metasBtn.click();
+        await expect(metasBtn).toHaveCount(0);
+
+        // Verifica que a rota interna #/metas e painel continuam preservados
+        await page.goto('/#/metas');
         await expect(page.locator('#tab-metas')).toHaveClass(/active/);
 
         // Verifica botão ⚙️ Categorias

@@ -40,7 +40,7 @@ test.describe('Smoke Tests - Abertura e Autenticação', () => {
             { btn: 'Resumo Geral', panel: '#tab-resumo' },
             { btn: '📊 Análise de Gastos', panel: '#tab-analise' },
             { btn: 'Parcelas / Fatura Cartão', panel: '#tab-parcelas' },
-            { btn: '🎯 Metas', panel: '#tab-metas' },
+            { btn: '🔮 Previsão Financeira', panel: '#tab-previsao' },
             { btn: 'Investimentos', panel: '#tab-investimentos' },
             { btn: '➕ Novo Registro', panel: '#tab-novo' },
             { btn: '⚙️ Categorias', panel: '#tab-gerenciar-listas' }
@@ -50,6 +50,11 @@ test.describe('Smoke Tests - Abertura e Autenticação', () => {
             await page.getByRole('button', { name: btn }).click();
             await expect(page.locator(panel)).toHaveClass(/active/);
         }
+
+        // Metas oculta da navegação visível, mas painel preservado internamente
+        await expect(page.getByRole('button', { name: '🎯 Metas' })).toHaveCount(0);
+        await page.goto('/#/metas');
+        await expect(page.locator('#tab-metas')).toHaveClass(/active/);
     });
 
 });

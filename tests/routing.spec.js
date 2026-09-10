@@ -35,10 +35,10 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('button.tab-btn.active')).toContainText('Parcelas / Fatura Cartão');
     });
 
-    test('6. #/metas abre a aba de Metas', async ({ page }) => {
+    test('6. #/metas abre a aba de Metas internamente mantendo navegação oculta', async ({ page }) => {
         await setupAuthenticatedApp(page, { initialUrl: '/#/metas' });
         await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page.locator('button.tab-btn.active')).toContainText('Metas');
+        await expect(page.getByRole('button', { name: '🎯 Metas' })).toHaveCount(0);
     });
 
     test('7. #/previsao abre a aba de Previsão Financeira 2.0', async ({ page }) => {
@@ -73,9 +73,9 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('#tab-previsao')).toBeVisible();
         await expect(page).toHaveURL(/#\/previsao/);
 
-        await page.click('button:has-text("🎯 Metas")');
-        await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page).toHaveURL(/#\/metas/);
+        await page.click('button:has-text("Investimentos")');
+        await expect(page.locator('#tab-investimentos')).toBeVisible();
+        await expect(page).toHaveURL(/#\/investimentos/);
 
         await page.click('button:has-text("⚙️ Categorias")');
         await expect(page.locator('#tab-gerenciar-listas')).toBeVisible();
@@ -161,7 +161,7 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
 
         await expect(page.locator('#appView')).toBeVisible();
         await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page.locator('button.tab-btn.active')).toContainText('Metas');
+        await expect(page.getByRole('button', { name: '🎯 Metas' })).toHaveCount(0);
         await expect(page).toHaveURL(/#\/metas/);
     });
 
@@ -204,8 +204,8 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         for (let i = 0; i < 4; i++) {
             await page.click('button:has-text("🔮 Previsão Financeira")');
             await expect(page.locator('#tab-previsao')).toBeVisible();
-            await page.click('button:has-text("🎯 Metas")');
-            await expect(page.locator('#tab-metas')).toBeVisible();
+            await page.click('button:has-text("Investimentos")');
+            await expect(page.locator('#tab-investimentos')).toBeVisible();
             await page.click('button:has-text("Resumo Geral")');
             await expect(page.locator('#tab-resumo')).toBeVisible();
         }

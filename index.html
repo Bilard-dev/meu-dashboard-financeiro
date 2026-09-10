@@ -922,6 +922,58 @@
             border-bottom: 1px solid var(--border);
         }
 
+        /* SELETOR DE TIPO DO LANÇADOR RÁPIDO MOBILE */
+        .quick-type-selector {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.35rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 0.2rem;
+        }
+        .quick-type-selector::-webkit-scrollbar { display: none; }
+        .quick-type-btn {
+            flex: 1 1 0;
+            min-width: fit-content;
+            min-height: 42px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            text-align: center;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        .quick-type-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+        .quick-type-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-xs);
+        }
+        .quick-type-btn[data-tipo="Receita"].active {
+            background: var(--success);
+            border-color: var(--success);
+            color: #ffffff;
+        }
+        .quick-type-btn[data-tipo="Saque"].active {
+            background: #d97706;
+            border-color: #d97706;
+            color: #ffffff;
+        }
+
         @media (min-width: 769px) {
             .mobile-quick-modal {
                 top: 50%;
@@ -3426,8 +3478,18 @@
         </div>
 
         <form id="mobileQuickForm" onsubmit="saveMobileQuickTransaction(event)">
+            <div class="input-group" style="margin-bottom: 0.85rem;">
+                <label for="m_tipo">Tipo do Lançamento *</label>
+                <input type="hidden" id="m_tipo" value="Despesa">
+                <div class="quick-type-selector" role="group" aria-label="Tipo do Lançamento">
+                    <button type="button" class="quick-type-btn active" data-tipo="Despesa" onclick="setMobileQuickType('Despesa')"><span>💸</span> Despesa</button>
+                    <button type="button" class="quick-type-btn" data-tipo="Receita" onclick="setMobileQuickType('Receita')"><span>💰</span> Receita</button>
+                    <button type="button" class="quick-type-btn" data-tipo="Saque" onclick="setMobileQuickType('Saque')"><span>💵</span> Saque</button>
+                </div>
+            </div>
+
             <div class="input-group">
-                <label for="m_descricao">Descrição do Gasto *</label>
+                <label id="m_descricao_label" for="m_descricao">Descrição do Gasto *</label>
                 <input type="text" id="m_descricao" class="input-field" placeholder="Ex: Uber, Lanche, Spotify" required>
             </div>
 
@@ -4340,12 +4402,49 @@
             populateFaturaDropdown('m_fatura_destino', selectedValue);
         }
 
-        function openMobileQuickView() {
+        function setMobileQuickType(tipo = 'Despesa') {
+            const validTipo = ['Despesa', 'Receita', 'Saque'].includes(tipo) ? tipo : 'Despesa';
+            const hiddenInput = document.getElementById('m_tipo');
+            if (hiddenInput) hiddenInput.value = validTipo;
+
+            // Atualiza visual dos botões do seletor de tipo
+            document.querySelectorAll('#mobileQuickForm .quick-type-btn').forEach(btn => {
+                if (btn.getAttribute('data-tipo') === validTipo) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Atualiza label e placeholder de descrição de acordo com o tipo
+            const descLabel = document.getElementById('m_descricao_label');
+            const descInput = document.getElementById('m_descricao');
+            const submitBtn = document.getElementById('btnQuickSalvar');
+            if (validTipo === 'Receita') {
+                if (descLabel) descLabel.textContent = 'Descrição da Receita *';
+                if (descInput) descInput.placeholder = 'Ex: Salário, Rendimento, Freelance';
+                if (submitBtn) submitBtn.textContent = 'Lançar Receita Agora';
+            } else if (validTipo === 'Saque') {
+                if (descLabel) descLabel.textContent = 'Descrição do Saque *';
+                if (descInput) descInput.placeholder = 'Ex: Saque Banco 24h, Caixa Eletrônico';
+                if (submitBtn) submitBtn.textContent = 'Lançar Saque Agora';
+            } else {
+                if (descLabel) descLabel.textContent = 'Descrição do Gasto *';
+                if (descInput) descInput.placeholder = 'Ex: Uber, Lanche, Spotify';
+                if (submitBtn) submitBtn.textContent = 'Lançar Gasto Agora';
+            }
+
+            // Atualiza dropdowns de categoria e cartões respeitando o tipo
+            populateFormDropdowns();
+            renderTopCategoryChips();
+        }
+
+        function openMobileQuickView(initialTipo = 'Despesa') {
             const overlay = document.getElementById('mobileQuickOverlay');
             if (overlay) overlay.style.display = 'block';
             document.getElementById('mobileQuickView').style.display = 'block';
             document.getElementById('m_data').value = formatLocalDateInput();
-            populateFormDropdowns();
+            setMobileQuickType(initialTipo);
             document.getElementById('m_pagamento').value = 'PIX';
             document.getElementById('m_parcela_select').value = 'À vista';
             const mCustom = document.getElementById('m_parcela_custom');
@@ -4355,7 +4454,6 @@
             }
             updateMobileDynamicFaturaDropdown();
             toggleMobilePaymentFields();
-            renderTopCategoryChips();
             document.addEventListener('keydown', handleQuickViewKeydown);
         }
 
@@ -4363,6 +4461,7 @@
             const overlay = document.getElementById('mobileQuickOverlay');
             if (overlay) overlay.style.display = 'none';
             document.getElementById('mobileQuickView').style.display = 'none';
+            setMobileQuickType('Despesa');
             document.getElementById('m_descricao').value = '';
             document.getElementById('m_valor').value = '';
             document.getElementById('m_tags').value = '';
@@ -4386,7 +4485,8 @@
         }
 
         function transitionQuickToFull() {
-            // 1. Captura dados preenchidos no Quick
+            // 1. Captura dados preenchidos no Quick (inclusive Tipo selecionado)
+            const tipo = document.getElementById('m_tipo') ? document.getElementById('m_tipo').value : 'Despesa';
             const desc = document.getElementById('m_descricao').value;
             const valor = document.getElementById('m_valor').value;
             const tags = document.getElementById('m_tags').value;
@@ -4408,8 +4508,8 @@
             // 4. Navega para a aba 'novo'
             switchTab('novo');
 
-            // 5. Preenche os campos preservados no formulário completo
-            document.getElementById('i_tipo').value = 'Despesa';
+            // 5. Preenche os campos preservados no formulário completo (preservando Tipo)
+            document.getElementById('i_tipo').value = tipo || 'Despesa';
             onTypeChange();
 
             if (data) document.getElementById('i_data').value = data;
@@ -4467,6 +4567,7 @@
         async function saveMobileQuickTransaction(e, reset = false) {
             if (e) e.preventDefault();
 
+            const tipo = document.getElementById('m_tipo') ? document.getElementById('m_tipo').value : 'Despesa';
             const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
             const mParcelaSel = document.getElementById('m_parcela_select').value;
             let valorParcelaFinal = '';
@@ -4490,7 +4591,7 @@
             const payload = {
                 user_id: currentUser.id,
                 grupo_parcela_id: grupoParcelaId,
-                tipo: 'Despesa',
+                tipo: tipo,
                 data: document.getElementById('m_data').value,
                 descricao: descWithTags,
                 valor: parseFloat(document.getElementById('m_valor').value),
@@ -4507,7 +4608,8 @@
             if (res.error) {
                 showToast('Erro ao lançar: ' + res.error.message, 'error');
             } else {
-                showToast('Gasto lançado com sucesso!', 'success');
+                const tipoLabel = tipo === 'Receita' ? 'Receita lançada' : (tipo === 'Saque' ? 'Saque lançado' : 'Gasto lançado');
+                showToast(`${tipoLabel} com sucesso!`, 'success');
                 if (reset) {
                     document.getElementById('m_descricao').value = '';
                     document.getElementById('m_valor').value = '';
@@ -5871,6 +5973,7 @@
         window.updateBottomNavActive = updateBottomNavActive;
         window.openMobileQuickView = openMobileQuickView;
         window.closeMobileQuickView = closeMobileQuickView;
+        window.setMobileQuickType = setMobileQuickType;
         window.transitionQuickToFull = transitionQuickToFull;
         window.saveAndResetMobile = saveAndResetMobile;
 

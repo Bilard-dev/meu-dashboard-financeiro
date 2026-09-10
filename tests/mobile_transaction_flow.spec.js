@@ -451,4 +451,148 @@ test.describe('Fase 4.0 — M4.0-C: Evolução do Lançamento Mobile (Quick → 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
     });
 
+    test('19. Tipo do Lançamento aparece no topo do Lançador Rápido com Despesa, Receita e Saque', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await setupAuthenticatedApp(page, {
+            transactions: mockTransactions,
+            categorias: mockCategorias,
+            subcategorias: mockSubcategorias,
+            cartoes: mockCartoes
+        });
+
+        await page.locator('#bnav-fab').click();
+        const quickModal = page.locator('#mobileQuickView');
+        await expect(quickModal).toBeVisible();
+
+        // Verifica que o seletor de tipo está presente e visível
+        const typeSelector = quickModal.locator('.quick-type-selector');
+        await expect(typeSelector).toBeVisible();
+
+        // Verifica os 3 tipos canônicos existentes
+        const despesaBtn = quickModal.locator('.quick-type-btn[data-tipo="Despesa"]');
+        const receitaBtn = quickModal.locator('.quick-type-btn[data-tipo="Receita"]');
+        const saqueBtn = quickModal.locator('.quick-type-btn[data-tipo="Saque"]');
+
+        await expect(despesaBtn).toBeVisible();
+        await expect(receitaBtn).toBeVisible();
+        await expect(saqueBtn).toBeVisible();
+
+        // Padrão inicial deve ser Despesa
+        await expect(despesaBtn).toHaveClass(/active/);
+        await expect(page.locator('#m_tipo')).toHaveValue('Despesa');
+        await expect(page.locator('#m_descricao_label')).toContainText('Descrição do Gasto');
+    });
+
+    test('20. Alternar Tipo no Quick atualiza estado visual, labels e permite submeter Receita', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await setupAuthenticatedApp(page, {
+            transactions: mockTransactions,
+            categorias: mockCategorias,
+            subcategorias: mockSubcategorias,
+            cartoes: mockCartoes
+        });
+
+        await page.locator('#bnav-fab').click();
+
+        // Seleciona Receita
+        await page.locator('.quick-type-btn[data-tipo="Receita"]').click();
+        await expect(page.locator('.quick-type-btn[data-tipo="Receita"]')).toHaveClass(/active/);
+        await expect(page.locator('.quick-type-btn[data-tipo="Despesa"]')).not.toHaveClass(/active/);
+        await expect(page.locator('#m_tipo')).toHaveValue('Receita');
+        await expect(page.locator('#m_descricao_label')).toContainText('Descrição da Receita');
+        await expect(page.locator('#btnQuickSalvar')).toContainText('Lançar Receita Agora');
+
+        // Preenche dados da receita
+        await page.locator('#m_descricao').fill('Consultoria TI Receita');
+        await page.locator('#m_valor').fill('1500.00');
+        await page.locator('#m_categoria').selectOption('Salário');
+        await page.locator('#m_pagamento').selectOption('PIX');
+
+        await page.locator('#btnQuickSalvar').click();
+
+        await expect(page.locator('#mobileQuickView')).toBeHidden();
+        await expect(page.locator('#resumoExtratoTableBody')).toContainText('Consultoria TI Receita');
+
+        // Valida que a transação salva no extrato possui tipo RECEITA
+        const lastTx = await page.evaluate(() => {
+            const list = window.getFilteredExtratoData ? window.getFilteredExtratoData() : [];
+            return list.find(t => (t.desc || t.descricao || '').includes('Consultoria TI Receita'));
+        });
+        expect(lastTx).toBeDefined();
+        expect(lastTx?.type).toBe('RECEITA');
+    });
+
+    test('21. Quick → Formulário Completo preserva o Tipo selecionado (Receita e Saque)', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await setupAuthenticatedApp(page, {
+            transactions: mockTransactions,
+            categorias: mockCategorias,
+            subcategorias: mockSubcategorias,
+            cartoes: mockCartoes
+        });
+
+        // Teste para Receita
+        await page.locator('#bnav-fab').click();
+        await page.locator('.quick-type-btn[data-tipo="Receita"]').click();
+        await page.locator('#m_descricao').fill('Venda Notebook Usado');
+        await page.locator('#m_valor').fill('2200.00');
+        await page.locator('#btnQuickMaisOpcoes').click();
+
+        await expect(page.locator('#tab-novo')).toBeVisible();
+        await expect(page.locator('#i_tipo')).toHaveValue('Receita');
+        await expect(page.locator('#i_descricao')).toHaveValue('Venda Notebook Usado');
+        await expect(page.locator('#i_valor')).toHaveValue('2200.00');
+
+        // Abre novamente o FAB para testar Saque
+        await page.locator('#bnav-fab').click();
+        await page.locator('.quick-type-btn[data-tipo="Saque"]').click();
+        await page.locator('#m_descricao').fill('Saque Viagem FDS');
+        await page.locator('#m_valor').fill('200.00');
+        await page.locator('#btnQuickMaisOpcoes').click();
+
+        await expect(page.locator('#tab-novo')).toBeVisible();
+        await expect(page.locator('#i_tipo')).toHaveValue('Saque');
+        await expect(page.locator('#i_descricao')).toHaveValue('Saque Viagem FDS');
+        await expect(page.locator('#i_valor')).toHaveValue('200.00');
+    });
+
+    test('22. Seletor de Tipo e Quick Form não causam overflow horizontal em 320px, 390px e 430px', async ({ page }) => {
+        const viewports = [
+            { width: 320, height: 568 },
+            { width: 390, height: 844 },
+            { width: 430, height: 932 }
+        ];
+
+        for (const vp of viewports) {
+            await page.setViewportSize(vp);
+            await setupAuthenticatedApp(page, {
+                transactions: mockTransactions,
+                categorias: mockCategorias,
+                subcategorias: mockSubcategorias,
+                cartoes: mockCartoes
+            });
+
+            await page.locator('#bnav-fab').click();
+            await expect(page.locator('#mobileQuickView')).toBeVisible();
+
+            const overflowInfo = await page.evaluate(() => {
+                const modal = document.getElementById('mobileQuickView');
+                const form = document.getElementById('mobileQuickForm');
+                const doc = document.documentElement;
+                return {
+                    docOverflow: doc.scrollWidth > doc.clientWidth,
+                    modalOverflow: modal ? modal.scrollWidth > modal.clientWidth : false,
+                    formOverflow: form ? form.scrollWidth > form.clientWidth : false
+                };
+            });
+
+            expect(overflowInfo.docOverflow, `Doc overflow at ${vp.width}px`).toBe(false);
+            expect(overflowInfo.modalOverflow, `Modal overflow at ${vp.width}px`).toBe(false);
+            expect(overflowInfo.formOverflow, `Form overflow at ${vp.width}px`).toBe(false);
+
+            await page.locator('#mobileQuickView').getByRole('button', { name: /Fechar/i }).click();
+            await expect(page.locator('#mobileQuickView')).toBeHidden();
+        }
+    });
+
 });

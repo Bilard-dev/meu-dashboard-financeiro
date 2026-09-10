@@ -16,6 +16,11 @@
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- Resource Hints for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2076,15 +2081,15 @@
 
             <form id="loginForm">
                 <div class="input-group">
-                    <label>E-mail *</label>
+                    <label for="email">E-mail *</label>
                     <input type="email" id="email" class="input-field" placeholder="seu@email.com" required>
                 </div>
 
                 <div class="input-group">
-                    <label>Senha *</label>
+                    <label for="senha">Senha *</label>
                     <div class="password-wrapper">
                         <input type="password" id="senha" class="input-field" placeholder="••••••••" required>
-                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('senha', this)">👁️</button>
+                        <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('senha', this)">👁️</button>
                     </div>
                     <span class="forgot-link" onclick="handleForgotPassword()">Esqueci minha senha</span>
                     <p class="password-hint">Para novas contas: Mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).</p>
@@ -2408,17 +2413,17 @@
                     <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
                         <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; flex:1 1 100%; min-width:0;">
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Mês da Fatura:</label>
+                                <label for="faturaMonthSelector" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Mês da Fatura:</label>
                                 <select id="faturaMonthSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()"></select>
                             </div>
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Cartão:</label>
+                                <label for="parcelasCartaoFilter" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Cartão:</label>
                                 <select id="parcelasCartaoFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
                                     <option value="all">Todos os Cartões</option>
                                 </select>
                             </div>
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Tipo de Compra:</label>
+                                <label for="parcelasTypeFilter" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Tipo de Compra:</label>
                                 <select id="parcelasTypeFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
                                     <option value="all">Todas as Compras</option>
                                     <option value="parcelado">Parceladas (Ex: 1/3, 2/10)</option>
@@ -2427,15 +2432,15 @@
                                 </select>
                             </div>
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
+                                <label for="parcelasCategoryFilter" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
                                 <select id="parcelasCategoryFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
                                     <option value="all">Todas as Categorias</option>
                                 </select>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; flex: 1 1 200px; justify-content: flex-end; min-width: 0;">
-                            <input type="text" id="parcelasSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderParcelasTab()">
-                            <button type="button" class="reset-btn" onclick="resetParcelasFilters()" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
+                            <input type="text" id="parcelasSearchInput" aria-label="Buscar parcelas por descrição" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderParcelasTab()">
+                            <button type="button" class="reset-btn" onclick="resetParcelasFilters()" aria-label="Limpar Filtros" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
                         </div>
                     </div>
                 </div>
@@ -2590,22 +2595,22 @@
                         <input type="hidden" id="edit_inv_id" value="">
                         <div class="form-grid">
                             <div class="input-group">
-                                <label>1. Data do Aporte *</label>
+                                <label for="inv_data">1. Data do Aporte *</label>
                                 <input type="date" id="inv_data" class="input-field" required>
                             </div>
 
                             <div class="input-group" style="grid-column: span 2;">
-                                <label>2. Descrição / Nome do Ativo *</label>
+                                <label for="inv_descricao">2. Descrição / Nome do Ativo *</label>
                                 <input type="text" id="inv_descricao" class="input-field" placeholder="Ex: Tesouro Selic 2029, CDB Banco Inter, PETR4, HGLG11" required>
                             </div>
 
                             <div class="input-group">
-                                <label>3. Valor do Aporte (R$) *</label>
+                                <label for="inv_valor">3. Valor do Aporte (R$) *</label>
                                 <input type="number" id="inv_valor" step="0.01" class="input-field" placeholder="Ex: 500.00" required>
                             </div>
 
                             <div class="input-group">
-                                <label>4. Classe de Rendimento *</label>
+                                <label for="inv_custo">4. Classe de Rendimento *</label>
                                 <select id="inv_custo" class="input-field" required>
                                     <option value="Renda Fixa" selected>Renda Fixa</option>
                                     <option value="Renda Variável">Renda Variável</option>
@@ -2614,21 +2619,21 @@
                             </div>
 
                             <div class="input-group">
-                                <label>5. Categoria de Investimento</label>
+                                <label for="inv_categoria">5. Categoria de Investimento</label>
                                 <select id="inv_categoria" class="input-field" onchange="onCategoryChange('inv_categoria', 'inv_subcategoria'); handleDynamicSelect(this, 'Categoria')">
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
 
                             <div class="input-group">
-                                <label>6. Subcategoria / Ativo</label>
+                                <label for="inv_subcategoria">6. Subcategoria / Ativo</label>
                                 <select id="inv_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
                                     <option value="">-- Selecione a Categoria Primeiro --</option>
                                 </select>
                             </div>
 
                             <div class="input-group">
-                                <label>🏷️ TAGs (Opcional - Separe por vírgulas)</label>
+                                <label for="inv_tags">🏷️ TAGs (Opcional - Separe por vírgulas)</label>
                                 <input type="text" id="inv_tags" class="input-field" placeholder="Ex: Aporte Mensal, Dividendos, Reserva">
                             </div>
                         </div>
@@ -2645,27 +2650,27 @@
                     <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
                         <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; flex:1 1 100%; min-width:0;">
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Período:</label>
+                                <label for="investPeriodSelector" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Período:</label>
                                 <select id="investPeriodSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderInvestmentsTab()">
                                     <option value="all">Todo o Histórico</option>
                                 </select>
                             </div>
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
+                                <label for="investCatSelector" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
                                 <select id="investCatSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="onInvestCategoryChange()">
                                     <option value="todos">Todas as Categorias</option>
                                 </select>
                             </div>
                             <div class="filter-group">
-                                <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Subcategoria:</label>
+                                <label for="investTypeSelector" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Subcategoria:</label>
                                 <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderInvestmentsTab()">
                                     <option value="todos">Todas as Subcategorias</option>
                                 </select>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; flex: 1 1 200px; justify-content: flex-end; min-width: 0;">
-                            <input type="text" id="investSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderInvestmentsTab()">
-                            <button type="button" class="reset-btn" onclick="resetInvestFilters()" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
+                            <input type="text" id="investSearchInput" aria-label="Buscar investimentos por código ou descrição" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderInvestmentsTab()">
+                            <button type="button" class="reset-btn" onclick="resetInvestFilters()" aria-label="Limpar Filtros" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
                         </div>
                     </div>
                 </div>
@@ -2886,7 +2891,7 @@
                         <div class="form-grid">
 
                             <div class="input-group">
-                                <label>1. Tipo *</label>
+                                <label for="i_tipo">1. Tipo *</label>
                                 <select id="i_tipo" class="input-field" onchange="onTypeChange()" required>
                                     <option value="Despesa">Despesa</option>
                                     <option value="Receita">Receita</option>
@@ -2895,41 +2900,41 @@
                             </div>
 
                             <div class="input-group">
-                                <label>2. Data da Compra *</label>
+                                <label for="i_data">2. Data da Compra *</label>
                                 <input type="date" id="i_data" class="input-field" onchange="updateDynamicFaturaDropdown()" required>
                             </div>
 
                             <div class="input-group" style="grid-column: span 2;">
-                                <label>3. Descrição *</label>
+                                <label for="i_descricao">3. Descrição *</label>
                                 <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão, Novablast 5" required>
                             </div>
 
                             <div class="input-group">
-                                <label id="i_valor_label">4. Valor (R$) *</label>
+                                <label id="i_valor_label" for="i_valor">4. Valor (R$) *</label>
                                 <input type="number" id="i_valor" step="0.01" class="input-field" placeholder="Ex: 150.50" required>
                             </div>
 
                             <div class="input-group">
-                                <label>5. Categoria</label>
+                                <label for="i_categoria">5. Categoria</label>
                                 <select id="i_categoria" class="input-field" onchange="onCategoryChange('i_categoria', 'i_subcategoria'); handleDynamicSelect(this, 'Categoria')">
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
 
                             <div class="input-group">
-                                <label>6. Subcategoria</label>
+                                <label for="i_subcategoria">6. Subcategoria</label>
                                 <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
                                     <option value="">-- Selecione a Categoria Primeiro --</option>
                                 </select>
                             </div>
 
                             <div class="input-group">
-                                <label>🏷️ TAGs (Opcional - Separe por vírgulas)</label>
+                                <label for="i_tags">🏷️ TAGs (Opcional - Separe por vírgulas)</label>
                                 <input type="text" id="i_tags" class="input-field" placeholder="Ex: Mãe, Viagem, Trabalho">
                             </div>
 
                             <div class="input-group">
-                                <label>7. Forma de Pagamento *</label>
+                                <label for="i_pagamento">7. Forma de Pagamento *</label>
                                 <select id="i_pagamento" class="input-field" onchange="togglePaymentFields()" required>
                                     <option value="PIX" selected>PIX</option>
                                     <option value="Cartão de Crédito">Cartão de Crédito</option>
@@ -2939,21 +2944,21 @@
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
-                                <label>Cartão Utilizado</label>
+                                <label for="i_cartao">Cartão Utilizado</label>
                                 <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
-                                <label id="i_fatura_destino_label">Destino da Fatura (Competência exata)</label>
+                                <label id="i_fatura_destino_label" for="i_fatura_destino">Destino da Fatura (Competência exata)</label>
                                 <select id="i_fatura_destino" class="input-field">
                                     <!-- Preenchido dinamicamente via JS com Agosto/2026, Setembro/2026, etc. -->
                                 </select>
                             </div>
 
                             <div class="input-group card-only-field" style="display: none;">
-                                <label>Parcela / Recorrência</label>
+                                <label for="i_parcela_select">Parcela / Recorrência</label>
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
                                     <option value="À vista">À vista / Sem parcela</option>
                                     <option value="1/2">2x (1/2)</option>
@@ -2976,7 +2981,7 @@
                             </div>
 
                             <div class="input-group">
-                                <label>Custo (Opcional)</label>
+                                <label for="i_custo">Custo (Opcional)</label>
                                 <select id="i_custo" class="input-field">
                                     <option value="">-- Selecione --</option>
                                     <option value="Fixo">Fixo</option>
@@ -3008,18 +3013,18 @@
                     <h2 class="chart-title">🔒 Alterar Minha Senha</h2>
                     <form onsubmit="handleChangePasswordLoggedIn(event)">
                         <div class="input-group">
-                            <label>Nova Senha *</label>
+                            <label for="novaSenhaInput">Nova Senha *</label>
                             <div class="password-wrapper">
                                 <input type="password" id="novaSenhaInput" class="input-field" placeholder="••••••••" required>
-                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('novaSenhaInput', this)">👁️</button>
+                                <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('novaSenhaInput', this)">👁️</button>
                             </div>
                             <p class="password-hint">Exige: Mínimo 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).</p>
                         </div>
                         <div class="input-group">
-                            <label>Confirme a Nova Senha *</label>
+                            <label for="confirmaNovaSenhaInput">Confirme a Nova Senha *</label>
                             <div class="password-wrapper">
                                 <input type="password" id="confirmaNovaSenhaInput" class="input-field" placeholder="••••••••" required>
-                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('confirmaNovaSenhaInput', this)">👁️</button>
+                                <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('confirmaNovaSenhaInput', this)">👁️</button>
                             </div>
                         </div>
                         <button type="submit" class="btn-primary" id="btnUpdatePass">Atualizar Senha Agora</button>
@@ -3126,11 +3131,11 @@
     </div>
 
     <!-- MODAL DE CONFLITO DE SINCRONIZAÇÃO DE METAS -->
-    <div id="metasConflictModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+    <div id="metasConflictModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="metasConflictModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
         <div class="chart-card" style="max-width:500px; width:90%; max-height:85vh; overflow-y:auto; margin:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3 style="margin:0; font-size:1.1rem; color:var(--warning);">⚠️ Sincronização de Metas</h3>
-                <button type="button" class="reset-btn" onclick="closeMetasConflictModal()" style="font-size:1.1rem;">✕</button>
+                <h3 id="metasConflictModalTitle" style="margin:0; font-size:1.1rem; color:var(--warning);">⚠️ Sincronização de Metas</h3>
+                <button type="button" class="reset-btn" aria-label="Fechar sincronização de metas" onclick="closeMetasConflictModal()" style="font-size:1.1rem;">✕</button>
             </div>
             <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
                 Foram encontradas metas no seu navegador com valores diferentes das metas salvas na nuvem. Escolha qual valor deseja manter para cada uma:
@@ -3146,11 +3151,11 @@
     </div>
 
     <!-- MODAL REUTILIZÁVEL DE CATÁLOGOS (CATEGORIA, SUBCATEGORIA, CARTÃO, TAG) -->
-    <div id="catalogModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+    <div id="catalogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="catalogModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
         <div class="chart-card" style="max-width:480px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
                 <h3 id="catalogModalTitle" style="margin:0; font-size:1.15rem; color:var(--primary);">Novo Item</h3>
-                <button type="button" class="reset-btn" onclick="closeCatalogModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+                <button type="button" class="reset-btn" aria-label="Fechar modal de catálogo" onclick="closeCatalogModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
             </div>
             <form id="catalogModalForm" onsubmit="saveCatalogModalItem(event)">
                 <input type="hidden" id="cat_modal_type" value="">
@@ -3158,13 +3163,13 @@
                 <input type="hidden" id="cat_modal_source_select" value="">
 
                 <div class="input-group">
-                    <label id="cat_modal_name_label">Nome *</label>
+                    <label id="cat_modal_name_label" for="cat_modal_name">Nome *</label>
                     <input type="text" id="cat_modal_name" class="input-field" placeholder="Ex: Supermercado" required>
                 </div>
 
                 <!-- Campo específico de Subcategoria: Categoria Pai -->
                 <div class="input-group" id="cat_modal_parent_group" style="display:none;">
-                    <label>Categoria Pai *</label>
+                    <label for="cat_modal_parent_id">Categoria Pai *</label>
                     <select id="cat_modal_parent_id" class="input-field"></select>
                 </div>
 
@@ -3172,16 +3177,16 @@
                 <div id="cat_modal_card_fields" style="display:none;">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
                         <div class="input-group">
-                            <label>Dia Fechamento (1-31)</label>
+                            <label for="cat_modal_fechamento">Dia Fechamento (1-31)</label>
                             <input type="number" id="cat_modal_fechamento" min="1" max="31" class="input-field" placeholder="Ex: 25">
                         </div>
                         <div class="input-group">
-                            <label>Dia Vencimento (1-31)</label>
+                            <label for="cat_modal_vencimento">Dia Vencimento (1-31)</label>
                             <input type="number" id="cat_modal_vencimento" min="1" max="31" class="input-field" placeholder="Ex: 5">
                         </div>
                     </div>
                     <div class="input-group">
-                        <label>Cor do Cartão</label>
+                        <label for="cat_modal_cor_cartao">Cor do Cartão</label>
                         <input type="color" id="cat_modal_cor_cartao" class="input-field" value="#2563eb" style="height:42px; padding:2px; cursor:pointer;">
                     </div>
                 </div>
@@ -3189,7 +3194,7 @@
                 <!-- Campos específicos de Tag -->
                 <div id="cat_modal_tag_fields" style="display:none;">
                     <div class="input-group">
-                        <label>Cor da Tag</label>
+                        <label for="cat_modal_cor_tag">Cor da Tag</label>
                         <input type="color" id="cat_modal_cor_tag" class="input-field" value="#64748b" style="height:42px; padding:2px; cursor:pointer;">
                     </div>
                 </div>
@@ -3213,11 +3218,11 @@
     </div>
 
     <!-- MODAL DE PREVIEW DE RENOMEAÇÃO COM HISTÓRICO -->
-    <div id="renamePreviewModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+    <div id="renamePreviewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="renamePreviewTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
         <div class="chart-card" style="max-width:550px; width:92%; max-height:88vh; overflow-y:auto; margin:auto; position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
                 <h3 style="margin:0; font-size:1.2rem; color:var(--primary);" id="renamePreviewTitle">⚠️ Confirmar Atualização do Histórico</h3>
-                <button type="button" class="reset-btn" onclick="closeRenamePreviewModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+                <button type="button" class="reset-btn" aria-label="Fechar prévia de renomeação" onclick="closeRenamePreviewModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
             </div>
 
             <div id="renamePreviewContent" style="font-size:0.9rem; color:var(--text-main); margin-bottom:1.2rem;"></div>
@@ -3246,11 +3251,11 @@
     </div>
 
     <!-- MODAL DE MESCLAGEM (MERGE 2.0 VIA RPCs) -->
-    <div id="mergeModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+    <div id="mergeModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mergeModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
         <div class="chart-card" style="max-width:600px; width:92%; max-height:88vh; overflow-y:auto; margin:auto; position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
                 <h3 style="margin:0; font-size:1.2rem; color:var(--primary);" id="mergeModalTitle">🔀 Mesclar Itens</h3>
-                <button type="button" class="reset-btn" onclick="closeMergeModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+                <button type="button" class="reset-btn" aria-label="Fechar mesclagem" onclick="closeMergeModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
             </div>
 
             <form id="mergeForm" onsubmit="submitMerge(event)">
@@ -3258,11 +3263,11 @@
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem;">
                     <div class="input-group">
-                        <label style="font-size:0.85rem; font-weight:600;">1. Origem (será desativada) *</label>
+                        <label for="merge_source_id" style="font-size:0.85rem; font-weight:600;">1. Origem (será desativada) *</label>
                         <select id="merge_source_id" class="input-field" required onchange="renderMergePreview()"></select>
                     </div>
                     <div class="input-group">
-                        <label style="font-size:0.85rem; font-weight:600;">2. Destino (receberá o histórico) *</label>
+                        <label for="merge_target_id" style="font-size:0.85rem; font-weight:600;">2. Destino (receberá o histórico) *</label>
                         <select id="merge_target_id" class="input-field" required onchange="renderMergePreview()"></select>
                     </div>
                 </div>
@@ -3306,11 +3311,11 @@
     </div>
 
     <!-- MODAL DO ASSISTENTE DE IMPORTAÇÃO (CATÁLOGOS 2.0) -->
-    <div id="assistedImportModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+    <div id="assistedImportModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="assistedImportTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
         <div class="chart-card" style="max-width:600px; width:92%; max-height:88vh; overflow-y:auto; margin:auto; position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
-                <h3 style="margin:0; font-size:1.2rem; color:var(--primary);">✨ Organizar Meus Catálogos</h3>
-                <button type="button" class="reset-btn" onclick="closeAssistedImportModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+                <h3 id="assistedImportTitle" style="margin:0; font-size:1.2rem; color:var(--primary);">✨ Organizar Meus Catálogos</h3>
+                <button type="button" class="reset-btn" aria-label="Fechar assistente de importação" onclick="closeAssistedImportModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
             </div>
             <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">
                 Encontramos valores no seu histórico financeiro. Selecione quais deseja transformar em catálogos oficiais para novos lançamentos. <b>Seu histórico financeiro não será alterado.</b>
@@ -3353,11 +3358,11 @@
     </div>
 
     <!-- MODAL DE LIQUIDAÇÃO ANTECIPADA DO CRÉDITO (FASE 3.5) -->
-    <div id="creditSettlementModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+    <div id="creditSettlementModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="creditSettlementModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
         <div class="chart-card" style="max-width:480px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
-                <h3 style="margin:0; font-size:1.15rem; color:var(--primary);">⚡ Quitar Compra do Cartão (PIX)</h3>
-                <button type="button" class="reset-btn" onclick="closeCreditSettlementModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
+                <h3 id="creditSettlementModalTitle" style="margin:0; font-size:1.15rem; color:var(--primary);">⚡ Quitar Compra do Cartão (PIX)</h3>
+                <button type="button" class="reset-btn" aria-label="Fechar quitação de cartão" onclick="closeCreditSettlementModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
             </div>
             <p style="font-size:0.875rem; color:var(--text-muted); margin-bottom:1.2rem; line-height:1.4;">
                 Registre a quitação antecipada desta obrigação paga via PIX. A compra original permanecerá salva e a fatura será baixada sem duplicar a despesa.
@@ -3418,32 +3423,32 @@
 
         <form id="mobileQuickForm" onsubmit="saveMobileQuickTransaction(event)">
             <div class="input-group">
-                <label>Descrição do Gasto *</label>
+                <label for="m_descricao">Descrição do Gasto *</label>
                 <input type="text" id="m_descricao" class="input-field" placeholder="Ex: Uber, Lanche, Spotify" required>
             </div>
 
             <div class="input-group">
-                <label>Valor (R$) *</label>
+                <label for="m_valor">Valor (R$) *</label>
                 <input type="number" id="m_valor" step="0.01" class="input-field" placeholder="0.00" inputmode="decimal" style="font-size: 1.3rem; font-weight: 700; color: var(--primary);" required>
             </div>
 
             <div class="input-group">
-                <label>Categoria</label>
+                <label for="m_categoria">Categoria</label>
                 <select id="m_categoria" class="input-field" onchange="onCategoryChange('m_categoria', 'm_subcategoria'); handleDynamicSelect(this, 'Categoria')"><option value="">-- Selecione --</option></select>
             </div>
 
             <div class="input-group">
-                <label>Subcategoria</label>
+                <label for="m_subcategoria">Subcategoria</label>
                 <select id="m_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')"><option value="">-- Selecione a Categoria Primeiro --</option></select>
             </div>
 
             <div class="input-group">
-                <label>🏷️ TAGs (Separe por vírgulas)</label>
+                <label for="m_tags">🏷️ TAGs (Separe por vírgulas)</label>
                 <input type="text" id="m_tags" class="input-field" placeholder="Ex: Mãe, Viagem">
             </div>
 
             <div class="input-group">
-                <label>Forma de Pagamento</label>
+                <label for="m_pagamento">Forma de Pagamento</label>
                 <select id="m_pagamento" class="input-field" onchange="toggleMobilePaymentFields()">
                     <option value="PIX" selected>PIX</option>
                     <option value="Cartão de Crédito">Cartão de Crédito</option>
@@ -3453,19 +3458,19 @@
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
-                <label>Cartão Utilizado</label>
+                <label for="m_cartao">Cartão Utilizado</label>
                 <select id="m_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')"><option value="">-- Selecione --</option></select>
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
-                <label>Fatura Destino Exata</label>
+                <label for="m_fatura_destino">Fatura Destino Exata</label>
                 <select id="m_fatura_destino" class="input-field">
                     <!-- Preenchido via JS -->
                 </select>
             </div>
 
             <div class="input-group m-card-field" style="display: none;">
-                <label id="m_parcela_label">Parcela / Recorrência</label>
+                <label id="m_parcela_label" for="m_parcela_select">Parcela / Recorrência</label>
                 <select id="m_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'm_parcela_custom')">
                     <option value="À vista">À vista / Sem parcela</option>
                     <option value="1/2">2x (1/2)</option>
@@ -3488,7 +3493,7 @@
             </div>
 
             <div class="input-group">
-                <label>Data</label>
+                <label for="m_data">Data</label>
                 <input type="date" id="m_data" class="input-field" onchange="updateMobileDynamicFaturaDropdown()" required>
             </div>
 
@@ -5813,6 +5818,42 @@
                 closeMobileMoreSheet();
             }
         }
+
+        // Acessibilidade: Fecha modais abertos ao pressionar a tecla ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                const creditModal = document.getElementById('creditSettlementModal');
+                if (creditModal && creditModal.style.display !== 'none') {
+                    closeCreditSettlementModal();
+                    return;
+                }
+                const catModal = document.getElementById('catalogModal');
+                if (catModal && catModal.style.display !== 'none') {
+                    closeCatalogModal();
+                    return;
+                }
+                const renameModal = document.getElementById('renamePreviewModal');
+                if (renameModal && renameModal.style.display !== 'none') {
+                    closeRenamePreviewModal();
+                    return;
+                }
+                const mergeModal = document.getElementById('mergeModal');
+                if (mergeModal && mergeModal.style.display !== 'none') {
+                    closeMergeModal();
+                    return;
+                }
+                const importModal = document.getElementById('assistedImportModal');
+                if (importModal && importModal.style.display !== 'none') {
+                    closeAssistedImportModal();
+                    return;
+                }
+                const metasModal = document.getElementById('metasConflictModal');
+                if (metasModal && metasModal.style.display !== 'none') {
+                    closeMetasConflictModal();
+                    return;
+                }
+            }
+        });
 
         function navigateToFromMore(tabId) {
             closeMobileMoreSheet();

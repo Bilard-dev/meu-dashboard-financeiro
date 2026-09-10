@@ -3126,7 +3126,8 @@
             isInstallmentSettled,
             createSettlementMap,
             validateSettlementPayload,
-            calculateEffectivePaymentOutflows
+            calculateEffectivePaymentOutflows,
+            buildFinancialEvents
         } from './src/domain/creditSettlement/settlementEngine.js';
 
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
@@ -3142,6 +3143,7 @@
         window.calculateCashBalance = calculateCashBalance;
         window.calculateInvoiceSummary = calculateInvoiceSummary;
         window.calculateEffectivePaymentOutflows = calculateEffectivePaymentOutflows;
+        window.buildFinancialEvents = buildFinancialEvents;
         window.getExpensesByCompetence = getExpensesByCompetence;
         window.calculateFinancialForecast = calculateFinancialForecast;
         window.getPrivacyMode = getPrivacyMode;
@@ -5776,24 +5778,13 @@
         function applyExtratoFilters() {
             const selectedYm = document.getElementById('monthSelector').value;
             const typeFilter = document.getElementById('typeFilterSelector').value;
-            const searchText = normalizeText(document.getElementById('searchInput').value);
+            const searchText = document.getElementById('searchInput').value;
 
-            let filtered = selectedYm === 'all' ? globalData : globalData.filter(d => `${d.year}-${d.month}` === selectedYm);
-
-            if (typeFilter !== 'ALL') {
-                filtered = filtered.filter(d => d.type === typeFilter);
-            }
-
-            if (searchText) {
-                filtered = filtered.filter(d =>
-                    normalizeText(d.desc).includes(searchText) ||
-                    normalizeText(d.category).includes(searchText) ||
-                    normalizeText(d.subCat).includes(searchText) ||
-                    normalizeText(d.pagamento).includes(searchText) ||
-                    normalizeText(d.cartao).includes(searchText) ||
-                    d.tags.some(t => normalizeText(t).includes(searchText))
-                );
-            }
+            const filtered = buildFinancialEvents(globalData, globalCreditSettlements, {
+                selectedYm,
+                typeFilter,
+                searchText
+            });
 
             setFilteredExtratoData(filtered);
             renderResumoExtrato(getFilteredExtratoData());
@@ -6671,12 +6662,15 @@
             const investArr = filtered.filter(d => d.type === 'INVESTIMENTO');
             const invest = investArr.reduce((a, b) => a + b.value, 0);
 
-            const saldo = receitas - despesas - invest;
+            const outflows = calculateEffectivePaymentOutflows(selectedYm, globalData, globalCreditSettlements);
+            const totalDespesasEfetivas = Math.max(despesas, outflows.totalSaidaFinanceira);
+
+            const saldo = receitas - totalDespesasEfetivas - invest;
 
             const { saldoDinheiroVivo } = calculateCashBalance(globalData);
 
             document.getElementById('kpi-receitas').innerText = fmt(receitas);
-            document.getElementById('kpi-despesas').innerText = fmt(despesas);
+            document.getElementById('kpi-despesas').innerText = fmt(totalDespesasEfetivas);
             document.getElementById('kpi-investimentos').innerText = fmt(invest);
 
             const kpiDinheiroVivoEl = document.getElementById('kpi-dinheiro-vivo');
@@ -6688,7 +6682,7 @@
             saldoEl.style.color = saldo >= 0 ? 'var(--text-main)' : 'var(--danger)';
 
             renderReceitasDetalhes(receitasArr);
-            renderDespesasDetalhes(despesasArr, despesas, selectedYm);
+            renderDespesasDetalhes(despesasArr, totalDespesasEfetivas, selectedYm);
             renderInvestimentosDetalhes(investArr, invest, receitas);
             renderSaldoDetalhes(saldo, receitas);
 
@@ -7097,8 +7091,27 @@
             list.forEach(item => {
                 const tr = document.createElement('tr');
                 let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : item.type === 'SAQUE' ? 'var(--warning)' : 'var(--invest)';
-                let fBadge = (item.pagamento === 'Cartão de Crédito' || item.cartao) ? ` • <span style="color:var(--primary); font-weight:600;">${formatFaturaBadge(item)}</span>` : '';
-                let meioInfo = (item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento)) + fBadge;
+
+                let meioInfo;
+                if (item.isSettlementEvent) {
+                    meioInfo = `<span style="font-size:0.7rem; background:rgba(37,99,235,0.1); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">⚡ ${escapeHtml(item.pagamento)} • Quitação</span>`;
+                } else {
+                    let fBadge = (item.pagamento === 'Cartão de Crédito' || item.cartao) ? ` • <span style="color:var(--primary); font-weight:600;">${formatFaturaBadge(item)}</span>` : '';
+                    meioInfo = (item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento)) + fBadge;
+                }
+
+                let actionsHtml;
+                if (item.isSettlementEvent) {
+                    actionsHtml = `
+                        <button class="action-icon-btn" title="Ver no Cartão / Faturas" onclick="switchTab('parcelas')">💳</button>
+                        <button class="action-icon-btn" title="Desfazer Quitação" onclick="revertCreditSettlement('${item.transacao_id}', ${item.parcela ? parseInt(item.parcela.split('/')[0]) || 1 : 1})">↩️</button>
+                    `;
+                } else {
+                    actionsHtml = `
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                    `;
+                }
 
                 tr.innerHTML = `
                     <td>${item.date.toLocaleDateString('pt-BR')}</td>
@@ -7107,8 +7120,7 @@
                     <td>${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
                     <td style="font-weight:700; color:${color};">${fmt(item.value)}</td>
                     <td style="text-align: center; white-space: nowrap;">
-                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                        ${actionsHtml}
                     </td>
                 `;
                 tbody.appendChild(tr);

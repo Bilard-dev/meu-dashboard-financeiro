@@ -318,3 +318,160 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
         byCard
     };
 }
+
+/**
+ * Constrói a lista projetada de eventos financeiros combinando transações e liquidações ativas de crédito.
+ * Para cada liquidação ativa, projeta um evento de saída financeira derivado na data_liquidacao,
+ * permitindo que a movimentação real de caixa (ex: PIX) seja visualizada e filtrada no extrato/histórico
+ * sem duplicar a despesa econômica original e sem inserir linhas sintéticas no banco de dados.
+ *
+ * @param {Array<object>} transactions - Lista de transações (globalData)
+ * @param {Array<object>|Map<string, object>} settlements - Lista ou mapa de liquidações (globalCreditSettlements)
+ * @param {object} [options={}] - Opções de filtro { selectedYm, typeFilter, searchText, startDate, endDate }
+ * @returns {Array<object>} Lista ordenada e filtrada de eventos financeiros
+ */
+export function buildFinancialEvents(transactions = [], settlements = [], options = {}) {
+    const txs = Array.isArray(transactions) ? transactions : [];
+    const setts = Array.isArray(settlements) ? settlements : (settlements instanceof Map ? Array.from(settlements.values()) : []);
+    const settleMap = settlements instanceof Map ? settlements : createSettlementMap(setts);
+
+    const {
+        selectedYm = 'all',
+        typeFilter = 'ALL',
+        searchText = '',
+        startDate = null,
+        endDate = null
+    } = options;
+
+    const events = [];
+
+    // 1. Processa as transações normais
+    txs.forEach(t => {
+        const isCard = Boolean(t.cartao || t.pagamento === 'Cartão de Crédito');
+        const pNum = t.parcelaNoMes || t.initAtual || 1;
+        const settlement = (!t.isRecorrente) ? isInstallmentSettled(settleMap, t, pNum) : null;
+
+        events.push({
+            ...t,
+            isSettlementEvent: false,
+            isLiquidado: Boolean(settlement),
+            liquidacao: settlement || null
+        });
+    });
+
+    // 2. Projeta eventos financeiros derivados para liquidações ativas
+    setts.forEach(s => {
+        if (!s) return;
+        const isActive = (!s.status || s.status === 'ATIVA') && !s.cancelled_at;
+        if (!isActive) return;
+
+        const liqDateStr = s.data_liquidacao || s.data || s.created_at;
+        if (!liqDateStr) return;
+
+        let parsedDate;
+        let rawDate = '';
+        let year = 0;
+        let month = 0;
+
+        if (typeof liqDateStr === 'string') {
+            rawDate = liqDateStr.split('T')[0];
+            const parts = rawDate.split(/[-/]/).map(Number);
+            if (parts.length >= 3) {
+                year = parts[0];
+                month = parts[1] - 1;
+                parsedDate = new Date(year, month, parts[2], 12, 0, 0);
+            } else {
+                parsedDate = new Date(liqDateStr);
+                year = parsedDate.getFullYear();
+                month = parsedDate.getMonth();
+                rawDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+            }
+        } else if (liqDateStr instanceof Date) {
+            parsedDate = liqDateStr;
+            year = parsedDate.getFullYear();
+            month = parsedDate.getMonth();
+            rawDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+        } else {
+            return;
+        }
+
+        // Localiza a transação original correspondente para enriquecer metadados
+        const sNum = Number(s.parcela_numero) || 1;
+        const matchedTx = txs.find(t => {
+            const matchTx = (s.transacao_id && t.id === s.transacao_id);
+            const matchGroup = (s.grupo_parcela_id && t.grupo_parcela_id === s.grupo_parcela_id);
+            return matchTx || matchGroup;
+        });
+
+        const val = Number(s.valor || s.value || (matchedTx ? matchedTx.value : 0)) || 0;
+        const formaLiq = s.forma_liquidacao || 'PIX';
+        const cardName = matchedTx ? (matchedTx.cartao || '') : '';
+        const totalParcelas = matchedTx?.parcela && matchedTx.parcela.includes('/') ? matchedTx.parcela.split('/')[1] : '1';
+        const parcelaStr = `${sNum}/${totalParcelas}`;
+
+        const baseDesc = matchedTx ? (matchedTx.desc || matchedTx.descricao || '') : 'Cartão de Crédito';
+        const desc = `Liquidação de Cartão • ${cardName ? cardName + ' ' : ''}(${parcelaStr}): ${baseDesc}`;
+
+        events.push({
+            id: `settlement_${s.id || (s.transacao_id + '_' + sNum)}`,
+            settlement_id: s.id || null,
+            transacao_id: s.transacao_id,
+            grupo_parcela_id: s.grupo_parcela_id || null,
+            isSettlementEvent: true,
+            isLiquidado: true,
+            type: 'DESPESA',
+            rawTipo: 'Despesa',
+            date: parsedDate,
+            rawDate: rawDate,
+            year: year,
+            month: month,
+            value: val,
+            pagamento: formaLiq,
+            cartao: cardName,
+            parcela: parcelaStr,
+            category: matchedTx ? (matchedTx.category || matchedTx.categoria || 'Cartão de Crédito') : 'Cartão de Crédito',
+            subCat: matchedTx ? (matchedTx.subCat || matchedTx.subcategoria || 'Liquidação Antecipada') : 'Liquidação Antecipada',
+            tags: matchedTx ? (matchedTx.tags || []) : ['Liquidação'],
+            desc: desc,
+            faturaDestino: null,
+            status: s.status || 'ATIVA'
+        });
+    });
+
+    // 3. Aplica filtros
+    let filtered = events;
+
+    // Filtro por Mês / Competência
+    if (selectedYm && selectedYm !== 'all') {
+        filtered = filtered.filter(e => `${e.year}-${e.month}` === selectedYm);
+    }
+
+    // Filtro por Intervalo de Datas
+    if (startDate) {
+        filtered = filtered.filter(e => e.rawDate >= startDate);
+    }
+    if (endDate) {
+        filtered = filtered.filter(e => e.rawDate <= endDate);
+    }
+
+    // Filtro por Tipo (DESPESA, RECEITA, etc.)
+    if (typeFilter && typeFilter !== 'ALL') {
+        filtered = filtered.filter(e => e.type === typeFilter);
+    }
+
+    // Filtro textual
+    if (searchText) {
+        const norm = searchText.toLowerCase().trim();
+        filtered = filtered.filter(e =>
+            (e.desc || '').toLowerCase().includes(norm) ||
+            (e.category || '').toLowerCase().includes(norm) ||
+            (e.subCat || '').toLowerCase().includes(norm) ||
+            (e.pagamento || '').toLowerCase().includes(norm) ||
+            (e.cartao || '').toLowerCase().includes(norm) ||
+            (e.tags || []).some(t => t.toLowerCase().includes(norm))
+        );
+    }
+
+    // Ordenação padrão cronológica decrescente
+    return filtered.sort((a, b) => b.date - a.date);
+}

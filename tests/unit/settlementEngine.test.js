@@ -6,7 +6,8 @@ import {
     isInstallmentSettled,
     enrichItemsWithSettlement,
     validateSettlementPayload,
-    calculateEffectivePaymentOutflows
+    calculateEffectivePaymentOutflows,
+    buildFinancialEvents
 } from '../../src/domain/creditSettlement/settlementEngine.js';
 import { calculateInvoiceSummary } from '../../src/domain/creditCard/invoiceCalculator.js';
 import { getExpensesByCompetence } from '../../src/domain/competence/competenceEngine.js';
@@ -781,6 +782,103 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
         assert.equal(resSet.obrigacaoCartaoTotal, 600, 'Setembro: Cartão volta a R$ 600');
         assert.equal(resSet.byPaymentMethod['Cartão de Crédito'], 600, 'Setembro: Cartão de Crédito = R$ 600');
         assert.equal(resSet.byCard['Nubank'], 600, 'Setembro: Nubank = R$ 600');
+    });
+
+    it('43. buildFinancialEvents — CASO A: Compra Agosto R$ 600 Cartão + Liquidação Setembro R$ 600 PIX', () => {
+        const txs = [
+            { id: 'tx-a', type: 'DESPESA', desc: 'Monitor LG', value: 600, date: new Date(2026, 7, 10), rawDate: '2026-08-10', year: 2026, month: 7, pagamento: 'Cartão de Crédito', cartao: 'Nubank', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-a', transacao_id: 'tx-a', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-05' }
+        ];
+
+        // Consulta Agosto (2026-7): Deve conter a transação original marcada como liquidada
+        const eventsAgo = buildFinancialEvents(txs, setts, { selectedYm: '2026-7' });
+        assert.equal(eventsAgo.length, 1);
+        assert.equal(eventsAgo[0].id, 'tx-a');
+        assert.equal(eventsAgo[0].isSettlementEvent, false);
+        assert.equal(eventsAgo[0].isLiquidado, true);
+
+        // Consulta Setembro (2026-8): Deve projetar o evento financeiro de saída PIX
+        const eventsSet = buildFinancialEvents(txs, setts, { selectedYm: '2026-8' });
+        assert.equal(eventsSet.length, 1);
+        assert.equal(eventsSet[0].isSettlementEvent, true);
+        assert.equal(eventsSet[0].value, 600);
+        assert.equal(eventsSet[0].pagamento, 'PIX');
+        assert.equal(eventsSet[0].rawDate, '2026-09-05');
+        assert.equal(eventsSet[0].year, 2026);
+        assert.equal(eventsSet[0].month, 8);
+        assert.ok(eventsSet[0].desc.includes('Liquidação de Cartão'));
+        assert.ok(eventsSet[0].desc.includes('Monitor LG'));
+    });
+
+    it('44. buildFinancialEvents — CASO B: Reversão de Liquidação remove evento em Setembro e restaura original em Agosto', () => {
+        const txs = [
+            { id: 'tx-b', type: 'DESPESA', desc: 'Monitor LG', value: 600, date: new Date(2026, 7, 10), rawDate: '2026-08-10', year: 2026, month: 7, pagamento: 'Cartão de Crédito', cartao: 'Nubank', parcela: 'À vista' }
+        ];
+        const settsRevertido = [
+            { id: 's-b', transacao_id: 'tx-b', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'CANCELADA', cancelled_at: '2026-09-06T10:00:00Z', data_liquidacao: '2026-09-05' }
+        ];
+
+        // Setembro: Nenhum evento derivado de liquidação
+        const eventsSet = buildFinancialEvents(txs, settsRevertido, { selectedYm: '2026-8' });
+        assert.equal(eventsSet.length, 0);
+
+        // Agosto: Transação original volta a ter isLiquidado = false
+        const eventsAgo = buildFinancialEvents(txs, settsRevertido, { selectedYm: '2026-7' });
+        assert.equal(eventsAgo.length, 1);
+        assert.equal(eventsAgo[0].isLiquidado, false);
+    });
+
+    it('45. buildFinancialEvents — CASO C: Mesmo Mês (Compra Setembro R$ 600 Cartão + Liquidação Setembro R$ 600 PIX)', () => {
+        const txs = [
+            { id: 'tx-c', type: 'DESPESA', desc: 'Monitor LG', value: 600, date: new Date(2026, 8, 10), rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-c', transacao_id: 'tx-c', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-15' }
+        ];
+
+        const eventsSet = buildFinancialEvents(txs, setts, { selectedYm: '2026-8' });
+        assert.equal(eventsSet.length, 2, 'Contém a compra original e o evento derivado de liquidação no mesmo mês');
+
+        const original = eventsSet.find(e => !e.isSettlementEvent);
+        const derived = eventsSet.find(e => e.isSettlementEvent);
+
+        assert.ok(original);
+        assert.equal(original.isLiquidado, true);
+        assert.ok(derived);
+        assert.equal(derived.pagamento, 'PIX');
+        assert.equal(derived.value, 600);
+        assert.equal(derived.rawDate, '2026-09-15');
+    });
+
+    it('46. buildFinancialEvents — CASO D: Filtro de Intervalo Customizado contendo data_liquidacao', () => {
+        const txs = [
+            { id: 'tx-d', type: 'DESPESA', desc: 'Mouse Gamer', value: 150, date: new Date(2026, 7, 20), rawDate: '2026-08-20', year: 2026, month: 7, pagamento: 'Cartão de Crédito', cartao: 'Nubank', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-d', transacao_id: 'tx-d', parcela_numero: 1, valor: 150, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-02' }
+        ];
+
+        const eventsRange = buildFinancialEvents(txs, setts, { startDate: '2026-09-01', endDate: '2026-09-10' });
+        assert.equal(eventsRange.length, 1);
+        assert.equal(eventsRange[0].isSettlementEvent, true);
+        assert.equal(eventsRange[0].value, 150);
+        assert.equal(eventsRange[0].pagamento, 'PIX');
+    });
+
+    it('47. buildFinancialEvents — CASO E: Filtro de Intervalo Customizado contendo compra mas excluindo data_liquidacao', () => {
+        const txs = [
+            { id: 'tx-e', type: 'DESPESA', desc: 'Mouse Gamer', value: 150, date: new Date(2026, 7, 20), rawDate: '2026-08-20', year: 2026, month: 7, pagamento: 'Cartão de Crédito', cartao: 'Nubank', parcela: 'À vista' }
+        ];
+        const setts = [
+            { id: 's-e', transacao_id: 'tx-e', parcela_numero: 1, valor: 150, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-02' }
+        ];
+
+        const eventsRange = buildFinancialEvents(txs, setts, { startDate: '2026-08-01', endDate: '2026-08-31' });
+        assert.equal(eventsRange.length, 1);
+        assert.equal(eventsRange[0].isSettlementEvent, false);
+        assert.equal(eventsRange[0].id, 'tx-e');
     });
 
 });

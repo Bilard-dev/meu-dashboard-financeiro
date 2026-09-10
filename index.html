@@ -1409,30 +1409,91 @@
                 grid-template-columns: 1fr !important;
             }
 
+            /* COMPACTAÇÃO VISUAL DE FILTROS MOBILE (<= 768px) */
+            .filter-bar {
+                padding: 0.6rem 0.75rem;
+                margin-bottom: 0.85rem;
+            }
+
+            .filter-bar > div {
+                gap: 0.45rem !important;
+            }
+
+            .filter-bar > div > div:first-child {
+                gap: 0.45rem !important;
+            }
+
+            .filter-group {
+                gap: 0.15rem;
+                margin-bottom: 0.1rem;
+            }
+
+            .filter-group label {
+                font-size: 0.75rem !important;
+                margin-bottom: 0.15rem !important;
+                line-height: 1.1;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                min-height: 42px !important;
+                padding: 0.45rem 0.65rem !important;
+            }
+
+            /* Container de busca e limpar em Faturas e Investimentos */
+            .filter-bar > div > div:last-child {
+                gap: 0.4rem !important;
+                margin-top: 0.2rem;
+            }
+
+            .filter-bar input[type="text"] {
+                min-height: 42px !important;
+            }
+
+            .input-group {
+                margin-bottom: 0.65rem;
+            }
+
             .input-group label {
-                font-size: 0.825rem;
+                font-size: 0.8rem;
+                margin-bottom: 0.2rem;
             }
 
             .input-field {
                 padding: 0.6rem 0.75rem;
-                font-size: 0.9rem;
+                font-size: 1rem; /* >= 16px evita zoom automático indesejado no iOS/Safari */
+                min-height: 44px;
+                box-sizing: border-box;
             }
 
             .action-btn {
-                min-height: 40px;
-                padding: 0.5rem 0.75rem;
-                font-size: 0.825rem;
+                min-height: 44px;
+                padding: 0.55rem 0.85rem;
+                font-size: 0.85rem;
             }
 
             .action-icon-btn {
-                min-width: 38px;
-                min-height: 38px;
-                font-size: 1rem;
-                padding: 0.45rem;
+                min-width: 44px;
+                min-height: 44px;
+                font-size: 1.05rem;
+                padding: 0.5rem;
             }
 
             .reset-btn {
+                min-height: 44px;
+                padding: 0.55rem 0.85rem;
+            }
+
+            .btn-primary, .btn-success, .btn-secondary, .btn-danger {
+                min-height: 44px;
+                box-sizing: border-box;
+            }
+
+            .chip-btn {
                 min-height: 38px;
+                display: inline-flex;
+                align-items: center;
+                padding: 0.45rem 1rem;
             }
 
             .data-table th, .data-table td {
@@ -1440,8 +1501,36 @@
                 font-size: 0.825rem;
             }
 
+            /* MODAIS EM DISPOSITIVOS MÓVEIS (<= 768px) */
+            .modal-overlay {
+                padding: 0.75rem;
+                align-items: flex-end; /* Abre como sheet ou centralizado com padding seguro */
+            }
+
+            .modal-card {
+                max-height: 88vh;
+                max-height: 88dvh;
+                padding: 1.15rem 1rem;
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .modal-overlay .chart-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: 88vh !important;
+                max-height: 88dvh !important;
+                overflow-y: auto !important;
+                margin: 0 !important;
+                padding: 1.15rem 1rem !important;
+                border-bottom-left-radius: 0 !important;
+                border-bottom-right-radius: 0 !important;
+                box-sizing: border-box;
+            }
+
             .mobile-quick-modal {
-                padding: 1rem 0.85rem;
+                padding: 1rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 0px)) 1rem;
+                box-sizing: border-box;
             }
 
             .toast-container {

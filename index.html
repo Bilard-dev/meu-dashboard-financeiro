@@ -172,7 +172,9 @@
             padding-bottom: 0.5rem;
             flex-wrap: nowrap;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
+            max-width: 100%;
         }
 
         .nav-tabs::-webkit-scrollbar {
@@ -184,6 +186,7 @@
         }
 
         .tab-btn {
+            flex-shrink: 0;
             padding: 0.55rem 1.1rem;
             border-radius: var(--radius-md);
             border: none;
@@ -912,15 +915,6 @@
             text-decoration: underline;
         }
 
-        /* RESPONSIVIDADE */
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            header h1 { font-size: 1.4rem; }
-            .header-controls { width: 100%; justify-content: space-between; }
-            .kpi-container { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-            .data-table th, .data-table td { padding: 0.6rem 0.75rem; font-size: 0.8rem; }
-            .btn-primary, .btn-secondary, .btn-success, .btn-danger { width: 100%; }
         /* ==========================================================
            🍞 TOAST NOTIFICATION SYSTEM (DESIGN 2.0)
            ========================================================== */
@@ -936,13 +930,300 @@
             width: calc(100% - 3rem);
             pointer-events: none;
         }
+
+        /* ==========================================================
+           📱 RESPONSIVE FOUNDATION & CONTAINERS (FASE 4.0 - M4.0-A)
+           ========================================================== */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 0.5rem;
+            position: relative;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: var(--radius-full);
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 100000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            animation: fadeIn 0.2s ease-out;
+            overflow-y: auto;
+        }
+
+        .modal-overlay .chart-card {
+            max-width: min(520px, 94vw);
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: auto;
+            position: relative;
+        }
+
+        .filter-bar {
+            margin-bottom: 1.5rem;
+            background: var(--card-bg);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-xs);
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+
+        /* BREAKPOINT: TABLET & TELAS INTERMEDIÁRIAS (max-width: 1024px) */
+        @media (max-width: 1024px) {
+            .nav-tabs {
+                scrollbar-width: thin;
+                padding-bottom: 0.4rem;
+            }
+            .nav-tabs .tab-btn {
+                flex-shrink: 0;
+            }
+        }
+
+        /* BREAKPOINT: MOBILE (max-width: 768px) */
         @media (max-width: 768px) {
+            body {
+                padding: 0.85rem;
+            }
+
+            .filter-bar {
+                padding: 0.85rem 1rem;
+                margin-bottom: 1.2rem;
+            }
+
+            .filter-group {
+                flex: 1 1 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.25rem;
+                min-width: 0;
+            }
+
+            .filter-group select {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.85rem;
+                margin-bottom: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.4rem;
+            }
+
+            .header-controls {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .header-controls .select-container {
+                flex: 1;
+                min-width: 140px;
+            }
+
+            .header-controls .select-container select {
+                width: 100%;
+            }
+
+            .nav-tabs {
+                gap: 0.35rem;
+                margin-bottom: 1.25rem;
+                padding-bottom: 0.4rem;
+            }
+
+            .nav-tabs .tab-btn {
+                flex-shrink: 0;
+                padding: 0.5rem 0.85rem;
+                font-size: 0.85rem;
+                min-height: 40px;
+            }
+
+            .kpi-container {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 0.75rem;
+                margin-bottom: 1.2rem;
+            }
+
+            .kpi-card {
+                padding: 0.95rem 1rem;
+                border-radius: var(--radius-md);
+            }
+
+            .kpi-title {
+                font-size: 0.7rem;
+            }
+
+            .kpi-value {
+                font-size: 1.3rem;
+            }
+
+            .kpi-details {
+                margin-top: 0.6rem;
+                padding-top: 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .chart-card {
+                padding: 1rem 1.1rem;
+                border-radius: var(--radius-md);
+                margin-bottom: 1.2rem;
+            }
+
+            .chart-title {
+                font-size: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 0.85rem;
+            }
+
+            .form-grid > * {
+                grid-column: 1 / -1 !important;
+                min-width: 0;
+                max-width: 100%;
+            }
+
+            #an_custom_date_container {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                grid-column: 1 / -1 !important;
+            }
+
+            #an-category-averages-cards {
+                grid-template-columns: 1fr !important;
+            }
+
+            .input-group label {
+                font-size: 0.825rem;
+            }
+
+            .input-field {
+                padding: 0.6rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .action-btn {
+                min-height: 40px;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.825rem;
+            }
+
+            .action-icon-btn {
+                min-width: 38px;
+                min-height: 38px;
+                font-size: 1rem;
+                padding: 0.45rem;
+            }
+
+            .reset-btn {
+                min-height: 38px;
+            }
+
+            .data-table th, .data-table td {
+                padding: 0.65rem 0.75rem;
+                font-size: 0.825rem;
+            }
+
+            .mobile-quick-modal {
+                padding: 1rem 0.85rem;
+            }
+
             .toast-container {
-                top: 1rem;
-                right: 1rem;
-                left: 1rem;
+                top: 0.75rem;
+                right: 0.75rem;
+                left: 0.75rem;
                 width: auto;
                 max-width: 100%;
+            }
+        }
+
+        /* BREAKPOINT: SMALL MOBILE (max-width: 480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.6rem 0.5rem;
+            }
+
+            header h1 {
+                font-size: 1.25rem;
+            }
+
+            .kpi-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+
+            .kpi-container .kpi-card:last-child {
+                grid-column: span 2;
+            }
+
+            .kpi-card {
+                padding: 0.75rem 0.85rem;
+            }
+
+            .kpi-value {
+                font-size: 1.15rem;
+            }
+
+            .chart-card {
+                padding: 0.85rem;
+            }
+
+            .auth-container {
+                padding: 1.5rem 1.1rem;
+                margin: 2rem auto;
+            }
+
+            .preview-stat-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+
+            .filter-bar {
+                padding: 0.75rem 0.85rem;
             }
         }
         .toast {
@@ -1128,7 +1409,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="data-table">
                             <thead><tr><th>Data</th><th>Tipo / Meio</th><th>Descrição</th><th>Categoria / Sub</th><th>Valor</th><th style="text-align: center;">Ações</th></tr></thead>
                             <tbody id="resumoExtratoTableBody"></tbody>
@@ -1147,10 +1428,12 @@
                             <div class="kpi-card"><div><div class="kpi-title">Média Mensal Histórica</div><div class="kpi-value" id="kpi-cat-media">R$ 0,00</div></div></div>
                             <div class="kpi-card"><div><div class="kpi-title">Variação (Atual vs Média)</div><div class="kpi-value" id="kpi-cat-var">0%</div></div></div>
                         </div>
-                        <table class="data-table">
-                            <thead><tr><th>Data</th><th>Subcategoria</th><th>Descrição</th><th>Valor</th></tr></thead>
-                            <tbody id="catDetailTableBody"></tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Data</th><th>Subcategoria</th><th>Descrição</th><th>Valor</th></tr></thead>
+                                <tbody id="catDetailTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1270,7 +1553,7 @@
                             <h3 class="chart-title" style="margin-bottom:0.2rem; font-size:1.15rem;">📈 Painel de Médias Financeiras</h3>
                             <p style="color:var(--text-muted); font-size:0.85rem; margin:0;" id="an-medias-subtitle">Visão consolidada de médias por meio de pagamento, receitas e categorias no período.</p>
                         </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem;">
                             <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Calcular médias por:</label>
                             <select id="an_modo_media" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.8rem; font-weight:600; font-size:0.85rem; border-radius:var(--radius-md);" onchange="runAnaliseGastos()">
                                 <option value="mes" selected>📅 Por Mês (R$ / mês)</option>
@@ -1332,40 +1615,42 @@
 
                 <div class="chart-card">
                     <div class="chart-title">Resultado da Análise</div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Descrição / TAGs</th>
-                                <th>Categoria / Sub</th>
-                                <th>Pagamento / Meio</th>
-                                <th>Valor</th>
-                                <th style="text-align:center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="analiseTableBody"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Descrição / TAGs</th>
+                                    <th>Categoria / Sub</th>
+                                    <th>Pagamento / Meio</th>
+                                    <th>Valor</th>
+                                    <th style="text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analiseTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS REAIS POR MÊS -->
             <div id="tab-parcelas" class="tab-content">
                 <!-- BARRA DE FILTROS DAS FATURAS & PARCELAS -->
-                <div style="margin-bottom:1.5rem; background:var(--card-bg); padding:1rem 1.25rem; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-xs);">
+                <div class="filter-bar">
                     <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
-                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; flex:1 1 100%; min-width:0;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Mês da Fatura:</label>
                                 <select id="faturaMonthSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()"></select>
                             </div>
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Cartão:</label>
                                 <select id="parcelasCartaoFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
                                     <option value="all">Todos os Cartões</option>
                                 </select>
                             </div>
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Tipo de Compra:</label>
                                 <select id="parcelasTypeFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
                                     <option value="all">Todas as Compras</option>
@@ -1374,15 +1659,15 @@
                                     <option value="avista">À Vista no Cartão</option>
                                 </select>
                             </div>
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
                                 <select id="parcelasCategoryFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
                                     <option value="all">Todas as Categorias</option>
                                 </select>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem; flex: 1 1 240px; justify-content: flex-end;">
-                            <input type="text" id="parcelasSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; max-width:240px; margin:0;" oninput="renderParcelasTab()">
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; flex: 1 1 200px; justify-content: flex-end; min-width: 0;">
+                            <input type="text" id="parcelasSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderParcelasTab()">
                             <button type="button" class="reset-btn" onclick="resetParcelasFilters()" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
                         </div>
                     </div>
@@ -1401,21 +1686,23 @@
 
                 <div class="chart-card">
                     <div class="chart-title">Compras Parceladas e Assinaturas Pertencentes a Este Mês</div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Data Compra</th>
-                                <th>Descrição</th>
-                                <th>Cartão</th>
-                                <th>Fatura Competência</th>
-                                <th>Parcela no Mês</th>
-                                <th>Valor Mensal</th>
-                                <th>Restante Após Este Mês</th>
-                                <th style="text-align:center;">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="parcelasTableBody"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Data Compra</th>
+                                    <th>Descrição</th>
+                                    <th>Cartão</th>
+                                    <th>Fatura Competência</th>
+                                    <th>Parcela no Mês</th>
+                                    <th>Valor Mensal</th>
+                                    <th>Restante Após Este Mês</th>
+                                    <th style="text-align:center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="parcelasTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1479,7 +1766,7 @@
                         </div>
 
                         <!-- Breakdown por Cartão e por Categoria -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 1.2rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1.2rem; margin-bottom: 1.2rem;">
                             <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
                                 <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text-main);">💳 Comprometimento por Cartão</h4>
                                 <div id="forecastByCardList"></div>
@@ -1492,7 +1779,7 @@
 
                         <!-- Tabela de Itens Projetados no Mês -->
                         <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.6rem 0; color:var(--text-main);">📋 Lançamentos e Parcelas Projetadas</h4>
-                        <div style="max-height: 360px; overflow-y: auto;">
+                        <div class="table-responsive" style="max-height: 360px; overflow-y: auto;">
                             <table class="data-table">
                                 <thead><tr><th>Data Origem</th><th>Descrição</th><th>Meio / Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th></tr></thead>
                                 <tbody id="forecastItemsTableBody"></tbody>
@@ -1587,30 +1874,30 @@
                 </div>
 
                 <!-- BARRA DE FILTROS AVANÇADOS -->
-                <div style="margin-bottom:1.5rem; background:var(--card-bg); padding:1rem 1.25rem; border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-xs);">
+                <div class="filter-bar">
                     <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
-                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; flex:1 1 100%; min-width:0;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Período:</label>
                                 <select id="investPeriodSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderInvestmentsTab()">
                                     <option value="all">Todo o Histórico</option>
                                 </select>
                             </div>
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
                                 <select id="investCatSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="onInvestCategoryChange()">
                                     <option value="todos">Todas as Categorias</option>
                                 </select>
                             </div>
-                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <div class="filter-group">
                                 <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Subcategoria:</label>
                                 <select id="investTypeSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderInvestmentsTab()">
                                     <option value="todos">Todas as Subcategorias</option>
                                 </select>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem; flex: 1 1 240px; justify-content: flex-end;">
-                            <input type="text" id="investSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; max-width:240px; margin:0;" oninput="renderInvestmentsTab()">
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; flex: 1 1 200px; justify-content: flex-end; min-width: 0;">
+                            <input type="text" id="investSearchInput" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderInvestmentsTab()">
                             <button type="button" class="reset-btn" onclick="resetInvestFilters()" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
                         </div>
                     </div>
@@ -1666,7 +1953,7 @@
                 </div>
 
                 <!-- SEÇÃO VISUAL: GRÁFICO DE ALOCAÇÃO + CARDS POR CATEGORIA -->
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap:1.25rem; margin-bottom:1.5rem;">
                     <!-- Gráfico de Rosca por Categoria -->
                     <div class="chart-card" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:space-between;">
                         <div>
@@ -1675,7 +1962,7 @@
                                 <span id="investChartBadge" style="font-size:0.75rem; background:var(--bg-color); padding:3px 8px; border-radius:12px; color:var(--text-muted); font-weight:600;">% Carteira</span>
                             </div>
                             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Distribuição percentual por classe de investimento:</p>
-                            <div style="width:100%; max-width:320px; margin:0 auto; min-height:220px; display:flex; align-items:center; justify-content:center;">
+                            <div style="width:100%; max-width:min(320px, 100%); margin:0 auto; min-height:220px; display:flex; align-items:center; justify-content:center;">
                                 <canvas id="investCategoryChart" height="220"></canvas>
                             </div>
                         </div>
@@ -1712,7 +1999,7 @@
                         <h3 class="chart-title" style="margin:0; font-size:1.05rem;">📋 Consolidado por Ativo / Subcategoria</h3>
                         <span id="investSubcatCount" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">0 ativos</span>
                     </div>
-                    <div style="overflow-x:auto;">
+                    <div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -1735,7 +2022,7 @@
                         <h3 class="chart-title" style="margin:0; font-size:1.05rem;">📜 Histórico Detalhado de Lançamentos</h3>
                         <span id="investRowCount" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">0 registros</span>
                     </div>
-                    <div style="overflow-x:auto;">
+                    <div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -1777,7 +2064,7 @@
                         <button type="button" class="action-btn" style="color: var(--primary);" onclick="openAssistedImportModal()">✨ Assistente de Importação</button>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem;">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap:1.2rem;">
                         <!-- 1. CATEGORIAS -->
                         <div class="kpi-card" style="padding: 1rem; border-radius: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
@@ -2205,7 +2492,7 @@
 
     <!-- MODAL DE LIQUIDAÇÃO ANTECIPADA DO CRÉDITO (FASE 3.5) -->
     <div id="creditSettlementModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
-        <div class="chart-card" style="max-width:480px; width:92%; margin:auto; position:relative;">
+        <div class="chart-card" style="max-width:480px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
                 <h3 style="margin:0; font-size:1.15rem; color:var(--primary);">⚡ Quitar Compra do Cartão (PIX)</h3>
                 <button type="button" class="reset-btn" onclick="closeCreditSettlementModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>

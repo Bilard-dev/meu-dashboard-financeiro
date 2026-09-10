@@ -160,8 +160,10 @@ async function setupAuthenticatedApp(page, {
                     const targetGroup = getQueryParam(urlObj.search, 'grupo_parcela_id');
                     if (targetId) {
                         inMemoryTransactions = inMemoryTransactions.filter(t => t.id !== targetId && String(t.id) !== String(targetId));
+                        inMemorySettlements = inMemorySettlements.filter(s => s.transacao_id !== targetId && String(s.transacao_id) !== String(targetId));
                     } else if (targetGroup) {
                         inMemoryTransactions = inMemoryTransactions.filter(t => t.grupo_parcela_id !== targetGroup);
+                        inMemorySettlements = inMemorySettlements.filter(s => s.grupo_parcela_id !== targetGroup);
                     }
                     return route.fulfill({
                         status: 204,
@@ -403,23 +405,11 @@ async function setupAuthenticatedApp(page, {
                     });
                 }
                 if (method === 'DELETE') {
-                    const targetId = getQueryParam(urlObj.search, 'id');
-                    const targetTx = getQueryParam(urlObj.search, 'transacao_id');
-                    const targetParcela = getQueryParam(urlObj.search, 'parcela_numero');
-
-                    if (targetId) {
-                        inMemorySettlements = inMemorySettlements.filter(s => s.id !== targetId);
-                    } else if (targetTx && targetParcela) {
-                        inMemorySettlements = inMemorySettlements.filter(s =>
-                            !(s.transacao_id === targetTx && String(s.parcela_numero) === String(targetParcela))
-                        );
-                    } else if (targetTx) {
-                        inMemorySettlements = inMemorySettlements.filter(s => s.transacao_id !== targetTx);
-                    }
-
+                    // Exclusão direta via API é bloqueada por RLS (preservação da trilha contábil e soft reversal)
                     return route.fulfill({
-                        status: 204,
-                        body: ''
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'permission denied for table liquidacoes_credito' })
                     });
                 }
             }

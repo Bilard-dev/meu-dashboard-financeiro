@@ -179,15 +179,11 @@ WITH CHECK (
     )
 );
 
--- 6.4 DELETE: Usuário autenticado só pode deletar seus próprios registros.
--- (Aviso: O fluxo normal de reversão na aplicação é Soft Reversal via status = 'CANCELADA'.
--- Esta policy DELETE é mantida estritamente para suporte a ON DELETE CASCADE ao excluir a compra
--- e conformidade LGPD/GDPR de expurgo de dados do usuário).
+-- 6.4 DELETE: A exclusão física direta via Data API por usuários autenticados é BLOQUEADA.
+-- A reversão na aplicação é estritamente Soft Reversal (UPDATE status = 'CANCELADA', cancelled_at = now()),
+-- preservando a trilha de auditoria e conformidade contábil.
+-- A remoção física de liquidações ocorre exclusivamente via ON DELETE CASCADE interno do banco
+-- quando a transação original ou o usuário são excluídos pelo proprietário legítimo.
 DROP POLICY IF EXISTS "liquidacoes_credito_delete_policy" ON public.liquidacoes_credito;
-CREATE POLICY "liquidacoes_credito_delete_policy"
-ON public.liquidacoes_credito
-FOR DELETE
-TO authenticated
-USING (user_id = (SELECT auth.uid()));
 
 COMMIT;

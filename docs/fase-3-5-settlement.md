@@ -49,7 +49,7 @@ ALTER TABLE public.liquidacoes_credito ENABLE ROW LEVEL SECURITY;
 - `liquidacoes_credito_select_policy`: `(user_id = (SELECT auth.uid()))`
 - `liquidacoes_credito_insert_policy`: `(user_id = (SELECT auth.uid()))`
 - `liquidacoes_credito_update_policy`: `(user_id = (SELECT auth.uid()))`
-- `liquidacoes_credito_delete_policy`: `(user_id = (SELECT auth.uid()))`
+- *DELETE Policy*: Removida. Exclusão direta via API é bloqueada (preservação de trilha de auditoria contábil e soft reversal). Remoção física ocorre exclusivamente via `ON DELETE CASCADE` da FK do banco.
 
 ---
 

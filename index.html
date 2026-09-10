@@ -4915,11 +4915,6 @@
                     showToast('Erro ao excluir: ' + error.message, 'error');
                 } else {
                     globalCreditSettlements = globalCreditSettlements.filter(s => s.transacao_id !== item.id && s.transacao_id !== id);
-                    try {
-                        await deleteCreditSettlementsByTransactionId(currentUser.id, item.id);
-                    } catch (e) {
-                        // Soft error ignore
-                    }
                     showToast('Lançamento excluído com sucesso!', 'success');
                     await manualSync();
                     const activeTabEl = document.querySelector('.tab-content.active');

@@ -3125,7 +3125,8 @@
         import {
             isInstallmentSettled,
             createSettlementMap,
-            validateSettlementPayload
+            validateSettlementPayload,
+            calculateEffectivePaymentOutflows
         } from './src/domain/creditSettlement/settlementEngine.js';
 
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
@@ -3140,6 +3141,7 @@
         window.formatFaturaBadge = formatFaturaBadge;
         window.calculateCashBalance = calculateCashBalance;
         window.calculateInvoiceSummary = calculateInvoiceSummary;
+        window.calculateEffectivePaymentOutflows = calculateEffectivePaymentOutflows;
         window.getExpensesByCompetence = getExpensesByCompetence;
         window.calculateFinancialForecast = calculateFinancialForecast;
         window.getPrivacyMode = getPrivacyMode;
@@ -6392,14 +6394,16 @@
             const despesasPeriodo = baseFiltered.filter(d => d.type === 'DESPESA');
             const totalReceitas = receitasPeriodo.reduce((a, b) => a + b.value, 0);
             const totalDespesas = despesasPeriodo.reduce((a, b) => a + b.value, 0);
+            const outflowsAnalise = calculateEffectivePaymentOutflows(periodVal, baseFiltered, globalCreditSettlements);
+            const totalPix = outflowsAnalise.byPaymentMethod['PIX'] || 0;
+            const totalCartao = outflowsAnalise.byPaymentMethod['Cartão de Crédito'] || 0;
+            const totalDinheiro = Object.keys(outflowsAnalise.byPaymentMethod)
+                .filter(k => k !== 'PIX' && k !== 'Cartão de Crédito')
+                .reduce((acc, k) => acc + outflowsAnalise.byPaymentMethod[k], 0);
 
-            const pixDespesas = despesasPeriodo.filter(d => (d.pagamento || '').toUpperCase() === 'PIX');
-            const cartaoDespesas = despesasPeriodo.filter(d => (d.pagamento || '').includes('Cartão') || d.cartao);
-            const dinheiroDespesas = despesasPeriodo.filter(d => !((d.pagamento || '').toUpperCase() === 'PIX') && !((d.pagamento || '').includes('Cartão') || d.cartao));
-
-            const totalPix = pixDespesas.reduce((a, b) => a + b.value, 0);
-            const totalCartao = cartaoDespesas.reduce((a, b) => a + b.value, 0);
-            const totalDinheiro = dinheiroDespesas.reduce((a, b) => a + b.value, 0);
+            const pixCount = despesasPeriodo.filter(d => (d.pagamento || '').toUpperCase() === 'PIX' || globalCreditSettlements.some(s => s.status === 'ATIVA' && s.forma_liquidacao === 'PIX' && (s.transacao_id === d.id || (s.grupo_parcela_id && s.grupo_parcela_id === d.grupo_parcela_id)))).length;
+            const cartaoCount = despesasPeriodo.filter(d => (d.pagamento || '').includes('Cartão') || d.cartao).length;
+            const dinheiroCount = despesasPeriodo.filter(d => !((d.pagamento || '').toUpperCase() === 'PIX') && !((d.pagamento || '').includes('Cartão') || d.cartao)).length;
 
             function calcMedia(totalVal, count) {
                 if (modoMedia === 'operacao') {
@@ -6412,9 +6416,9 @@
             }
 
             const mediaReceitas = calcMedia(totalReceitas, receitasPeriodo.length);
-            const mediaPix = calcMedia(totalPix, pixDespesas.length);
-            const mediaCartao = calcMedia(totalCartao, cartaoDespesas.length);
-            const mediaDinheiro = calcMedia(totalDinheiro, dinheiroDespesas.length);
+            const mediaPix = calcMedia(totalPix, pixCount);
+            const mediaCartao = calcMedia(totalCartao, cartaoCount);
+            const mediaDinheiro = calcMedia(totalDinheiro, dinheiroCount);
 
             const modoLabels = {
                 mes: 'Média Mensal',
@@ -6653,7 +6657,7 @@
             saldoEl.style.color = saldo >= 0 ? 'var(--text-main)' : 'var(--danger)';
 
             renderReceitasDetalhes(receitasArr);
-            renderDespesasDetalhes(despesasArr, despesas);
+            renderDespesasDetalhes(despesasArr, despesas, selectedYm);
             renderInvestimentosDetalhes(investArr, invest, receitas);
             renderSaldoDetalhes(saldo, receitas);
 
@@ -7007,24 +7011,25 @@
             `;
         }
 
-        function renderDespesasDetalhes(despesasArr, totalDespesas) {
+        function renderDespesasDetalhes(despesasArr, totalDespesas, selectedYm = 'all') {
             const container = document.getElementById('kpi-despesas-detalhes');
             container.innerHTML = '';
-            if (totalDespesas === 0 || despesasArr.length === 0) {
+
+            const ym = selectedYm || document.getElementById('monthSelector')?.value || 'all';
+            const outflows = calculateEffectivePaymentOutflows(ym, globalData, globalCreditSettlements);
+            const pagMap = outflows.byPaymentMethod;
+
+            const sortedMeios = Object.keys(pagMap).filter(k => pagMap[k] > 0).sort((a, b) => pagMap[b] - pagMap[a]);
+            if (sortedMeios.length === 0) {
                 container.innerHTML = '<div style="color:var(--text-muted); font-size:0.75rem;">Sem despesas no período</div>';
                 return;
             }
-            const pagMap = {};
-            despesasArr.forEach(d => {
-                const meio = d.pagamento && d.pagamento.trim() !== '' ? d.pagamento : 'Não Informado';
-                pagMap[meio] = (pagMap[meio] || 0) + d.value;
-            });
-            const sortedMeios = Object.keys(pagMap).sort((a, b) => pagMap[b] - pagMap[a]);
+
             sortedMeios.forEach(meio => {
                 const val = pagMap[meio];
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'kpi-detail-item';
-                itemDiv.innerHTML = `<span class="kpi-detail-label">${meio}</span><span class="kpi-detail-val">${fmt(val)}</span>`;
+                itemDiv.innerHTML = `<span class="kpi-detail-label">${escapeHtml(meio)}</span><span class="kpi-detail-val">${fmt(val)}</span>`;
                 container.appendChild(itemDiv);
             });
         }

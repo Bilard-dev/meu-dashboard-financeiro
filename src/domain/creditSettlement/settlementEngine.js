@@ -3,6 +3,8 @@
  * Módulo ES6 desacoplado de DOM, Supabase e Estado Global.
  */
 
+import { getExpensesByCompetence } from '../competence/competenceEngine.js';
+
 /**
  * Constrói uma chave única determinística para identificar a liquidação de uma parcela de transação.
  * @param {string} idOrGroupId - UUID da transação ou do grupo_parcela_id
@@ -183,4 +185,112 @@ export function validateSettlementPayload(payload, item) {
     }
 
     return { valid: true };
+}
+
+/**
+ * Calcula a distribuição efetiva de saídas financeiras e obrigações por meio de pagamento
+ * para uma competência, considerando despesas imediatas, compras em cartão e liquidações ativas.
+ *
+ * Garante a regra canônica:
+ * Despesa Econômica (não duplica) != Saída Financeira Efetiva != Obrigação Residual do Cartão.
+ *
+ * @param {string} selectedYm - Competência no formato 'YYYY-M' (base 0) ou 'all'
+ * @param {Array<object>} transactions - Lista de transações
+ * @param {Array<object>|Map<string, object>} [settlements=[]] - Lista ou mapa de liquidações
+ * @returns {{
+ *   totalDespesaEconomica: number,
+ *   totalSaidaFinanceira: number,
+ *   obrigacaoCartaoTotal: number,
+ *   byPaymentMethod: Record<string, number>,
+ *   byCard: Record<string, number>
+ * }}
+ */
+export function calculateEffectivePaymentOutflows(selectedYm, transactions = [], settlements = []) {
+    const txs = Array.isArray(transactions) ? transactions : [];
+    const setts = Array.isArray(settlements) ? settlements : (settlements instanceof Map ? Array.from(settlements.values()) : []);
+    const settleMap = settlements instanceof Map ? settlements : createSettlementMap(setts);
+
+    const expensesInMonth = getExpensesByCompetence(selectedYm, txs);
+    const totalDespesaEconomica = expensesInMonth.reduce((acc, d) => acc + d.value, 0);
+
+    const byPaymentMethod = {};
+    const byCard = {};
+
+    // 1. Processa as despesas da competência
+    expensesInMonth.forEach(d => {
+        const isCard = Boolean(d.cartao || d.pagamento === 'Cartão de Crédito');
+        if (!isCard) {
+            const meio = d.pagamento && d.pagamento.trim() !== '' ? d.pagamento : 'Não Informado';
+            byPaymentMethod[meio] = (byPaymentMethod[meio] || 0) + d.value;
+            return;
+        }
+
+        const pNum = d.parcelaNoMes || d.initAtual || 1;
+        const settlement = (!d.isRecorrente) ? isInstallmentSettled(settleMap, d, pNum) : null;
+
+        if (!settlement) {
+            // Parcela NÃO liquidada: compõe obrigação aberta no cartão
+            byPaymentMethod['Cartão de Crédito'] = (byPaymentMethod['Cartão de Crédito'] || 0) + d.value;
+            const nomeCartao = d.cartao || 'Cartão';
+            byCard[nomeCartao] = (byCard[nomeCartao] || 0) + d.value;
+        } else {
+            // Parcela LIQUIDADA: obrigação residual no cartão é R$ 0.
+            // Se selectedYm for 'all' ou se a data_liquidacao pertencer a selectedYm:
+            if (selectedYm === 'all') {
+                const formaLiq = settlement.forma_liquidacao || 'PIX';
+                byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + d.value;
+            } else {
+                const liqDateStr = settlement.data_liquidacao;
+                let liqYm = '';
+                if (liqDateStr) {
+                    const [ly, lm] = liqDateStr.split('-').map(Number);
+                    liqYm = `${ly}-${lm - 1}`;
+                }
+                if (liqYm === selectedYm) {
+                    const formaLiq = settlement.forma_liquidacao || 'PIX';
+                    byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + d.value;
+                }
+            }
+        }
+    });
+
+    // 2. Se selectedYm for um mês específico, agrega liquidações ocorridas neste mês
+    // que quitaram parcelas cuja competência de fatura era DIFERENTE deste mês
+    if (selectedYm !== 'all') {
+        setts.forEach(s => {
+            if (!s || s.status !== 'ATIVA' || s.cancelled_at) return;
+            const liqDateStr = s.data_liquidacao;
+            if (!liqDateStr) return;
+            const [ly, lm] = liqDateStr.split('-').map(Number);
+            const liqYm = `${ly}-${lm - 1}`;
+
+            if (liqYm === selectedYm) {
+                const alreadyComputed = expensesInMonth.some(d => {
+                    const isCard = Boolean(d.cartao || d.pagamento === 'Cartão de Crédito');
+                    if (!isCard || d.isRecorrente) return false;
+                    const pNum = d.parcelaNoMes || d.initAtual || 1;
+                    const matchTx = (s.transacao_id && d.id === s.transacao_id);
+                    const matchGroup = (s.grupo_parcela_id && d.grupo_parcela_id === s.grupo_parcela_id);
+                    return (matchTx || matchGroup) && Number(s.parcela_numero) === pNum;
+                });
+
+                if (!alreadyComputed) {
+                    const formaLiq = s.forma_liquidacao || 'PIX';
+                    const val = Number(s.valor) || 0;
+                    byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + val;
+                }
+            }
+        });
+    }
+
+    const totalSaidaFinanceira = Object.values(byPaymentMethod).reduce((a, b) => a + b, 0);
+    const obrigacaoCartaoTotal = byPaymentMethod['Cartão de Crédito'] || 0;
+
+    return {
+        totalDespesaEconomica,
+        totalSaidaFinanceira,
+        obrigacaoCartaoTotal,
+        byPaymentMethod,
+        byCard
+    };
 }

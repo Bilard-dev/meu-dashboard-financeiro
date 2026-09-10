@@ -5,7 +5,8 @@ import {
     createSettlementMap,
     isInstallmentSettled,
     enrichItemsWithSettlement,
-    validateSettlementPayload
+    validateSettlementPayload,
+    calculateEffectivePaymentOutflows
 } from '../../src/domain/creditSettlement/settlementEngine.js';
 import { calculateInvoiceSummary } from '../../src/domain/creditCard/invoiceCalculator.js';
 import { getExpensesByCompetence } from '../../src/domain/competence/competenceEngine.js';
@@ -588,6 +589,143 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
         );
 
         assert.equal(isDuplicate, true, 'Índice unique_liquidacao_ativa_por_transacao_avulsa bloqueia duplicidade à vista');
+    });
+
+    it('31. CASO 1: Compra cartão R$ 600 + Liquidação PIX R$ 600 (Despesa Econômica = 600, Saída PIX = 600, Obrigação Cartão = 0)', () => {
+        const txs = [{ id: 'tx-1', type: 'DESPESA', desc: 'Mercado', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+        const setts = [{ id: 's-1', transacao_id: 'tx-1', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+
+        const res = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(res.totalDespesaEconomica, 600, 'Despesa econômica permanece R$ 600');
+        assert.equal(res.totalSaidaFinanceira, 600, 'Saída financeira total é R$ 600');
+        assert.equal(res.obrigacaoCartaoTotal, 0, 'Obrigação do cartão é R$ 0');
+        assert.equal(res.byPaymentMethod['PIX'], 600, 'Saída por PIX é R$ 600');
+        assert.equal(res.byPaymentMethod['Cartão de Crédito'] || 0, 0, 'Cartão de Crédito é 0');
+        assert.deepEqual(res.byCard, {}, 'Nenhum cartão possui saldo devedor');
+    });
+
+    it('32. CASO 2: Compra cartão R$ 600 + Liquidação PIX CANCELADA R$ 600 (Despesa Econômica = 600, Saída PIX = 0, Obrigação Cartão = 600)', () => {
+        const txs = [{ id: 'tx-1', type: 'DESPESA', desc: 'Mercado', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+        const setts = [{ id: 's-1', transacao_id: 'tx-1', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'CANCELADA', data_liquidacao: '2026-09-10' }];
+
+        const res = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(res.totalDespesaEconomica, 600);
+        assert.equal(res.totalSaidaFinanceira, 600);
+        assert.equal(res.obrigacaoCartaoTotal, 600);
+        assert.equal(res.byPaymentMethod['PIX'] || 0, 0);
+        assert.equal(res.byPaymentMethod['Cartão de Crédito'], 600);
+        assert.equal(res.byCard['Nubank'], 600);
+    });
+
+    it('33. CASO 3: Compra em agosto, Liquidação PIX em setembro (PIX pertence a setembro)', () => {
+        const txs = [{ id: 'tx-3', type: 'DESPESA', desc: 'Notebook', value: 3000, rawDate: '2026-08-15', year: 2026, month: 7, pagamento: 'Cartão de Crédito', cartao: 'Inter' }];
+        const setts = [{ id: 's-3', transacao_id: 'tx-3', parcela_numero: 1, valor: 3000, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-05' }];
+
+        const resAgo = calculateEffectivePaymentOutflows('2026-7', txs, setts);
+        const resSet = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+
+        // Agosto: Despesa econômica da compra (3000), Obrigação quitada (0), PIX neste mês (0)
+        assert.equal(resAgo.totalDespesaEconomica, 3000);
+        assert.equal(resAgo.obrigacaoCartaoTotal, 0);
+        assert.equal(resAgo.byPaymentMethod['PIX'] || 0, 0);
+
+        // Setembro: Despesa econômica (0), Saída financeira PIX da liquidação ocorrida em 05/09 (3000)
+        assert.equal(resSet.totalDespesaEconomica, 0);
+        assert.equal(resSet.byPaymentMethod['PIX'], 3000);
+    });
+
+    it('34. CASO 4: Duas parcelas de R$ 200, apenas uma quitada (Somente a obrigação da parcela correta diminui)', () => {
+        const txs = [
+            { id: 'tx-4', type: 'DESPESA', desc: 'Curso', value: 200, rawDate: '2026-09-01', year: 2026, month: 8, parcela: '1/2', pagamento: 'Cartão de Crédito', cartao: 'Nubank' }
+        ];
+        const setts = [{ id: 's-4', transacao_id: 'tx-4', parcela_numero: 1, valor: 200, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-01' }];
+
+        // Mês 1 (Setembro - Parcela 1/2 quitada)
+        const resM1 = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(resM1.byPaymentMethod['PIX'], 200);
+        assert.equal(resM1.obrigacaoCartaoTotal, 0);
+
+        // Mês 2 (Outubro - Parcela 2/2 pendente)
+        const resM2 = calculateEffectivePaymentOutflows('2026-9', txs, setts);
+        assert.equal(resM2.byPaymentMethod['PIX'] || 0, 0);
+        assert.equal(resM2.obrigacaoCartaoTotal, 200);
+        assert.equal(resM2.byCard['Nubank'], 200);
+    });
+
+    it('35. CASO 5: Dois cartões diferentes (Liquidação de um não altera o outro)', () => {
+        const txs = [
+            { id: 'tx-c1', type: 'DESPESA', desc: 'Gasolina', value: 100, rawDate: '2026-09-02', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' },
+            { id: 'tx-c2', type: 'DESPESA', desc: 'Almoço', value: 50, rawDate: '2026-09-03', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'XP' }
+        ];
+        const setts = [{ id: 's-c1', transacao_id: 'tx-c1', parcela_numero: 1, valor: 100, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-02' }];
+
+        const res = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(res.totalDespesaEconomica, 150);
+        assert.equal(res.byPaymentMethod['PIX'], 100);
+        assert.equal(res.byPaymentMethod['Cartão de Crédito'], 50);
+        assert.equal(res.obrigacaoCartaoTotal, 50);
+        assert.equal(res.byCard['Nubank'], undefined);
+        assert.equal(res.byCard['XP'], 50);
+    });
+
+    it('36. CASO 6: Liquidação ativa não duplica despesa econômica', () => {
+        const txs = [{ id: 'tx-1', type: 'DESPESA', desc: 'Mercado', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+        const setts = [{ id: 's-1', transacao_id: 'tx-1', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+
+        const res = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(res.totalDespesaEconomica, 600);
+        assert.equal(res.totalSaidaFinanceira, 600);
+        assert.notEqual(res.totalDespesaEconomica, 1200, 'Despesa econômica nunca duplica para R$ 1.200');
+    });
+
+    it('37. CASO 7: Reversão restaura obrigação de cartão e remove saída PIX', () => {
+        const txs = [{ id: 'tx-1', type: 'DESPESA', desc: 'Mercado', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+
+        // Quitado
+        const settsActive = [{ id: 's-1', transacao_id: 'tx-1', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+        const resActive = calculateEffectivePaymentOutflows('2026-8', txs, settsActive);
+        assert.equal(resActive.byPaymentMethod['PIX'], 600);
+        assert.equal(resActive.obrigacaoCartaoTotal, 0);
+
+        // Revertido
+        const settsReverted = [{ id: 's-1', transacao_id: 'tx-1', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'CANCELADA', data_liquidacao: '2026-09-10' }];
+        const resReverted = calculateEffectivePaymentOutflows('2026-8', txs, settsReverted);
+        assert.equal(resReverted.byPaymentMethod['PIX'] || 0, 0);
+        assert.equal(resReverted.obrigacaoCartaoTotal, 600);
+        assert.equal(resReverted.byCard['Nubank'], 600);
+    });
+
+    it('38. CASO 8: Liquidação com outra forma de pagamento (Transferência Bancária / Saldo em Conta)', () => {
+        const txs = [{ id: 'tx-1', type: 'DESPESA', desc: 'Mercado', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+        const setts = [{ id: 's-1', transacao_id: 'tx-1', parcela_numero: 1, valor: 600, forma_liquidacao: 'Transferência Bancária', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+
+        const res = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+        assert.equal(res.byPaymentMethod['Transferência Bancária'], 600);
+        assert.equal(res.obrigacaoCartaoTotal, 0);
+    });
+
+    it('39. TESTE CANÔNICO OBRIGATÓRIO (Seção 22): Ciclo Completo de Compra R$ 600, Quitação PIX e Reversão', () => {
+        const txs = [{ id: 'tx-canon', type: 'DESPESA', desc: 'Eletrônicos', value: 600, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+
+        // 1. ANTES: Compra cartão R$ 600
+        const antes = calculateEffectivePaymentOutflows('2026-8', txs, []);
+        assert.equal(antes.obrigacaoCartaoTotal, 600, 'ANTES: Obrigação cartão = 600');
+        assert.equal(antes.byPaymentMethod['PIX'] || 0, 0, 'ANTES: PIX = 0');
+        assert.equal(antes.totalDespesaEconomica, 600, 'ANTES: Despesa econômica = 600');
+
+        // 2. DEPOIS DE QUITAR VIA PIX:
+        const settsQuitado = [{ id: 's-canon', transacao_id: 'tx-canon', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+        const depois = calculateEffectivePaymentOutflows('2026-8', txs, settsQuitado);
+        assert.equal(depois.obrigacaoCartaoTotal, 0, 'DEPOIS: Obrigação cartão = 0');
+        assert.equal(depois.byPaymentMethod['PIX'], 600, 'DEPOIS: PIX = 600');
+        assert.equal(depois.totalDespesaEconomica, 600, 'DEPOIS: Despesa econômica = 600');
+
+        // 3. DEPOIS DE REVERTER:
+        const settsRevertido = [{ id: 's-canon', transacao_id: 'tx-canon', parcela_numero: 1, valor: 600, forma_liquidacao: 'PIX', status: 'CANCELADA', data_liquidacao: '2026-09-10' }];
+        const revertido = calculateEffectivePaymentOutflows('2026-8', txs, settsRevertido);
+        assert.equal(revertido.obrigacaoCartaoTotal, 600, 'REVERTIDO: Obrigação cartão = 600');
+        assert.equal(revertido.byPaymentMethod['PIX'] || 0, 0, 'REVERTIDO: PIX = 0');
+        assert.equal(revertido.totalDespesaEconomica, 600, 'REVERTIDO: Despesa econômica = 600');
     });
 
 });

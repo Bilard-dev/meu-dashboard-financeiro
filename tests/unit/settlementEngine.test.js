@@ -4,7 +4,8 @@ import {
     buildSettlementKey,
     createSettlementMap,
     isInstallmentSettled,
-    enrichItemsWithSettlement
+    enrichItemsWithSettlement,
+    validateSettlementPayload
 } from '../../src/domain/creditSettlement/settlementEngine.js';
 import { calculateInvoiceSummary } from '../../src/domain/creditCard/invoiceCalculator.js';
 import { getExpensesByCompetence } from '../../src/domain/competence/competenceEngine.js';
@@ -341,6 +342,152 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
 
         assert.equal(isInstallmentSettled(settleMap, recurringItem, 1), null, 'Recorrente não pode ser liquidada');
         assert.equal(isInstallmentSettled(settlements, recurringItem, 1), null, 'Recorrente não pode ser liquidada via lista');
+    });
+
+    it('21. Teste de Identidade Canônica Obrigatório (Compra R$ 600 em 3x, quitar somente 2/3, permutações de array)', () => {
+        const p1 = { id: 'tx-seed-1', grupo_parcela_id: 'grp-G', type: 'DESPESA', value: 200, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-08-10', year: 2026, month: 7, parcela: '1/3' };
+        const p2 = { id: 'tx-seed-2', grupo_parcela_id: 'grp-G', type: 'DESPESA', value: 200, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-09-10', year: 2026, month: 8, parcela: '2/3' };
+        const p3 = { id: 'tx-seed-3', grupo_parcela_id: 'grp-G', type: 'DESPESA', value: 200, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-10-10', year: 2026, month: 9, parcela: '3/3' };
+
+        // Quitação SOMENTE da parcela 2/3 vinculada ao grupo
+        const settlements = [
+            {
+                id: 's-2-only',
+                user_id: 'user-1',
+                grupo_parcela_id: 'grp-G',
+                transacao_id: 'tx-seed-1',
+                parcela_numero: 2,
+                valor: 200,
+                data_liquidacao: '2026-08-15',
+                forma_liquidacao: 'PIX',
+                status: 'ATIVA'
+            }
+        ];
+
+        // Testar sob todas as ordens de permutação
+        const permutations = [
+            [p1, p2, p3],
+            [p3, p1, p2],
+            [p2, p3, p1]
+        ];
+
+        for (const list of permutations) {
+            // Mês 1 (Agosto/2026 - Parcela 1/3) -> Pendente
+            const invAug = calculateInvoiceSummary('2026-7', list, settlements);
+            assert.equal(invAug.totalFaturaSelecionada, 200, 'Agosto: Parcela 1/3 deve estar pendente (R$ 200)');
+            assert.equal(invAug.totalFaturaSeguinte, 0, 'Agosto: Fatura seguinte (Setembro 2/3) deve ser R$ 0 pois está quitada');
+            assert.equal(invAug.totalRestanteFuturo, 200, 'Agosto: Restante futuro deve somar apenas a parcela 3 (R$ 200)');
+            assert.equal(invAug.itemsNoMes[0].isLiquidado, false);
+
+            // Mês 2 (Setembro/2026 - Parcela 2/3) -> Liquidada
+            const invSep = calculateInvoiceSummary('2026-8', list, settlements);
+            assert.equal(invSep.totalFaturaSelecionada, 0, 'Setembro: Parcela 2/3 quitada resulta em fatura R$ 0');
+            assert.equal(invSep.totalFaturaBruta, 200, 'Setembro: Total bruto continua R$ 200');
+            assert.equal(invSep.totalLiquidadoNaCompetencia, 200, 'Setembro: Total liquidado é R$ 200');
+            assert.equal(invSep.totalFaturaSeguinte, 200, 'Setembro: Fatura seguinte (Outubro 3/3) é R$ 200');
+            assert.equal(invSep.itemsNoMes[0].isLiquidado, true);
+
+            // Mês 3 (Outubro/2026 - Parcela 3/3) -> Pendente
+            const invOct = calculateInvoiceSummary('2026-9', list, settlements);
+            assert.equal(invOct.totalFaturaSelecionada, 200, 'Outubro: Parcela 3/3 deve estar pendente (R$ 200)');
+            assert.equal(invOct.itemsNoMes[0].isLiquidado, false);
+
+            // Forecast de 3 meses a partir de Agosto/2026
+            const forecast = calculateFinancialForecast('2026-7', 3, list, settlements);
+            assert.equal(forecast[0].totalComprometido, 200, 'Forecast Mês 1 (Ago): R$ 200');
+            assert.equal(forecast[0].items[0].isLiquidado, false);
+            assert.equal(forecast[1].totalComprometido, 0, 'Forecast Mês 2 (Set): R$ 0 (quitada)');
+            assert.equal(forecast[1].items[0].isLiquidado, true);
+            assert.equal(forecast[2].totalComprometido, 200, 'Forecast Mês 3 (Out): R$ 200');
+            assert.equal(forecast[2].items[0].isLiquidado, false);
+        }
+    });
+
+    it('22. Soft Reversal (Cancelamento): liquidação CANCELADA não baixa obrigação e reativação restaura baixa', () => {
+        const item = { id: 'tx-rev-1', type: 'DESPESA', value: 300, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-08-10', year: 2026, month: 7, parcela: 'À vista' };
+
+        // 1. Estado Quitado Ativo
+        let settlements = [
+            { id: 's-rev', user_id: 'u-1', transacao_id: 'tx-rev-1', parcela_numero: 1, valor: 300, status: 'ATIVA', data_liquidacao: '2026-08-11', forma_liquidacao: 'PIX' }
+        ];
+        let summary = calculateInvoiceSummary('2026-7', [item], settlements);
+        assert.equal(summary.totalFaturaSelecionada, 0);
+        assert.equal(summary.itemsNoMes[0].isLiquidado, true);
+
+        // 2. Soft Reversal (Cancelada)
+        settlements = [
+            { id: 's-rev', user_id: 'u-1', transacao_id: 'tx-rev-1', parcela_numero: 1, valor: 300, status: 'CANCELADA', cancelled_at: '2026-08-12T10:00:00Z', data_liquidacao: '2026-08-11', forma_liquidacao: 'PIX' }
+        ];
+        summary = calculateInvoiceSummary('2026-7', [item], settlements);
+        assert.equal(summary.totalFaturaSelecionada, 300, 'Liquidação cancelada não baixa a fatura');
+        assert.equal(summary.itemsNoMes[0].isLiquidado, false, 'Item volta ao estado pendente');
+
+        // 3. Reativação (Reativa para ATIVA)
+        settlements = [
+            { id: 's-rev', user_id: 'u-1', transacao_id: 'tx-rev-1', parcela_numero: 1, valor: 300, status: 'ATIVA', cancelled_at: null, data_liquidacao: '2026-08-11', forma_liquidacao: 'PIX' }
+        ];
+        summary = calculateInvoiceSummary('2026-7', [item], settlements);
+        assert.equal(summary.totalFaturaSelecionada, 0);
+        assert.equal(summary.itemsNoMes[0].isLiquidado, true);
+    });
+
+    it('23. validateSettlementPayload: validação estrita de integridade de valores, formas e parcelas', () => {
+        const itemParc = { id: 'tx-val-1', value: 150.00, total: 3, isRecorrente: false };
+        const itemRec = { id: 'tx-val-rec', value: 50.00, total: 1, isRecorrente: true };
+
+        // Sucesso: valor exato, parcela válida, forma PIX
+        const okRes = validateSettlementPayload({ valor: 150, parcela_numero: 2, forma_liquidacao: 'PIX' }, itemParc);
+        assert.equal(okRes.valid, true);
+
+        // Sucesso: formas permitidas adicionais (Transferência Bancária, Saldo em Conta)
+        assert.equal(validateSettlementPayload({ valor: 150, parcela_numero: 1, forma_liquidacao: 'Transferência Bancária' }, itemParc).valid, true);
+        assert.equal(validateSettlementPayload({ valor: 150, parcela_numero: 1, forma_liquidacao: 'Saldo em Conta' }, itemParc).valid, true);
+
+        // Erro: valor divergente da parcela (tentativa de pagamento parcial ou excedente)
+        const diffRes = validateSettlementPayload({ valor: 100, parcela_numero: 2, forma_liquidacao: 'PIX' }, itemParc);
+        assert.equal(diffRes.valid, false);
+        assert.match(diffRes.error, /Quitação integral obrigatória/);
+
+        // Erro: valor zero ou negativo
+        assert.equal(validateSettlementPayload({ valor: 0, parcela_numero: 1, forma_liquidacao: 'PIX' }, itemParc).valid, false);
+        assert.equal(validateSettlementPayload({ valor: -150, parcela_numero: 1, forma_liquidacao: 'PIX' }, itemParc).valid, false);
+
+        // Erro: parcela fora da faixa
+        assert.equal(validateSettlementPayload({ valor: 150, parcela_numero: 0, forma_liquidacao: 'PIX' }, itemParc).valid, false);
+        assert.equal(validateSettlementPayload({ valor: 150, parcela_numero: 4, forma_liquidacao: 'PIX' }, itemParc).valid, false);
+
+        // Erro: despesa recorrente
+        const recRes = validateSettlementPayload({ valor: 50, parcela_numero: 1, forma_liquidacao: 'PIX' }, itemRec);
+        assert.equal(recRes.valid, false);
+        assert.match(recRes.error, /Despesas recorrentes não possuem identidade finita/);
+
+        // Erro: forma de liquidação inválida
+        const invalidForma = validateSettlementPayload({ valor: 150, parcela_numero: 1, forma_liquidacao: 'Boleto' }, itemParc);
+        assert.equal(invalidForma.valid, false);
+        assert.match(invalidForma.error, /Forma de liquidação inválida/);
+    });
+
+    it('24. Imunidade Contábil / Não-Double-Counting rigorosamente comprovada', () => {
+        const txs = [
+            { id: 'tx-main-600', user_id: 'u-1', type: 'DESPESA', value: 600, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-08-05', year: 2026, month: 7, parcela: 'À vista' }
+        ];
+        const settlements = [
+            { id: 's-600', user_id: 'u-1', transacao_id: 'tx-main-600', parcela_numero: 1, valor: 600, data_liquidacao: '2026-08-06', forma_liquidacao: 'PIX', status: 'ATIVA' }
+        ];
+
+        // 1. Fato Econômico na Competência
+        const expenses = getExpensesByCompetence('2026-7', txs);
+        assert.equal(expenses.length, 1, 'Exatamente uma despesa contábil');
+        assert.equal(expenses[0].value, 600, 'Valor contábil é exatamente R$ 600');
+
+        // 2. Fato Financeiro na Fatura do Cartão
+        const invoice = calculateInvoiceSummary('2026-7', txs, settlements);
+        assert.equal(invoice.totalFaturaBruta, 600, 'Fatura bruta é R$ 600');
+        assert.equal(invoice.totalLiquidadoNaCompetencia, 600, 'Total liquidado é R$ 600');
+        assert.equal(invoice.totalFaturaSelecionada, 0, 'Saldo devedor em aberto na fatura é R$ 0');
+
+        // 3. Imunidade contra duplicação de despesas:
+        assert.equal(txs.length, 1, 'Transações contém apenas 1 registro');
     });
 
 });

@@ -192,4 +192,97 @@ test.describe('Fase 3.5 — Liquidação Antecipada do Crédito (Early Credit Se
         await expect(page.locator('#kpi-fatura-atual')).toHaveText(/200,00/);
     });
 
+    test('5. Bloquear alteração de valor e dados financeiros em transação com liquidação ativa', async ({ page }) => {
+        const transactions = [
+            {
+                id: 'tx-card-guard',
+                user_id: mockUser.id,
+                tipo: 'Despesa',
+                data: '2026-08-10',
+                descricao: 'Monitor Gamer',
+                categoria: 'Trabalho',
+                subcategoria: 'Equipamentos',
+                valor: 800.00,
+                pagamento: 'Cartão de Crédito',
+                cartao: 'Nubank',
+                parcela: 'À vista',
+                fatura_destino: 'ATUAL',
+                created_at: new Date().toISOString()
+            }
+        ];
+        const settlements = [
+            {
+                id: 'settle-mon',
+                user_id: mockUser.id,
+                transacao_id: 'tx-card-guard',
+                parcela_numero: 1,
+                valor: 800.00,
+                status: 'ATIVA',
+                data_liquidacao: '2026-08-11',
+                forma_liquidacao: 'PIX',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }
+        ];
+
+        await setupAuthenticatedApp(page, { transactions, settlements });
+        await page.selectOption('#monthSelector', '2026-7');
+
+        // Localiza a transação na tabela do Resumo e clica em Editar
+        const editBtn = page.locator('tr:has-text("Monitor Gamer") button[title="Editar"]').first();
+        await editBtn.click();
+        await expect(page.locator('#tab-novo')).toHaveClass(/active/);
+
+        // Tenta alterar valor de 800 para 900
+        await page.locator('#i_valor').fill('900');
+        await page.locator('#btnSalvar').click();
+
+        // Toast de erro informando que precisa desfazer a quitação
+        await expect(page.locator('.toast')).toContainText('Esta compra possui parcelas quitadas antecipadamente');
+    });
+
+    test('6. Bloquear exclusão direta de transação com liquidação ativa', async ({ page }) => {
+        const transactions = [
+            {
+                id: 'tx-card-del-guard',
+                user_id: mockUser.id,
+                tipo: 'Despesa',
+                data: '2026-08-10',
+                descricao: 'Headset Pro',
+                categoria: 'Trabalho',
+                subcategoria: 'Equipamentos',
+                valor: 400.00,
+                pagamento: 'Cartão de Crédito',
+                cartao: 'Nubank',
+                parcela: 'À vista',
+                fatura_destino: 'ATUAL',
+                created_at: new Date().toISOString()
+            }
+        ];
+        const settlements = [
+            {
+                id: 'settle-head',
+                user_id: mockUser.id,
+                transacao_id: 'tx-card-del-guard',
+                parcela_numero: 1,
+                valor: 400.00,
+                status: 'ATIVA',
+                data_liquidacao: '2026-08-11',
+                forma_liquidacao: 'PIX',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            }
+        ];
+
+        await setupAuthenticatedApp(page, { transactions, settlements, autoAcceptDialogs: true });
+        await page.selectOption('#monthSelector', '2026-7');
+
+        // Localiza a transação na tabela do Resumo e clica em Excluir
+        const delBtn = page.locator('tr:has-text("Headset Pro") button[title="Excluir"]').first();
+        await delBtn.click();
+
+        // Toast de bloqueio de exclusão
+        await expect(page.locator('.toast')).toContainText('Não é possível excluir esta compra pois ela possui quitações antecipadas ativas');
+    });
+
 });

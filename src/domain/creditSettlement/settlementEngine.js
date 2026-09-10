@@ -15,9 +15,10 @@ export function buildSettlementKey(idOrGroupId, parcelaNumero = 1) {
 }
 
 /**
- * Constrói um Mapa de busca indexado em O(1) a partir da lista de liquidações.
+ * Constrói um Mapa de busca indexado em O(1) a partir da lista de liquidações ativas.
  * Indexa tanto por transacao_id quanto por grupo_parcela_id (se houver) para garantir
  * resolução canônica independente da semente do parcelamento.
+ * Ignora liquidações canceladas (soft reversal).
  *
  * @param {Array<object>} settlements - Lista de liquidações do banco de dados
  * @returns {Map<string, object>} Mapa indexado por buildSettlementKey
@@ -30,6 +31,10 @@ export function createSettlementMap(settlements) {
 
     settlements.forEach(s => {
         if (!s) return;
+        // Filtra apenas liquidações ativas (não canceladas)
+        if (s.status && s.status !== 'ATIVA') return;
+        if (s.cancelled_at) return;
+
         const pNum = Number(s.parcela_numero) || 1;
 
         // 1. Indexação por transacao_id
@@ -93,6 +98,9 @@ export function isInstallmentSettled(settlementMapOrList, itemOrId, parcelaNumer
     if (Array.isArray(settlementMapOrList)) {
         return settlementMapOrList.find(s => {
             if (!s) return false;
+            if (s.status && s.status !== 'ATIVA') return false;
+            if (s.cancelled_at) return false;
+
             const sNum = Number(s.parcela_numero) || 1;
             if (sNum !== pNum) return false;
 
@@ -130,4 +138,49 @@ export function enrichItemsWithSettlement(items, settlements) {
             liquidacao: settlement || null
         };
     });
+}
+
+/**
+ * Valida o payload de uma liquidação contra o item projetado original.
+ * Garante quitação integral exata, bloqueia valores negativos/divergentes e métodos inválidos.
+ *
+ * @param {object} payload - Payload enviado para inserção/atualização
+ * @param {object} item - Item original projetado
+ * @returns {{ valid: boolean, error?: string }}
+ */
+export function validateSettlementPayload(payload, item) {
+    if (!payload || !item) {
+        return { valid: false, error: 'Dados da liquidação ou do lançamento ausentes.' };
+    }
+
+    if (item.isRecorrente) {
+        return { valid: false, error: 'Despesas recorrentes não possuem identidade finita para liquidação antecipada.' };
+    }
+
+    const val = Number(payload.valor);
+    if (!val || isNaN(val) || val <= 0) {
+        return { valid: false, error: 'O valor da liquidação deve ser positivo maior que zero.' };
+    }
+
+    const expectedVal = Math.round(Number(item.value) * 100) / 100;
+    const roundedVal = Math.round(val * 100) / 100;
+    if (Math.abs(roundedVal - expectedVal) > 0.01) {
+        return {
+            valid: false,
+            error: `Quitação integral obrigatória: o valor informado (R$ ${roundedVal.toFixed(2)}) diverge do valor da parcela (R$ ${expectedVal.toFixed(2)}).`
+        };
+    }
+
+    const pNum = (payload.parcela_numero !== undefined && payload.parcela_numero !== null) ? Number(payload.parcela_numero) : 1;
+    const maxP = Number(item.total) || 1;
+    if (isNaN(pNum) || pNum < 1 || pNum > maxP) {
+        return { valid: false, error: `Número da parcela (${pNum}) inválido para este parcelamento (total: ${maxP}).` };
+    }
+
+    const formasValidas = ['PIX', 'Transferência Bancária', 'Saldo em Conta'];
+    if (!payload.forma_liquidacao || !formasValidas.includes(payload.forma_liquidacao)) {
+        return { valid: false, error: `Forma de liquidação inválida: "${payload.forma_liquidacao}". Opções permitidas: ${formasValidas.join(', ')}.` };
+    }
+
+    return { valid: true };
 }

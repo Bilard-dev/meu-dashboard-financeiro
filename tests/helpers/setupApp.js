@@ -283,19 +283,34 @@ async function setupAuthenticatedApp(page, {
 
                     for (let idx = 0; idx < newItems.length; idx++) {
                         const item = newItems[idx];
+                        const userId = item.user_id || mockUser.id;
+
+                        // Validação estrita de RLS Cross-User: a transação referenciada DEVE pertencer ao mesmo usuário
+                        const targetTx = inMemoryTransactions.find(t => t.id === item.transacao_id);
+                        if (!targetTx || targetTx.user_id !== userId) {
+                            return route.fulfill({
+                                status: 403,
+                                contentType: 'application/json',
+                                body: JSON.stringify({ message: 'new row violates row-level security policy for table "liquidacoes_credito"' })
+                            });
+                        }
+
                         const created = {
                             id: item.id || `settle-created-${Date.now()}-${idx}`,
-                            user_id: item.user_id || mockUser.id,
+                            user_id: userId,
                             transacao_id: item.transacao_id,
+                            grupo_parcela_id: item.grupo_parcela_id || targetTx.grupo_parcela_id || null,
                             parcela_numero: Number(item.parcela_numero) || 1,
                             valor: Number(item.valor) || 0,
                             data_liquidacao: item.data_liquidacao || new Date().toISOString().split('T')[0],
                             forma_liquidacao: item.forma_liquidacao || 'PIX',
+                            status: item.status || 'ATIVA',
+                            cancelled_at: item.cancelled_at || null,
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         };
                         inMemorySettlements = inMemorySettlements.filter(s =>
-                            !(s.user_id === created.user_id && s.transacao_id === created.transacao_id && s.parcela_numero === created.parcela_numero)
+                            !(s.user_id === created.user_id && s.transacao_id === created.transacao_id && s.parcela_numero === created.parcela_numero && s.status === 'ATIVA')
                         );
                         inMemorySettlements.push(created);
                         resultItems.push(created);
@@ -305,6 +320,29 @@ async function setupAuthenticatedApp(page, {
                         status: 201,
                         contentType: 'application/json',
                         body: JSON.stringify(resultItems)
+                    });
+                }
+                if (method === 'PATCH') {
+                    const patchData = route.request().postDataJSON();
+                    const targetId = getQueryParam(urlObj.search, 'id');
+                    const targetTx = getQueryParam(urlObj.search, 'transacao_id');
+                    const targetParcela = getQueryParam(urlObj.search, 'parcela_numero');
+
+                    inMemorySettlements.forEach(s => {
+                        let match = false;
+                        if (targetId && s.id === targetId) match = true;
+                        else if (targetTx && targetParcela && s.transacao_id === targetTx && String(s.parcela_numero) === String(targetParcela)) match = true;
+                        else if (targetTx && !targetParcela && s.transacao_id === targetTx) match = true;
+
+                        if (match) {
+                            Object.assign(s, patchData, { updated_at: new Date().toISOString() });
+                        }
+                    });
+
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify(patchData)
                     });
                 }
                 if (method === 'DELETE') {
@@ -941,7 +979,8 @@ async function setupAuthenticatedApp(page, {
         getCategories: () => inMemoryCategorias,
         getSubcategories: () => inMemorySubcategorias,
         getCards: () => inMemoryCartoes,
-        getTags: () => inMemoryTags
+        getTags: () => inMemoryTags,
+        getSettlements: () => inMemorySettlements
     };
 }
 

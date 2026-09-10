@@ -870,28 +870,53 @@
             opacity: 0.6;
         }
 
-        /* LANÇADOR RÁPIDO CELULAR */
+        /* LANÇADOR RÁPIDO CELULAR / MOBILE BOTTOM SHEET */
         .mobile-quick-modal {
             display: none;
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background: var(--bg-color);
+            top: auto;
+            max-height: 90vh;
+            max-height: 90dvh;
+            background: var(--card-bg);
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
             z-index: 99990;
-            padding: 1.25rem;
+            padding: 1.25rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px)) 1.25rem;
             overflow-y: auto;
-            animation: fadeIn 0.2s ease-out;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .mobile-quick-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.65rem;
             border-bottom: 1px solid var(--border);
+        }
+
+        @media (min-width: 769px) {
+            .mobile-quick-modal {
+                top: 50%;
+                left: 50%;
+                bottom: auto;
+                right: auto;
+                transform: translate(-50%, -50%);
+                width: 92%;
+                max-width: 520px;
+                max-height: 85vh;
+                border-radius: var(--radius-lg);
+                border: 1px solid var(--border);
+                box-shadow: var(--shadow-lg);
+                padding: 1.5rem;
+                animation: fadeIn 0.2s ease-out;
+            }
         }
 
         .password-hint {
@@ -2890,19 +2915,23 @@
         </div>
     </div>
 
-    <!-- TELA EXCLUSIVA DE LANÇAMENTO RÁPIDO PARA CELULAR -->
-    <div id="mobileQuickView" class="mobile-quick-modal">
+    <!-- BACKDROP & TELA DE LANÇAMENTO RÁPIDO MOBILE / BOLSO -->
+    <div id="mobileQuickOverlay" class="mobile-more-overlay" onclick="closeMobileQuickView()" style="display: none;" aria-hidden="true"></div>
+    <div id="mobileQuickView" class="mobile-quick-modal" role="dialog" aria-modal="true" aria-label="Lançador Rápido de Bolso" style="display: none;">
+        <div class="mobile-more-handle-bar" aria-hidden="true"><div class="mobile-more-handle"></div></div>
         <div class="mobile-quick-header">
-            <h2 style="font-size: 1.2rem; color: var(--primary);">📱 Lançador Rápido de Bolso</h2>
-            <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="closeMobileQuickView()">Fechar ✕</button>
+            <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--primary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <span>📱</span> Lançador Rápido de Bolso
+            </h2>
+            <button type="button" class="btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-sm);" onclick="closeMobileQuickView()">Fechar ✕</button>
         </div>
 
-        <div class="quick-chips-container">
-            <div class="quick-chips-title">Categorias Frequentes:</div>
+        <div class="quick-chips-container" style="margin-bottom: 0.9rem;">
+            <div class="quick-chips-title" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem;">Categorias Frequentes:</div>
             <div class="quick-chips" id="mobileTopCategoriesChips"></div>
         </div>
 
-        <form onsubmit="saveMobileQuickTransaction(event)">
+        <form id="mobileQuickForm" onsubmit="saveMobileQuickTransaction(event)">
             <div class="input-group">
                 <label>Descrição do Gasto *</label>
                 <input type="text" id="m_descricao" class="input-field" placeholder="Ex: Uber, Lanche, Spotify" required>
@@ -2978,9 +3007,10 @@
                 <input type="date" id="m_data" class="input-field" onchange="updateMobileDynamicFaturaDropdown()" required>
             </div>
 
-            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
-                <button type="submit" class="btn-primary" style="padding: 0.9rem; font-size: 1rem;">Lançar Gasto Agora</button>
-                <button type="button" class="btn-success" onclick="saveAndResetMobile(event)" style="padding: 0.7rem; text-align:center;">🟢 Salvar e Lançar Outro</button>
+            <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                <button type="submit" id="btnQuickSalvar" class="btn-primary" style="padding: 0.85rem; font-size: 1rem; font-weight: 700; width: 100%;">Lançar Gasto Agora</button>
+                <button type="button" id="btnQuickSalvarOutro" class="btn-success" onclick="saveAndResetMobile(event)" style="padding: 0.75rem; width: 100%; font-weight: 600; text-align: center;">🟢 Salvar e Lançar Outro</button>
+                <button type="button" id="btnQuickMaisOpcoes" class="btn-secondary" onclick="transitionQuickToFull()" style="padding: 0.75rem; width: 100%; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.4rem;"><span>📝</span> Mais Opções (Formulário Completo)</button>
             </div>
         </form>
     </div>
@@ -3813,10 +3843,12 @@
         }
 
         function openMobileQuickView() {
+            const overlay = document.getElementById('mobileQuickOverlay');
+            if (overlay) overlay.style.display = 'block';
             document.getElementById('mobileQuickView').style.display = 'block';
             document.getElementById('m_data').value = formatLocalDateInput();
-            document.getElementById('m_categoria').innerHTML = document.getElementById('i_categoria').innerHTML;
-            document.getElementById('m_cartao').innerHTML = document.getElementById('i_cartao').innerHTML;
+            populateFormDropdowns();
+            document.getElementById('m_pagamento').value = 'PIX';
             document.getElementById('m_parcela_select').value = 'À vista';
             const mCustom = document.getElementById('m_parcela_custom');
             if (mCustom) {
@@ -3825,18 +3857,107 @@
             }
             updateMobileDynamicFaturaDropdown();
             toggleMobilePaymentFields();
+            renderTopCategoryChips();
+            document.addEventListener('keydown', handleQuickViewKeydown);
         }
 
         function closeMobileQuickView() {
+            const overlay = document.getElementById('mobileQuickOverlay');
+            if (overlay) overlay.style.display = 'none';
             document.getElementById('mobileQuickView').style.display = 'none';
             document.getElementById('m_descricao').value = '';
             document.getElementById('m_valor').value = '';
             document.getElementById('m_tags').value = '';
+            document.getElementById('m_categoria').value = '';
+            onCategoryChange('m_categoria', 'm_subcategoria');
+            document.getElementById('m_pagamento').value = 'PIX';
             document.getElementById('m_parcela_select').value = 'À vista';
             const mCustom = document.getElementById('m_parcela_custom');
             if (mCustom) {
                 mCustom.style.display = 'none';
                 mCustom.value = '';
+            }
+            toggleMobilePaymentFields();
+            document.removeEventListener('keydown', handleQuickViewKeydown);
+        }
+
+        function handleQuickViewKeydown(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                closeMobileQuickView();
+            }
+        }
+
+        function transitionQuickToFull() {
+            // 1. Captura dados preenchidos no Quick
+            const desc = document.getElementById('m_descricao').value;
+            const valor = document.getElementById('m_valor').value;
+            const tags = document.getElementById('m_tags').value;
+            const cat = document.getElementById('m_categoria').value;
+            const subcat = document.getElementById('m_subcategoria').value;
+            const pagamento = document.getElementById('m_pagamento').value;
+            const cartao = document.getElementById('m_cartao').value;
+            const faturaDestino = document.getElementById('m_fatura_destino').value;
+            const parcelaSel = document.getElementById('m_parcela_select').value;
+            const parcelaCustom = document.getElementById('m_parcela_custom') ? document.getElementById('m_parcela_custom').value : '';
+            const data = document.getElementById('m_data').value;
+
+            // 2. Fecha o modal Quick sem acionar submissão
+            closeMobileQuickView();
+
+            // 3. Reseta formulário completo e cancela eventual modo de edição anterior
+            cancelEdit();
+
+            // 4. Navega para a aba 'novo'
+            switchTab('novo');
+
+            // 5. Preenche os campos preservados no formulário completo
+            document.getElementById('i_tipo').value = 'Despesa';
+            onTypeChange();
+
+            if (data) document.getElementById('i_data').value = data;
+            if (desc) document.getElementById('i_descricao').value = desc;
+            if (valor) document.getElementById('i_valor').value = valor;
+            if (tags) document.getElementById('i_tags').value = tags;
+            if (pagamento) {
+                document.getElementById('i_pagamento').value = pagamento;
+                togglePaymentFields();
+            }
+
+            if (cat) {
+                document.getElementById('i_categoria').value = cat;
+                onCategoryChange('i_categoria', 'i_subcategoria');
+                if (subcat) {
+                    document.getElementById('i_subcategoria').value = subcat;
+                }
+            }
+
+            const isCard = pagamento === 'Cartão de Crédito';
+            if (isCard) {
+                updateDynamicFaturaDropdown(faturaDestino || 'ATUAL');
+                if (cartao) {
+                    document.getElementById('i_cartao').value = cartao;
+                }
+                if (parcelaSel) {
+                    document.getElementById('i_parcela_select').value = parcelaSel;
+                    const pCustom = document.getElementById('i_parcela_custom');
+                    if (parcelaSel === 'CUSTOM') {
+                        if (pCustom) {
+                            pCustom.style.display = 'block';
+                            pCustom.value = parcelaCustom || '';
+                        }
+                    } else {
+                        if (pCustom) {
+                            pCustom.style.display = 'none';
+                            pCustom.value = '';
+                        }
+                    }
+                }
+            }
+
+            // Garante que o card do formulário completo seja visível
+            const fullFormCard = document.querySelector('#tab-novo .chart-card');
+            if (fullFormCard) {
+                fullFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
@@ -5214,6 +5335,10 @@
         window.toggleMobileMoreSheet = toggleMobileMoreSheet;
         window.navigateToFromMore = navigateToFromMore;
         window.updateBottomNavActive = updateBottomNavActive;
+        window.openMobileQuickView = openMobileQuickView;
+        window.closeMobileQuickView = closeMobileQuickView;
+        window.transitionQuickToFull = transitionQuickToFull;
+        window.saveAndResetMobile = saveAndResetMobile;
 
         function switchTab(tabId, updateUrl = true) {
             if (!tabId || !document.getElementById(`tab-${tabId}`)) {

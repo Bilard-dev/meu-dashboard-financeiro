@@ -1013,6 +1013,24 @@
             text-decoration: underline;
         }
 
+        .auth-switch-text {
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 1.25rem;
+        }
+
+        .auth-switch-link {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .auth-switch-link:hover {
+            text-decoration: underline;
+        }
+
         /* ==========================================================
            🍞 TOAST NOTIFICATION SYSTEM (DESIGN 2.0)
            ========================================================== */
@@ -2322,38 +2340,81 @@
 
     <!-- TELA DE LOGIN E CADASTRO -->
     <div id="loginView">
-        <div class="auth-container">
+        <!-- MODO 1: ENTRAR -->
+        <div class="auth-container" id="loginBox">
             <h2 style="margin-bottom: 0.5rem; text-align: center;">Área de Acesso</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Organize suas finanças com segurança total</p>
 
             <form id="loginForm">
-                <div class="input-group" id="groupNomeCadastro">
-                    <label for="nome">Nome Completo (para novos cadastros) *</label>
-                    <input type="text" id="nome" class="input-field" placeholder="Ex: Thiago Bilard" autocomplete="name" maxlength="80">
-                </div>
-
                 <div class="input-group">
                     <label for="email">E-mail *</label>
-                    <input type="email" id="email" class="input-field" placeholder="seu@email.com" required>
+                    <input type="email" id="email" class="input-field" placeholder="seu@email.com" autocomplete="email" required>
                 </div>
 
                 <div class="input-group">
                     <label for="senha">Senha *</label>
                     <div class="password-wrapper">
-                        <input type="password" id="senha" class="input-field" placeholder="••••••••" required>
+                        <input type="password" id="senha" class="input-field" placeholder="••••••••" autocomplete="current-password" required>
                         <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('senha', this)">👁️</button>
                     </div>
                     <span class="forgot-link" onclick="handleForgotPassword()">Esqueci minha senha</span>
-                    <p class="password-hint">Para novas contas: Mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).</p>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
                     <button type="submit" class="btn-primary" id="loginBtnText">Entrar</button>
-                    <button type="button" onclick="handleSignUp()" class="btn-secondary" id="signUpBtnText" style="width: 100%; text-align: center;">Criar Nova Conta</button>
                 </div>
+
+                <p class="auth-switch-text">
+                    Não tem uma conta? <a href="#" class="auth-switch-link" id="linkToSignUp" onclick="switchAuthMode('signup'); return false;">Criar conta</a>
+                </p>
             </form>
 
             <p id="loginMessage" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none; padding: 0.6rem; border-radius: 6px;"></p>
+        </div>
+
+        <!-- MODO 2: CRIAR CONTA -->
+        <div class="auth-container" id="signupBox" style="display: none;">
+            <h2 style="margin-bottom: 0.5rem; text-align: center;">Criar Nova Conta</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Cadastre-se para gerenciar suas finanças</p>
+
+            <form id="signupForm" onsubmit="handleSignUp(event)">
+                <div class="input-group">
+                    <label for="signupNome">Nome Completo *</label>
+                    <input type="text" id="signupNome" class="input-field" placeholder="Ex: Thiago Bilard" autocomplete="name" maxlength="80" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupEmail">E-mail *</label>
+                    <input type="email" id="signupEmail" class="input-field" placeholder="seu@email.com" autocomplete="email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupSenha">Senha *</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupSenha" class="input-field" placeholder="••••••••" autocomplete="new-password" required>
+                        <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('signupSenha', this)">👁️</button>
+                    </div>
+                    <p class="password-hint">Mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="signupConfirmSenha">Confirmar Senha *</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupConfirmSenha" class="input-field" placeholder="••••••••" autocomplete="new-password" required>
+                        <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('signupConfirmSenha', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
+                    <button type="submit" class="btn-primary" id="signUpBtnText">Criar conta</button>
+                </div>
+
+                <p class="auth-switch-text">
+                    Já tem uma conta? <a href="#" class="auth-switch-link" id="linkToLogin" onclick="switchAuthMode('login'); return false;">Entrar</a>
+                </p>
+            </form>
+
+            <p id="signupMessage" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none; padding: 0.6rem; border-radius: 6px;"></p>
         </div>
     </div>
 
@@ -2371,7 +2432,7 @@
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
-                    <button type="submit" class="btn-primary" id="completeProfileBtnText">Continuar</button>
+                    <button type="submit" class="btn-primary" id="completeProfileBtnText">Concluir cadastro</button>
                     <button type="button" onclick="logout()" class="btn-secondary" style="width: 100%; text-align: center;">Sair da Conta</button>
                 </div>
             </form>
@@ -4727,6 +4788,7 @@
                 document.getElementById('pendingApprovalView').style.display = 'none';
                 document.getElementById('appView').style.display = 'none';
                 document.getElementById('loginView').style.display = 'block';
+                switchAuthMode('login');
             }
         }
 
@@ -4758,7 +4820,7 @@
             btnEl.innerText = 'Salvando...';
 
             const { success, error } = await adminCompleteLegacyProfile(nome);
-            btnEl.innerText = 'Continuar';
+            btnEl.innerText = 'Concluir cadastro';
 
             if (!success || error) {
                 if (msgEl) {
@@ -4767,19 +4829,61 @@
                     msgEl.style.color = 'var(--danger)';
                 }
             } else {
-                showToast('Cadastro atualizado com sucesso!', 'success');
+                clearFinancialMemory();
+                showToast('Cadastro concluído com sucesso!', 'success');
                 checkSession();
             }
         }
 
         function showMessage(msg, isError = true) {
             const msgEl = document.getElementById('loginMessage');
+            if (!msgEl) return;
             msgEl.innerText = msg;
             msgEl.style.display = 'block';
             msgEl.style.backgroundColor = isError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
             msgEl.style.color = isError ? 'var(--danger)' : 'var(--success)';
             msgEl.style.border = isError ? '1px solid var(--danger)' : '1px solid var(--success)';
         }
+
+        function showSignupMessage(msg, isError = true) {
+            const msgEl = document.getElementById('signupMessage') || document.getElementById('loginMessage');
+            if (!msgEl) return;
+            msgEl.innerText = msg;
+            msgEl.style.display = 'block';
+            msgEl.style.backgroundColor = isError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+            msgEl.style.color = isError ? 'var(--danger)' : 'var(--success)';
+            msgEl.style.border = isError ? '1px solid var(--danger)' : '1px solid var(--success)';
+        }
+
+        function switchAuthMode(mode) {
+            const loginBox = document.getElementById('loginBox');
+            const signupBox = document.getElementById('signupBox');
+            const loginMsg = document.getElementById('loginMessage');
+            const signupMsg = document.getElementById('signupMessage');
+
+            if (loginMsg) loginMsg.style.display = 'none';
+            if (signupMsg) signupMsg.style.display = 'none';
+
+            if (mode === 'signup') {
+                if (loginBox) loginBox.style.display = 'none';
+                if (signupBox) {
+                    signupBox.style.display = 'block';
+                    const emailLogin = document.getElementById('email')?.value || '';
+                    const signupEmail = document.getElementById('signupEmail');
+                    if (signupEmail && !signupEmail.value && emailLogin) {
+                        signupEmail.value = emailLogin;
+                    }
+                    document.getElementById('signupNome')?.focus();
+                }
+            } else {
+                if (signupBox) signupBox.style.display = 'none';
+                if (loginBox) {
+                    loginBox.style.display = 'block';
+                    document.getElementById('email')?.focus();
+                }
+            }
+        }
+        window.switchAuthMode = switchAuthMode;
 
         /* SISTEMA NÃO-BLOQUEANTE DE TOAST (DESIGN 2.0) */
         function showToast(message, type = 'success', duration = 3500) {
@@ -4897,34 +5001,47 @@
             }
         }
 
-        async function handleSignUp() {
-            const nome = (document.getElementById('nome')?.value || '').trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('senha').value;
+        async function handleSignUp(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const nomeInput = document.getElementById('signupNome') || document.getElementById('nome');
+            const emailInput = document.getElementById('signupEmail') || document.getElementById('email');
+            const passwordInput = document.getElementById('signupSenha') || document.getElementById('senha');
+            const confirmInput = document.getElementById('signupConfirmSenha');
             const signUpBtn = document.getElementById('signUpBtnText');
 
+            const nome = (nomeInput?.value || '').trim();
+            const email = (emailInput?.value || '').trim();
+            const password = passwordInput?.value || '';
+            const confirmPassword = confirmInput ? confirmInput.value : password;
+
             if (!nome || nome.length < 2) {
-                showMessage("Por favor, informe seu nome completo (mínimo 2 caracteres).");
-                document.getElementById('nome')?.focus();
+                showSignupMessage("Por favor, informe seu nome completo (mínimo 2 caracteres).");
+                nomeInput?.focus();
                 return;
             }
 
             if (nome.length > 80) {
-                showMessage("O nome deve ter no máximo 80 caracteres.");
+                showSignupMessage("O nome deve ter no máximo 80 caracteres.");
                 return;
             }
 
             if (!email || !password) {
-                showMessage("Por favor, informe um e-mail e uma senha.");
+                showSignupMessage("Por favor, informe um e-mail e uma senha.");
+                return;
+            }
+
+            if (confirmInput && password !== confirmPassword) {
+                showSignupMessage("As duas senhas digitadas não coincidem!");
+                confirmInput.focus();
                 return;
             }
 
             if (!isStrongPassword(password)) {
-                showMessage("Senha fraca! A senha deve ter no mínimo 8 caracteres, contendo pelo menos 1 letra maiúscula, 1 número e 1 caractere especial (!@#$%^&*).");
+                showSignupMessage("Senha fraca! A senha deve ter no mínimo 8 caracteres, contendo pelo menos 1 letra maiúscula, 1 número e 1 caractere especial (!@#$%^&*).");
                 return;
             }
 
-            signUpBtn.innerText = "Criando conta...";
+            if (signUpBtn) signUpBtn.innerText = "Criando conta...";
 
             // Envia SOMENTE o nome em user_metadata. NUNCA enviar status ou role.
             const { data, error } = await authSignUp(email, password, {
@@ -4933,16 +5050,16 @@
                 }
             });
 
-            signUpBtn.innerText = "Criar Nova Conta";
+            if (signUpBtn) signUpBtn.innerText = "Criar conta";
 
             if (error) {
-                showMessage("Erro ao criar conta: " + error.message);
+                showSignupMessage("Erro ao criar conta: " + error.message);
             } else {
-                if (data.session) {
-                    showMessage("Conta criada com sucesso! Seu acesso está aguardando aprovação.", false);
+                if (data && data.session) {
+                    showSignupMessage("Conta criada com sucesso! Seu acesso está aguardando aprovação.", false);
                     checkSession();
                 } else {
-                    showMessage("Conta criada! Verifique a caixa de entrada do seu e-mail para confirmar a conta antes de entrar.", false);
+                    showSignupMessage("Conta criada com sucesso! Verifique a caixa de entrada do seu e-mail para confirmar a conta antes de entrar. O acesso aguardará aprovação do administrador.", false);
                 }
             }
         }

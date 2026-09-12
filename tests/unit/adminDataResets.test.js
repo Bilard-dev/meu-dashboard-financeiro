@@ -618,4 +618,57 @@ describe('Fase 4.5-C5-D — Reset de Dados com Recuperação por 48h (Central Ad
             'Controle de exclusão permanente deve estar presente'
         );
     });
+
+    it('21. HOTFIX C5-I.1: migration corretiva elimina ambiguidade de created_at qualificando o RETURNING com alias udr', () => {
+        const fixMigrationPath = path.resolve('supabase/migrations/20260912140000_fase45_fix_admin_data_reset_ambiguity.sql');
+        assert.ok(fs.existsSync(fixMigrationPath), 'A migration corretiva C5-I.1 deve existir');
+        const fixSql = fs.readFileSync(fixMigrationPath, 'utf8');
+
+        // Confirma qualificação explícita via alias udr
+        assert.match(fixSql, /INSERT\s+INTO\s+public\.user_data_resets\s+AS\s+udr/i);
+        assert.match(fixSql, /RETURNING\s+[\r\n\s]*udr\.id,\s*[\r\n\s]*udr\.created_at,\s*[\r\n\s]*udr\.expires_at/i);
+        assert.match(fixSql, /INTO\s+[\r\n\s]*v_reset_id,\s*[\r\n\s]*v_created_at,\s*[\r\n\s]*v_expires_at;/i);
+
+        // Confirma que NÃO possui o RETURNING ambíguo sem qualificação
+        assert.doesNotMatch(fixSql, /RETURNING\s+id,\s*created_at,\s*expires_at/i);
+    });
+
+    it('22. HOTFIX C5-I.4: migration corretiva elimina colunas GENERATED ALWAYS da lista de colunas no restore', () => {
+        const restoreFixPath = path.resolve('supabase/migrations/20260912150000_fase45_fix_admin_data_restore_generated_columns.sql');
+        assert.ok(fs.existsSync(restoreFixPath), 'A migration corretiva C5-I.4 deve existir');
+        const restoreSql = fs.readFileSync(restoreFixPath, 'utf8');
+
+        // A) Confirma que NÃO existe mais o padrão SELECT * genérico
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_tags\s+SELECT\s+\*/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_cartoes\s+SELECT\s+\*/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_categorias\s+SELECT\s+\*/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_subcategorias\s+SELECT\s+\*/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.metas\s+SELECT\s+\*/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.transacoes\s+SELECT\s+\*/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.liquidacoes_credito\s+SELECT\s+\*/i);
+
+        // B) Confirma que nome_normalizado NÃO aparece em nenhuma lista de colunas
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_tags\s*\([^)]*nome_normalizado[^)]*\)/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_cartoes\s*\([^)]*nome_normalizado[^)]*\)/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_categorias\s*\([^)]*nome_normalizado[^)]*\)/i);
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.app_subcategorias\s*\([^)]*nome_normalizado[^)]*\)/i);
+
+        // C) Confirma que categoria_normalizada NÃO aparece na lista de metas
+        assert.doesNotMatch(restoreSql, /INSERT\s+INTO\s+public\.metas\s*\([^)]*categoria_normalizada[^)]*\)/i);
+
+        // D) Confirma que IDs e timestamps históricos estão presentes nas listas explícitas
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.app_tags\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\bupdated_at\b[^)]*\)/i);
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.app_cartoes\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\bupdated_at\b[^)]*\)/i);
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.app_categorias\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\bupdated_at\b[^)]*\)/i);
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.app_subcategorias\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\bupdated_at\b[^)]*\)/i);
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.metas\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\bupdated_at\b[^)]*\)/i);
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.transacoes\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\)/i);
+        assert.match(restoreSql, /INSERT\s+INTO\s+public\.liquidacoes_credito\s*\([^)]*\bid\b[^)]*\bcreated_at\b[^)]*\bupdated_at\b[^)]*\)/i);
+
+        // E) Confirma segurança e permissões
+        assert.match(restoreSql, /SECURITY\s+DEFINER/i);
+        assert.match(restoreSql, /SET\s+search_path\s*=\s*pg_catalog,\s*public,\s*auth/i);
+        assert.match(restoreSql, /REVOKE\s+ALL\s+ON\s+FUNCTION\s+public\.admin_restore_user_data\(UUID,\s*UUID\)\s+FROM\s+PUBLIC,\s*anon,\s*authenticated;/i);
+        assert.match(restoreSql, /GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.admin_restore_user_data\(UUID,\s*UUID\)\s+TO\s+authenticated;/i);
+    });
 });

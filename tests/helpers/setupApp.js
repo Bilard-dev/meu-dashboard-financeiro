@@ -31,6 +31,15 @@ const {
  */
 async function setupAuthenticatedApp(page, {
     authenticated = true,
+    userProfile = {
+        user_id: mockUser.id,
+        display_name: 'Usuário Teste',
+        access_status: 'approved',
+        created_at: '2026-01-01T00:00:00Z',
+        approved_at: '2026-01-01T00:00:00Z',
+        approved_by: '00000000-0000-0000-0000-000000000000'
+    },
+    isAdmin = false,
     transactions = JSON.parse(JSON.stringify(mockTransactions)),
     metas = JSON.parse(JSON.stringify(mockMetas)),
     categorias = JSON.parse(JSON.stringify(mockCategorias)),
@@ -83,6 +92,29 @@ async function setupAuthenticatedApp(page, {
             }
 
             if (pathname.includes('/auth/v1/logout')) {
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({})
+                });
+            }
+
+            // Mock de Redefinição de Senha (Supabase Auth recover)
+            if (pathname.includes('/auth/v1/recover')) {
+                const body = route.request().postDataJSON() || {};
+                const email = (body.email || '').trim().toLowerCase();
+
+                if (email === 'ratelimit@exemplo.com') {
+                    return route.fulfill({
+                        status: 429,
+                        contentType: 'application/json',
+                        body: JSON.stringify({
+                            message: 'For security purposes, you can only request this once every 60 seconds',
+                            status: 429
+                        })
+                    });
+                }
+
                 return route.fulfill({
                     status: 200,
                     contentType: 'application/json',
@@ -973,6 +1005,559 @@ async function setupAuthenticatedApp(page, {
                 });
             }
 
+            // Mock de Governança / Admin (Fase 4.5-B / B4 / B5)
+            if (pathname.includes('/rest/v1/rpc/is_admin')) {
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(isAdmin)
+                });
+            }
+
+            if (pathname.includes('/rest/v1/rpc/has_app_access')) {
+                const hasAccess = Boolean(isAdmin || (userProfile && userProfile.access_status === 'approved'));
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(hasAccess)
+                });
+            }
+
+            if (pathname.includes('/rest/v1/rpc/complete_legacy_profile')) {
+                const { p_display_name } = route.request().postDataJSON() || {};
+                const clean = String(p_display_name || '').trim();
+                if (clean.length < 2 || clean.length > 80) {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Nome inválido' })
+                    });
+                }
+                userProfile = {
+                    user_id: mockUser.id,
+                    display_name: clean,
+                    access_status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(true)
+                });
+            }
+
+            // RPCs Administrativas (Fase 4.5-C3)
+            if (pathname.includes('/rest/v1/rpc/admin_list_users')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+                const body = route.request().postDataJSON() || {};
+                const search = (body.p_search || '').trim().toLowerCase();
+                const status = (body.p_status || '').trim().toLowerCase();
+
+                const validStatuses = ['needs_profile', 'pending', 'approved', 'rejected', 'suspended'];
+                if (status && !validStatuses.includes(status)) {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: `Status de filtro inválido (${status}).` })
+                    });
+                }
+
+                let list = [
+                    {
+                        user_id: mockUser.id,
+                        display_name: userProfile?.display_name || null,
+                        email: mockUser.email,
+                        signup_at: mockUser.created_at,
+                        last_sign_in_at: '2026-09-11T08:00:00Z',
+                        access_status: userProfile?.access_status || 'needs_profile'
+                    },
+                    {
+                        user_id: 'user-pending-uuid-0002',
+                        display_name: 'Beatriz Lima',
+                        email: 'beatriz@exemplo.com',
+                        signup_at: '2026-09-10T14:00:00Z',
+                        last_sign_in_at: '2026-09-10T14:05:00Z',
+                        access_status: 'pending'
+                    },
+                    {
+                        user_id: 'user-legacy-uuid-0003',
+                        display_name: null,
+                        email: 'legado@exemplo.com',
+                        signup_at: '2026-08-01T10:00:00Z',
+                        last_sign_in_at: null,
+                        access_status: 'needs_profile'
+                    },
+                    {
+                        user_id: 'user-suspended-uuid-0004',
+                        display_name: 'Carlos Antigo',
+                        email: 'carlos@exemplo.com',
+                        signup_at: '2026-08-15T11:00:00Z',
+                        last_sign_in_at: '2026-09-01T09:00:00Z',
+                        access_status: 'suspended'
+                    }
+                ];
+
+                if (search) {
+                    list = list.filter(u =>
+                        (u.display_name && u.display_name.toLowerCase().includes(search)) ||
+                        (u.email && u.email.toLowerCase().includes(search))
+                    );
+                }
+
+                if (status) {
+                    list = list.filter(u => u.access_status === status);
+                }
+
+                const limit = Math.min(Math.max(body.p_limit || 50, 1), 100);
+                const offset = Math.max(body.p_offset || 0, 0);
+                list = list.slice(offset, offset + limit);
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(list)
+                });
+            }
+
+            if (pathname.includes('/rest/v1/rpc/admin_set_user_access')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+                const body = route.request().postDataJSON() || {};
+                const targetId = body.p_user_id;
+                const newStatus = (body.p_new_status || '').trim().toLowerCase();
+
+                if (!targetId) {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'O identificador do usuário (p_user_id) é obrigatório.' })
+                    });
+                }
+
+                if (!['approved', 'rejected', 'suspended'].includes(newStatus)) {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: `Status de acesso inválido (${newStatus}).` })
+                    });
+                }
+
+                // Alvo não pode ser admin
+                if (targetId === 'admin-uuid-protected') {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Operação não permitida. O status de administradores não pode ser alterado por esta via.' })
+                    });
+                }
+
+                // Alvo inexistente
+                if (targetId === 'inexistent-uuid') {
+                    return route.fulfill({
+                        status: 404,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Usuário não encontrado.' })
+                    });
+                }
+
+                // Usuário legado sem perfil cadastrado
+                if (targetId === 'legacy-without-profile') {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Usuário legado não possui perfil cadastrado. O usuário deve informar seu nome antes de ter o status alterado.' })
+                    });
+                }
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(true)
+                });
+            }
+
+            // RPC admin_get_activity_metrics (Fase 4.5-C4.1)
+            if (pathname.includes('/rest/v1/rpc/admin_get_activity_metrics')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+
+                const mockMetrics = [
+                    {
+                        user_id: mockUser.id,
+                        last_activity_at: '2026-09-11T09:30:00Z',
+                        operations_30d_band: '6-20',
+                        activity_level: 'ACTIVE',
+                        uses_transactions: true,
+                        uses_cards: true,
+                        uses_investments: false,
+                        uses_settlements: true,
+                        uses_metas: true
+                    },
+                    {
+                        user_id: 'user-pending-uuid-0002',
+                        last_activity_at: '2026-09-10T14:05:00Z',
+                        operations_30d_band: '1-5',
+                        activity_level: 'ACTIVE',
+                        uses_transactions: true,
+                        uses_cards: false,
+                        uses_investments: false,
+                        uses_settlements: false,
+                        uses_metas: false
+                    },
+                    {
+                        user_id: 'user-legacy-uuid-0003',
+                        last_activity_at: null,
+                        operations_30d_band: '0',
+                        activity_level: 'NEVER',
+                        uses_transactions: false,
+                        uses_cards: false,
+                        uses_investments: false,
+                        uses_settlements: false,
+                        uses_metas: false
+                    },
+                    {
+                        user_id: 'user-suspended-uuid-0004',
+                        last_activity_at: '2026-08-01T09:00:00Z',
+                        operations_30d_band: '0',
+                        activity_level: 'INACTIVE',
+                        uses_transactions: true,
+                        uses_cards: true,
+                        uses_investments: true,
+                        uses_settlements: false,
+                        uses_metas: false
+                    }
+                ];
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(mockMetrics)
+                });
+            }
+
+            // RPC admin_get_activity_summary (Fase 4.5-C4.1)
+            if (pathname.includes('/rest/v1/rpc/admin_get_activity_summary')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+
+                const mockSummary = [
+                    {
+                        total_users: 4,
+                        active_7d: 2,
+                        active_30d: 2,
+                        inactive_30d: 1,
+                        pending_users: 1,
+                        approved_users: 1,
+                        suspended_users: 1,
+                        rejected_users: 0,
+                        users_using_transactions: 3,
+                        users_using_cards: 2,
+                        users_using_investments: 1,
+                        users_using_settlements: 1,
+                        users_using_metas: 1
+                    }
+                ];
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(mockSummary)
+                });
+            }
+
+            // RPC admin_log_password_reset_request (Fase 4.5-C5-C)
+            if (pathname.includes('/rest/v1/rpc/admin_log_password_reset_request')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(true)
+                });
+            }
+
+            // RPC admin_get_user_reset_status (Fase 4.5-C5-D)
+            if (pathname.includes('/rest/v1/rpc/admin_get_user_reset_status')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify([{
+                        has_active_reset: false,
+                        reset_id: null,
+                        created_at: null,
+                        expires_at: null,
+                        is_recoverable: false
+                    }])
+                });
+            }
+
+            // RPC admin_reset_user_data (Fase 4.5-C5-D)
+            if (pathname.includes('/rest/v1/rpc/admin_reset_user_data')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+                const now = new Date().toISOString();
+                const exp = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify([{
+                        reset_id: 'mock-reset-uuid-48h',
+                        created_at: now,
+                        expires_at: exp
+                    }])
+                });
+            }
+
+            // RPC admin_restore_user_data (Fase 4.5-C5-D)
+            if (pathname.includes('/rest/v1/rpc/admin_restore_user_data')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(true)
+                });
+            }
+
+            // Edge Function admin-delete-user (Fase 4.5-C5-E)
+            if (pathname.includes('/functions/v1/admin-delete-user')) {
+                if (method === 'OPTIONS') {
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'ok' })
+                    });
+                }
+
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ error: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+
+                let postData = {};
+                try {
+                    postData = JSON.parse(route.request().postData() || '{}');
+                } catch {
+                    postData = {};
+                }
+
+                const targetId = postData.target_user_id;
+
+                if (!targetId) {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ error: 'Identificador do usuário alvo inválido ou ausente.' })
+                    });
+                }
+
+                // Bloqueio de auto-exclusão
+                if (targetId === mockUser.id) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ error: 'Operação não permitida sobre a própria conta de administrador.' })
+                    });
+                }
+
+                // Bloqueio de exclusão de outras contas de administração
+                if (targetId === 'admin-uuid-protected') {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ error: 'Operação não permitida sobre contas de administração.' })
+                    });
+                }
+
+                // Usuário não encontrado
+                if (targetId === 'inexistent-uuid') {
+                    return route.fulfill({
+                        status: 404,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ error: 'Usuário não encontrado.' })
+                    });
+                }
+
+                // Simula a remoção dos dados em memória do usuário deletado
+                inMemoryTransactions = inMemoryTransactions.filter(t => t.user_id !== targetId);
+                inMemoryMetas = inMemoryMetas.filter(m => m.user_id !== targetId);
+                inMemoryCategorias = inMemoryCategorias.filter(c => c.user_id !== targetId);
+                inMemorySubcategorias = inMemorySubcategorias.filter(s => s.user_id !== targetId);
+                inMemoryCartoes = inMemoryCartoes.filter(k => k.user_id !== targetId);
+                inMemoryTags = inMemoryTags.filter(tg => tg.user_id !== targetId);
+                inMemorySettlements = inMemorySettlements.filter(st => st.user_id !== targetId);
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        success: true,
+                        message: 'Conta de usuário excluída permanentemente com sucesso.'
+                    })
+                });
+            }
+
+            // RPC admin_prepare_user_deletion (Fase 4.5-C5-E)
+            if (pathname.includes('/rest/v1/rpc/admin_prepare_user_deletion')) {
+                if (!isAdmin) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Acesso negado. Apenas administradores podem executar esta operação.' })
+                    });
+                }
+
+                let postData = {};
+                try {
+                    postData = JSON.parse(route.request().postData() || '{}');
+                } catch {
+                    postData = {};
+                }
+
+                const targetId = postData.p_target_user_id;
+
+                if (!targetId) {
+                    return route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Identificador do usuário é obrigatório.' })
+                    });
+                }
+
+                if (targetId === mockUser.id) {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Operação não permitida sobre a própria conta de administrador.' })
+                    });
+                }
+
+                if (targetId === 'admin-uuid-protected') {
+                    return route.fulfill({
+                        status: 403,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ message: 'Operação não permitida sobre contas de administração.' })
+                    });
+                }
+
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        target_user_id: targetId,
+                        target_email: 'user@test.com',
+                        display_name: 'Usuário Teste'
+                    })
+                });
+            }
+
+            if (pathname.includes('/rest/v1/user_profiles')) {
+                if (method === 'GET') {
+                    const reqUserId = getQueryParam(url, 'user_id');
+                    // RLS em user_profiles: user_id = auth.uid().
+                    // Mesmo se for admin, SELECT direto via PostgREST só retorna o próprio perfil (ou vazio se filtrar por outro)
+                    if (reqUserId && reqUserId !== mockUser.id) {
+                        return route.fulfill({
+                            status: 200,
+                            contentType: 'application/json',
+                            headers: { 'content-range': '*/0' },
+                            body: JSON.stringify([])
+                        });
+                    }
+                    const profiles = userProfile ? [userProfile] : [];
+                    const accept = route.request().headers()['accept'] || '';
+                    if (accept.includes('vnd.pgrst.object+json')) {
+                        if (profiles.length === 0) {
+                            return route.fulfill({
+                                status: 406,
+                                contentType: 'application/json',
+                                body: JSON.stringify({ message: 'JSON object requested, multiple (or no) rows returned' })
+                            });
+                        }
+                        return route.fulfill({
+                            status: 200,
+                            contentType: 'application/vnd.pgrst.object+json',
+                            body: JSON.stringify(profiles[0])
+                        });
+                    }
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        headers: { 'content-range': profiles.length ? `0-${profiles.length - 1}/${profiles.length}` : '*/0' },
+                        body: JSON.stringify(profiles)
+                    });
+                }
+                // INSERT / UPDATE direto do cliente é bloqueado pelo RLS deny-all
+                return route.fulfill({
+                    status: 403,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ message: 'permission denied for table user_profiles' })
+                });
+            }
+
+            if (pathname.includes('/rest/v1/admin_users')) {
+                // Deny-all direto para clientes comuns
+                if (method === 'GET') {
+                    return route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        headers: { 'content-range': '*/0' },
+                        body: JSON.stringify([])
+                    });
+                }
+                return route.fulfill({
+                    status: 403,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ message: 'permission denied for table admin_users' })
+                });
+            }
+
             // Qualquer outra chamada Supabase não prevista é abortada com erro para segurança
             console.warn(`[TESTE-PROTEÇÃO] Chamada não mockada interceptada: ${method} ${url}`);
             return route.abort('failed');
@@ -1016,8 +1601,16 @@ async function setupAuthenticatedApp(page, {
     await page.goto(initialUrl, { waitUntil: 'domcontentloaded' });
 
     if (authenticated) {
-        // Aguarda exibição do aplicativo principal
-        await page.waitForSelector('#appView:not([style*="display: none"])', { timeout: 20000 });
+        if (isAdmin || (userProfile && userProfile.access_status === 'approved')) {
+            // Aguarda exibição do aplicativo principal
+            await page.waitForSelector('#appView:not([style*="display: none"])', { timeout: 20000 });
+        } else if (!userProfile) {
+            // Aguarda exibição da tela de completar cadastro para legado
+            await page.waitForSelector('#completeProfileView:not([style*="display: none"])', { timeout: 20000 });
+        } else {
+            // Aguarda exibição da tela de aprovação pendente/bloqueada
+            await page.waitForSelector('#pendingApprovalView:not([style*="display: none"])', { timeout: 20000 });
+        }
     }
 
     return {

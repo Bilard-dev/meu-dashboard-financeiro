@@ -180,9 +180,11 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
     });
 
     test('20. Nenhum loop de navegação entre switchTab e hashchange', async ({ page }) => {
-        await setupAuthenticatedApp(page);
-        let hashChanges = 0;
+        await setupAuthenticatedApp(page, { initialUrl: '/#/dashboard' });
+        await expect(page.locator('#tab-resumo')).toBeVisible();
+
         await page.evaluate(() => {
+            window._testHashChangeCount = 0;
             window.addEventListener('hashchange', () => { window._testHashChangeCount = (window._testHashChangeCount || 0) + 1; });
         });
 
@@ -190,7 +192,7 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('#tab-previsao')).toBeVisible();
 
         const count = await page.evaluate(() => window._testHashChangeCount || 0);
-        // Exatamente 1 evento de hashchange, zero loop
+        // Exatamente 1 evento de hashchange para a nova aba, zero loop
         expect(count).toBeLessThanOrEqual(1);
     });
 

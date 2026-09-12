@@ -410,10 +410,9 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
 
         const nubankRow = page.locator('#managePaymentsList div:has-text("Nubank")').first();
         await nubankRow.locator('button[title="Desativar"]').click();
+        await expect(nubankRow.locator('button[title="Reativar"]')).toBeVisible();
 
-        let cards = getCards();
-        let nubank = cards.find(c => c.nome === 'Nubank');
-        expect(nubank.ativo).toBe(false);
+        await expect.poll(() => getCards().find(c => c.nome === 'Nubank')?.ativo).toBe(false);
 
         // Confirma que Nubank sumiu dos selects ativos
         await page.getByRole('button', { name: '➕ Novo Registro' }).click();
@@ -426,9 +425,7 @@ test.describe('Gerenciador Dinâmico de Catálogos 2.0 - Fase 1 Core', () => {
         await nubankInactive.locator('button[title="Reativar"]').click();
         await expect(nubankInactive.locator('button[title="Desativar"]')).toBeVisible();
 
-        cards = getCards();
-        nubank = cards.find(c => c.nome === 'Nubank');
-        expect(nubank.ativo).toBe(true);
+        await expect.poll(() => getCards().find(c => c.nome === 'Nubank')?.ativo).toBe(true);
     });
 
     test('20. Excluir Cartão sem histórico tem sucesso definitivo', async ({ page }) => {

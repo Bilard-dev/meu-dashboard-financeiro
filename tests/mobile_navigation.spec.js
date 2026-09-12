@@ -259,9 +259,10 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.5 Confirma exatamente 6 atalhos no menu Mais Opções (Metas e Novo Registro Completo removidos)
+        // 9.5 Confirma exatamente 6 atalhos no menu Mais Opções para usuário comum (Central Admin oculta)
         await page.locator('#bnav-mais').click();
-        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn')).toHaveCount(6);
+        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn:visible')).toHaveCount(6);
+        await expect(page.locator('#mobileMoreAdminBtn')).toBeHidden();
         await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Metas/i })).toHaveCount(0);
         await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Novo Registro Completo/i })).toHaveCount(0);
         await page.locator('#mobileMoreSheetOverlay').click({ position: { x: 5, y: 5 } });

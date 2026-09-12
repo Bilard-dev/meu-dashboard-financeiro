@@ -1986,6 +1986,72 @@
                 font-size: 0.75rem;
                 color: var(--text-muted);
             }
+
+            /* Central Administrativa (#adminUsersTableBody tr) — Mobile Cards */
+            #adminUsersTableBody tr .cell-user-info {
+                grid-column: 1 / 3;
+                grid-row: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+            #adminUsersTableBody tr .cell-user-name {
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-main);
+                word-break: break-word;
+            }
+            #adminUsersTableBody tr .cell-user-email {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                word-break: break-all;
+            }
+            #adminUsersTableBody tr .cell-user-dates {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                display: flex;
+                flex-direction: column;
+                gap: 0.15rem;
+            }
+            #adminUsersTableBody tr .cell-user-status {
+                grid-column: 2 / 3;
+                grid-row: 2;
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+            }
+            #adminUsersTableBody tr .cell-user-activity {
+                grid-column: 1 / 3;
+                grid-row: 3;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+                padding-top: 0.25rem;
+                font-size: 0.775rem;
+            }
+            #adminUsersTableBody tr .cell-user-features {
+                grid-column: 1 / 3;
+                grid-row: 4;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.35rem;
+                padding-top: 0.15rem;
+            }
+            #adminUsersTableBody tr .cell-user-actions {
+                grid-column: 1 / 3;
+                grid-row: 5;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0.4rem;
+                margin-top: 0.35rem;
+                padding-top: 0.35rem;
+                border-top: 1px dashed var(--border);
+            }
         }
 
         /* BREAKPOINT: SMALL MOBILE (max-width: 480px) */
@@ -2123,6 +2189,131 @@
         .toast-info {
             border-left-color: var(--primary);
         }
+
+        /* BADGES DE STATUS — CENTRAL ADMINISTRATIVA */
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .badge-status-approved {
+            background-color: var(--success-light);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        .badge-status-pending {
+            background-color: var(--warning-light);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+        .badge-status-needs_profile {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+        }
+        .badge-status-rejected {
+            background-color: var(--danger-light);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        .badge-status-suspended {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        body.dark-theme .badge-status-suspended {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+        .badge-admin-self {
+            background-color: #ede9fe;
+            color: #7c3aed;
+            border: 1px solid #c4b5fd;
+        }
+        body.dark-theme .badge-admin-self {
+            background-color: #2e1065;
+            color: #c4b5fd;
+            border-color: #5b21b6;
+        }
+
+        /* BADGES DE NÍVEL DE ATIVIDADE & RECURSOS */
+        .badge-activity {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: var(--radius-full);
+            font-size: 0.725rem;
+            font-weight: 600;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .badge-activity-active {
+            background-color: var(--success-light);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        .badge-activity-low {
+            background-color: #fef3c7;
+            color: #b45309;
+            border: 1px solid #f59e0b;
+        }
+        body.dark-theme .badge-activity-low {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border-color: #b45309;
+        }
+        .badge-activity-inactive {
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        body.dark-theme .badge-activity-inactive {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+        .badge-activity-never {
+            background-color: #f8fafc;
+            color: #94a3b8;
+            border: 1px dashed var(--border);
+        }
+        body.dark-theme .badge-activity-never {
+            background-color: #0f172a;
+            color: #64748b;
+            border-color: #334155;
+        }
+
+        .feature-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            line-height: 1.1;
+        }
+        .feature-pill.active {
+            background: rgba(37, 99, 235, 0.08);
+            border-color: rgba(37, 99, 235, 0.3);
+            color: var(--primary);
+        }
+        body.dark-theme .feature-pill.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+        }
     </style>
 </head>
 <body>
@@ -2136,6 +2327,11 @@
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Organize suas finanças com segurança total</p>
 
             <form id="loginForm">
+                <div class="input-group" id="groupNomeCadastro">
+                    <label for="nome">Nome Completo (para novos cadastros) *</label>
+                    <input type="text" id="nome" class="input-field" placeholder="Ex: Thiago Bilard" autocomplete="name" maxlength="80">
+                </div>
+
                 <div class="input-group">
                     <label for="email">E-mail *</label>
                     <input type="email" id="email" class="input-field" placeholder="seu@email.com" required>
@@ -2158,6 +2354,81 @@
             </form>
 
             <p id="loginMessage" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none; padding: 0.6rem; border-radius: 6px;"></p>
+        </div>
+    </div>
+
+    <!-- TELA: COMPLETAR CADASTRO (USUÁRIOS LEGADOS) -->
+    <div id="completeProfileView" style="display: none;">
+        <div class="auth-container">
+            <h2 style="margin-bottom: 0.5rem; text-align: center;">Complete seu Cadastro</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Para continuar, informe seu nome para identificação.</p>
+
+            <form id="completeProfileForm" onsubmit="handleCompleteLegacyProfile(event)">
+                <div class="input-group">
+                    <label for="legacyNomeInput">Nome Completo *</label>
+                    <input type="text" id="legacyNomeInput" class="input-field" placeholder="Ex: Thiago Bilard" autocomplete="name" maxlength="80" required>
+                    <p class="password-hint">Informe seu nome real para que o administrador possa identificar sua conta.</p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
+                    <button type="submit" class="btn-primary" id="completeProfileBtnText">Continuar</button>
+                    <button type="button" onclick="logout()" class="btn-secondary" style="width: 100%; text-align: center;">Sair da Conta</button>
+                </div>
+            </form>
+
+            <p id="completeProfileMessage" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none; padding: 0.6rem; border-radius: 6px;"></p>
+        </div>
+    </div>
+
+    <!-- TELA: AGUARDANDO APROVAÇÃO DO ADMINISTRADOR -->
+    <div id="pendingApprovalView" style="display: none;">
+        <div class="auth-container" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;" id="approvalStatusIcon">⏳</div>
+            <h2 style="margin-bottom: 0.5rem;" id="approvalStatusTitle">Aguardando Aprovação</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;" id="approvalStatusMessage">
+                Seu cadastro está aguardando aprovação do administrador do sistema.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
+                <button type="button" onclick="checkSession()" class="btn-primary" id="btnRecheckStatus">🔄 Verificar Novamente</button>
+                <button type="button" onclick="logout()" class="btn-secondary" style="width: 100%; text-align: center;">Sair da Conta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA: REDEFINIÇÃO DE SENHA DO USUÁRIO (FASE 4.5-C5-C) -->
+    <div id="resetPasswordView" style="display: none;">
+        <div class="auth-container">
+            <h2 style="margin-bottom: 0.5rem; text-align: center;">Redefinir Senha</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                Crie uma nova senha segura para acessar sua conta.
+            </p>
+
+            <form id="resetPasswordForm" onsubmit="handleResetPasswordSubmit(event)">
+                <div class="input-group">
+                    <label for="resetNovaSenha">Nova Senha *</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="resetNovaSenha" class="input-field" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('resetNovaSenha', this)">👁️</button>
+                    </div>
+                    <p class="password-hint">Mínimo de 8 caracteres, 1 maiúscula, 1 número e 1 caractere especial (!@#$%^&*).</p>
+                </div>
+
+                <div class="input-group">
+                    <label for="resetConfirmaSenha">Confirmar Nova Senha *</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="resetConfirmaSenha" class="input-field" placeholder="••••••••" required autocomplete="new-password">
+                        <button type="button" class="toggle-password-btn" aria-label="Alternar visibilidade da senha" onclick="togglePasswordVisibility('resetConfirmaSenha', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.2rem;">
+                    <button type="submit" class="btn-primary" id="btnSubmitResetPassword">Salvar Nova Senha</button>
+                    <button type="button" onclick="cancelResetPassword()" class="btn-secondary" style="width: 100%; text-align: center;">Cancelar e Voltar ao Início</button>
+                </div>
+            </form>
+
+            <p id="resetPasswordMessage" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; display: none; padding: 0.6rem; border-radius: 6px;"></p>
         </div>
     </div>
 
@@ -2188,6 +2459,7 @@
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
             <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
+            <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')" style="display: none; background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(37, 99, 235, 0.1)); border: 1px dashed var(--primary); color: var(--primary);">🛡️ Central Admin</button>
         </div>
 
         <div id="loading" class="loading" style="display: none;">Conectando ao Supabase...</div>
@@ -3086,6 +3358,160 @@
                         <button type="submit" class="btn-primary" id="btnUpdatePass">Atualizar Senha Agora</button>
                     </form>
                 </div>
+
+                <div class="chart-card" id="adminAccountCard" style="max-width: 500px; margin: 0 auto 1.5rem auto; display: none; border-left: 4px solid var(--primary); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 99, 235, 0.04) 100%);">
+                    <h2 class="chart-title">🛡️ Painel Administrativo</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Você possui privilégios de administrador do sistema. Gerencie aprovações de novos cadastros e controle de acessos.</p>
+                    <button type="button" class="btn-primary" id="btnGoToAdmin" onclick="switchTab('admin')" style="width: 100%; justify-content: center; padding: 0.75rem 1rem; font-size: 0.95rem;">
+                        Acessar Central Administrativa ➔
+                    </button>
+                </div>
+            </div>
+
+            <!-- ABA: CENTRAL ADMINISTRATIVA (EXCLUSIVA PARA ADMINISTRADORES) -->
+            <div id="tab-admin" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🛡️</span> Central Administrativa
+                        </h2>
+                        <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
+                            Gerencie aprovações de novos cadastros, usuários legados e permissões de acesso ao sistema.
+                        </p>
+                    </div>
+                    <button type="button" class="action-btn" onclick="loadAdminUsersView()" id="btnRefreshAdminUsers" title="Recarregar Usuários">
+                        🔄 Atualizar Lista
+                    </button>
+                </div>
+
+                <!-- CARDS DE RESUMO OPERACIONAL -->
+                <div class="kpi-container" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 1.5rem;">
+                    <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                        <div>
+                            <div class="kpi-title">Total de Contas</div>
+                            <div class="kpi-value" id="adminTotalUsers" style="color: var(--primary);">0</div>
+                        </div>
+                        <div class="kpi-details"><small style="color:var(--text-muted);">Usuários registrados</small></div>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+                        <div>
+                            <div class="kpi-title">Aguardando Aprovação</div>
+                            <div class="kpi-value" id="adminPendingUsers" style="color: var(--warning);">0</div>
+                        </div>
+                        <div class="kpi-details"><small style="color:var(--text-muted);">Requerem decisão</small></div>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--success);">
+                        <div>
+                            <div class="kpi-title">Aprovados</div>
+                            <div class="kpi-value" id="adminApprovedUsers" style="color: var(--success);">0</div>
+                        </div>
+                        <div class="kpi-details"><small style="color:var(--text-muted);">Com acesso liberado</small></div>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--danger);">
+                        <div>
+                            <div class="kpi-title">Suspensos / Bloqueados</div>
+                            <div class="kpi-value" id="adminSuspendedUsers" style="color: var(--danger);">0</div>
+                        </div>
+                        <div class="kpi-details"><small style="color:var(--text-muted);">Acesso revogado</small></div>
+                    </div>
+                </div>
+
+                <!-- CARDS DE ATIVIDADE DO SISTEMA (AUDITORIA COM RIGOROSA PRIVACIDADE) -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                            <span>📈</span> Atividade do Sistema
+                        </h3>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.3rem;" title="Privacidade Garantida">
+                            🔒 Dados de uso agregados. O administrador não possui acesso a valores ou conteúdo financeiro dos usuários.
+                        </span>
+                    </div>
+
+                    <div class="kpi-container" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <div class="kpi-card" style="border-left: 4px solid #10b981;">
+                            <div>
+                                <div class="kpi-title">Ativos (Últimos 7 dias)</div>
+                                <div class="kpi-value" id="adminActive7d" style="color: #10b981;">-</div>
+                            </div>
+                            <div class="kpi-details"><small style="color:var(--text-muted);">Uso recente frequente</small></div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid #3b82f6;">
+                            <div>
+                                <div class="kpi-title">Ativos (Últimos 30 dias)</div>
+                                <div class="kpi-value" id="adminActive30d" style="color: #3b82f6;">-</div>
+                            </div>
+                            <div class="kpi-details"><small style="color:var(--text-muted);">Interagiram no mês</small></div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid #94a3b8;">
+                            <div>
+                                <div class="kpi-title">Inativos (&gt; 30 dias)</div>
+                                <div class="kpi-value" id="adminInactive30d" style="color: #64748b;">-</div>
+                            </div>
+                            <div class="kpi-details"><small style="color:var(--text-muted);">Sem atividade recente</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BARRA DE FILTRO E BUSCA -->
+                <div class="filter-bar" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; flex: 1; min-width: 240px; gap: 0.5rem; align-items: center;">
+                        <input type="text" id="adminSearchInput" class="input-field" placeholder="Buscar por nome ou e-mail..." oninput="handleAdminSearchInput()" style="margin: 0;">
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <label for="adminStatusFilter" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin: 0;">Status:</label>
+                        <select id="adminStatusFilter" class="select-container" onchange="loadAdminUsersView()" style="padding: 0.55rem 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--input-bg); color: var(--text-main); font-size: 0.875rem; font-weight: 600;">
+                            <option value="">Todos os status</option>
+                            <option value="pending">Aguardando aprovação</option>
+                            <option value="approved">Aprovados</option>
+                            <option value="needs_profile">Cadastro incompleto</option>
+                            <option value="rejected">Rejeitados</option>
+                            <option value="suspended">Suspensos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- CONTAINER DE LISTAGEM DE USUÁRIOS -->
+                <div class="chart-card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <!-- ESTADO DE CARREGAMENTO -->
+                    <div id="adminUsersLoading" style="display: none; text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">⏳</div>
+                        <p style="margin: 0; font-size: 0.95rem;">Carregando usuários do sistema...</p>
+                    </div>
+
+                    <!-- ESTADO DE ERRO -->
+                    <div id="adminUsersError" style="display: none; text-align: center; padding: 2.5rem 1rem; color: var(--danger);">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">⚠️</div>
+                        <p id="adminUsersErrorMessage" style="margin: 0 0 0.8rem 0; font-size: 0.95rem;">Não foi possível carregar a lista de usuários.</p>
+                        <button type="button" class="action-btn" onclick="loadAdminUsersView()">Tentar Novamente</button>
+                    </div>
+
+                    <!-- ESTADO VAZIO / SEM RESULTADOS -->
+                    <div id="adminUsersEmpty" style="display: none; text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">👥</div>
+                        <p id="adminUsersEmptyMessage" style="margin: 0; font-size: 0.95rem;">Nenhum usuário encontrado com os filtros selecionados.</p>
+                    </div>
+
+                    <!-- TABELA / LISTA RESPONSIVA -->
+                    <div class="table-responsive" id="adminUsersTableResponsive" style="display: none;">
+                        <table class="data-table" id="adminUsersTable" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Usuário</th>
+                                    <th style="text-align: left; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">E-mail</th>
+                                    <th style="text-align: left; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Cadastro</th>
+                                    <th style="text-align: left; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Última Atividade</th>
+                                    <th style="text-align: center; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Engajamento</th>
+                                    <th style="text-align: left; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Recursos</th>
+                                    <th style="text-align: center; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                                    <th style="text-align: right; padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTableBody">
+                                <!-- Preenchido dinamicamente via loadAdminUsersView() -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -3166,6 +3592,13 @@
                         <span class="mobile-more-text">
                             <strong>Minha Conta</strong>
                             <small>Segurança e perfil</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" id="mobileMoreAdminBtn" onclick="navigateToFromMore('admin')" style="display: none; border-color: var(--primary);">
+                        <span class="mobile-more-icon">🛡️</span>
+                        <span class="mobile-more-text">
+                            <strong style="color: var(--primary);">Central Admin</strong>
+                            <small>Aprovações e usuários</small>
                         </span>
                     </button>
                 </div>
@@ -3571,6 +4004,303 @@
         </form>
     </div>
 
+    <!-- MODAL: AÇÕES DA CONTA (CENTRAL ADMINISTRATIVA - FASE 4.5-C5-C) -->
+    <div id="adminUserActionsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminUserActionsModalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 99999; justify-content: center; align-items: center;">
+        <div class="chart-card" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto; margin: auto; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;">
+                <h3 id="adminUserActionsModalTitle" style="margin: 0; font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>⚙️</span> Ações da Conta
+                </h3>
+                <button type="button" class="reset-btn" aria-label="Fechar modal de ações" onclick="closeAdminUserActionsModal()" style="font-size: 1.1rem; padding: 0.2rem 0.6rem;">✕</button>
+            </div>
+
+            <!-- IDENTIFICAÇÃO DO USUÁRIO SELECIONADO -->
+            <div style="background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.9rem; margin-bottom: 1.25rem;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.3rem;">Usuário Selecionado</div>
+                <div id="adminModalUserName" style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem;">—</div>
+                <div class="input-group" style="margin: 0.5rem 0 0 0;">
+                    <label for="adminModalUserEmail" style="font-size: 0.8rem; color: var(--text-muted);">E-mail de Cadastro (Somente Leitura):</label>
+                    <input type="email" id="adminModalUserEmail" class="input-field" readonly style="background: var(--border-subtle); color: var(--text-muted); cursor: not-allowed; font-family: monospace; font-size: 0.85rem;" value="">
+                </div>
+            </div>
+
+            <!-- SEÇÃO 1: REDEFINIÇÃO DE SENHA (OPERACIONAL) -->
+            <div style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem; background: var(--card-bg);">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                    <span style="font-size: 1.2rem;">🔑</span>
+                    <strong style="font-size: 0.95rem; color: var(--text-main);">Redefinição de Senha</strong>
+                </div>
+                <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
+                    Dispara o envio de um link oficial para que o próprio usuário cadastre uma nova senha.
+                    Por privacidade e conformidade, administradores <b>nunca</b> conhecem ou digitam senhas de usuários.
+                </p>
+                <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+                    <button type="button" id="btnAdminSendPasswordReset" class="btn-primary" onclick="executeAdminPasswordReset()" style="width: auto; padding: 0.55rem 1.1rem; font-size: 0.85rem;">
+                        ✉️ Enviar Redefinição de Senha
+                    </button>
+                </div>
+                <div id="adminPasswordResetFeedback" style="display: none; margin-top: 0.6rem; font-size: 0.8rem; padding: 0.5rem; border-radius: 6px;"></div>
+            </div>
+
+            <!-- SEÇÃO 2: RESET DE DADOS FINANCEIROS (RECUPERÁVEL POR 48H - FASE 4.5-C5-D) -->
+            <div id="adminDataResetSection" style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem; background: var(--card-bg);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.2rem;">🔄</span>
+                        <strong style="font-size: 0.95rem; color: var(--text-main);">Reset de Dados Financeiros (48h)</strong>
+                    </div>
+                    <span id="adminDataResetBadge" style="display: none; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: 700;"></span>
+                </div>
+
+                <!-- LOADING DO STATUS -->
+                <div id="adminDataResetLoading" style="display: none; padding: 0.6rem; font-size: 0.825rem; color: var(--text-muted); text-align: center;">
+                    ⏳ Consultando estado do reset...
+                </div>
+
+                <!-- ERRO DO STATUS (FAIL-CLOSED) -->
+                <div id="adminDataResetError" style="display: none; padding: 0.6rem; font-size: 0.825rem; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; margin-bottom: 0.6rem;">
+                    ⚠️ Não foi possível consultar o estado do reset.
+                </div>
+
+                <!-- CONTEÚDO QUANDO NÃO HÁ RESET ATIVO (ESTADO NORMAL OU RESET EXPIRADO) -->
+                <div id="adminDataResetDefaultView">
+                    <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
+                        Zera lançamentos financeiros e catálogos do aplicativo preservando a conta do usuário.
+                        Os dados poderão ser restaurados por até 48 horas.
+                    </p>
+                    <div id="adminDataResetExpiredNotice" style="display: none; margin-bottom: 0.7rem; font-size: 0.8rem; color: var(--text-muted); padding: 0.4rem 0.6rem; background: var(--bg-color); border-radius: 4px; border: 1px dashed var(--border);">
+                        ℹ️ O período de recuperação do último reset expirou.
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+                        <button type="button" id="btnAdminOpenResetConfirm" class="btn-secondary" onclick="openAdminResetConfirmModal()" style="width: auto; padding: 0.55rem 1.1rem; font-size: 0.85rem; border-color: var(--danger); color: var(--danger);">
+                            🔄 Resetar dados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO QUANDO HÁ RESET ATIVO E RECUPERÁVEL (JANELA 48H) -->
+                <div id="adminDataResetActiveView" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 6px; padding: 0.8rem; margin-top: 0.4rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem;">
+                        <span style="font-size: 1rem;">⚠️</span>
+                        <strong style="font-size: 0.875rem; color: var(--warning);">Reset de dados ativo</strong>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-main); margin-bottom: 0.3rem;">
+                        <span>Reset realizado em: </span><strong id="adminActiveResetCreatedAt">—</strong>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--warning); margin-bottom: 0.8rem;">
+                        <span id="adminActiveResetExpiresInfo">Recuperável até —</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+                        <button type="button" id="btnAdminOpenRestoreConfirm" class="btn-primary" onclick="openAdminRestoreConfirmModal()" style="width: auto; padding: 0.55rem 1.1rem; font-size: 0.85rem; background: var(--warning); border-color: var(--warning); color: #000; font-weight: 600;">
+                            ↩️ Desfazer reset
+                        </button>
+                    </div>
+                </div>
+
+                <div id="adminDataResetFeedback" style="display: none; margin-top: 0.6rem; font-size: 0.8rem; padding: 0.5rem; border-radius: 6px;"></div>
+            </div>
+
+            <!-- SEÇÃO 3: EXCLUSÃO PERMANENTE DE CONTA (FASE 4.5-C5-E) -->
+            <div id="adminDeleteUserSection" style="border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem; background: var(--card-bg);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.2rem;">🗑️</span>
+                        <strong style="font-size: 0.95rem; color: var(--danger);">Exclusão Permanente da Conta</strong>
+                    </div>
+                    <span style="font-size: 0.7rem; background: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 2px 6px; border-radius: 4px; font-weight: 600;">Irreversível</span>
+                </div>
+                <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.85rem;">
+                    Remoção definitiva do cadastro, histórico financeiro e credenciais em conformidade com as diretrizes de privacidade e LGPD.
+                </p>
+                <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+                    <button type="button" id="btnAdminOpenDeleteConfirm" class="btn-danger" onclick="openAdminDeleteUserModal()" style="width: auto; padding: 0.55rem 1.1rem; font-size: 0.85rem;">
+                        🗑️ Excluir Conta Permanentemente
+                    </button>
+                </div>
+            </div>
+
+            <!-- RODAPÉ DO MODAL -->
+            <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+                <button type="button" class="btn-secondary" onclick="closeAdminUserActionsModal()" style="width: auto; padding: 0.6rem 1.2rem;">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAÇÃO OBRIGATÓRIA DE RESET DE DADOS (FASE 4.5-C5-D) -->
+    <div id="adminResetConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminResetConfirmTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 100001; justify-content: center; align-items: center;">
+        <div class="chart-card" style="max-width: 480px; width: 92%; margin: auto; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;">
+                <h3 id="adminResetConfirmTitle" style="margin: 0; font-size: 1.15rem; color: var(--danger); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>⚠️</span> Resetar dados do usuário
+                </h3>
+                <button type="button" class="reset-btn" aria-label="Fechar confirmação" onclick="closeAdminResetConfirmModal()" style="font-size: 1.1rem; padding: 0.2rem 0.6rem;">✕</button>
+            </div>
+
+            <div style="background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.8rem; margin-bottom: 1rem;">
+                <div style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.3rem;">
+                    <strong>Nome:</strong> <span id="adminResetConfirmUserName">—</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-main);">
+                    <strong>E-mail:</strong> <span id="adminResetConfirmUserEmail">—</span>
+                </div>
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+                Esta ação removerá os dados financeiros e configurações financeiras deste usuário do aplicativo.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+                A conta, o nome, o e-mail, a senha e o status de acesso serão preservados.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+                Os dados poderão ser restaurados por até 48 horas.
+            </p>
+
+            <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 6px; padding: 0.75rem; margin-bottom: 1.25rem;">
+                <strong style="color: var(--danger); font-size: 0.85rem; display: block; text-align: center;">
+                    Após 48 horas, a recuperação não será mais possível.
+                </strong>
+            </div>
+
+            <div id="adminResetConfirmFeedback" style="display: none; margin-bottom: 1rem; font-size: 0.8rem; padding: 0.5rem; border-radius: 6px;"></div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+                <button type="button" class="btn-secondary" onclick="closeAdminResetConfirmModal()" style="width: auto; padding: 0.6rem 1.2rem;">
+                    Cancelar
+                </button>
+                <button type="button" id="btnAdminExecuteReset" class="btn-danger" onclick="executeAdminResetData()" style="width: auto; padding: 0.6rem 1.2rem; font-weight: 700;">
+                    Confirmar reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAÇÃO OBRIGATÓRIA DE RESTAURAÇÃO DE DADOS (FASE 4.5-C5-D) -->
+    <div id="adminRestoreConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminRestoreConfirmTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 100001; justify-content: center; align-items: center;">
+        <div class="chart-card" style="max-width: 480px; width: 92%; margin: auto; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;">
+                <h3 id="adminRestoreConfirmTitle" style="margin: 0; font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>↩️</span> Restaurar dados do usuário
+                </h3>
+                <button type="button" class="reset-btn" aria-label="Fechar confirmação" onclick="closeAdminRestoreConfirmModal()" style="font-size: 1.1rem; padding: 0.2rem 0.6rem;">✕</button>
+            </div>
+
+            <div style="background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.8rem; margin-bottom: 1rem;">
+                <div style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.3rem;">
+                    <strong>Nome:</strong> <span id="adminRestoreConfirmUserName">—</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-main);">
+                    <strong>E-mail:</strong> <span id="adminRestoreConfirmUserEmail">—</span>
+                </div>
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+                Os dados preservados no reset serão restaurados para o usuário.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 0.75rem;">
+                A restauração só é possível enquanto a janela de recuperação estiver ativa.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; margin-bottom: 1.25rem;">
+                Se o usuário já tiver criado novos dados após o reset, a restauração será bloqueada para evitar conflitos.
+            </p>
+
+            <div id="adminRestoreConfirmFeedback" style="display: none; margin-bottom: 1rem; font-size: 0.8rem; padding: 0.5rem; border-radius: 6px;"></div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+                <button type="button" class="btn-secondary" onclick="closeAdminRestoreConfirmModal()" style="width: auto; padding: 0.6rem 1.2rem;">
+                    Cancelar
+                </button>
+                <button type="button" id="btnAdminExecuteRestore" class="btn-primary" onclick="executeAdminRestoreData()" style="width: auto; padding: 0.6rem 1.2rem; font-weight: 700;">
+                    Restaurar dados
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAÇÃO EM DUAS ETAPAS DE EXCLUSÃO PERMANENTE DE CONTA (FASE 4.5-C5-E) -->
+    <div id="adminDeleteUserModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminDeleteUserModalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); z-index: 100002; justify-content: center; align-items: center;">
+        <div class="chart-card" style="max-width: 500px; width: 92%; max-height: 90vh; overflow-y: auto; margin: auto; position: relative; border-left: 4px solid var(--danger);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;">
+                <h3 id="adminDeleteUserModalTitle" style="margin: 0; font-size: 1.15rem; color: var(--danger); display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🗑️</span> Excluir Conta Permanentemente
+                </h3>
+                <button type="button" class="reset-btn" aria-label="Fechar confirmação de exclusão" onclick="closeAdminDeleteUserModal()" style="font-size: 1.1rem; padding: 0.2rem 0.6rem;">✕</button>
+            </div>
+
+            <!-- DADOS DO USUÁRIO ALVO -->
+            <div style="background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.8rem; margin-bottom: 1rem;">
+                <div style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.3rem;">
+                    <strong>Nome:</strong> <span id="adminDeleteUserName">—</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-main);">
+                    <strong>E-mail:</strong> <span id="adminDeleteUserEmail">—</span>
+                </div>
+            </div>
+
+            <!-- ETAPA 1: AVISO SEVERO E ESCOPO DA EXCLUSÃO -->
+            <div id="adminDeleteStep1">
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 6px; padding: 0.85rem; margin-bottom: 1rem;">
+                    <strong style="color: var(--danger); font-size: 0.9rem; display: block; margin-bottom: 0.4rem;">
+                        ⚠️ ATENÇÃO: Esta ação é TOTALMENTE IRREVERSÍVEL!
+                    </strong>
+                    <p style="font-size: 0.825rem; color: var(--text-main); line-height: 1.4; margin: 0 0 0.5rem 0;">
+                        Ao prosseguir, todos os seguintes registros serão apagados definitivamente:
+                    </p>
+                    <ul style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.5rem 1.2rem; padding: 0; line-height: 1.4;">
+                        <li>Todas as transações e movimentações financeiras;</li>
+                        <li>Todas as liquidações e quitações de faturas;</li>
+                        <li>Todas as metas financeiras;</li>
+                        <li>Todos os cartões de crédito, categorias, subcategorias e tags;</li>
+                        <li>Todos os snapshots de restauração de dados;</li>
+                        <li>O perfil cadastral e a conta de autenticação (login).</li>
+                    </ul>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--danger);">
+                        ⛔ Não há período de carência nem janela de recuperação (sem 48h).
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+                    <button type="button" class="btn-secondary" onclick="closeAdminDeleteUserModal()" style="width: auto; padding: 0.6rem 1.2rem;">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btnAdminDeleteGoStep2" class="btn-danger" onclick="goToAdminDeleteStep2()" style="width: auto; padding: 0.6rem 1.2rem; font-weight: 700;">
+                        Continuar para Confirmação →
+                    </button>
+                </div>
+            </div>
+
+            <!-- ETAPA 2: CONFIRMAÇÃO POR DIGITAÇÃO EXATA -->
+            <div id="adminDeleteStep2" style="display: none;">
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid var(--danger); border-radius: 6px; padding: 0.85rem; margin-bottom: 1rem;">
+                    <strong style="color: var(--danger); font-size: 0.875rem; display: block; margin-bottom: 0.3rem;">
+                        Confirmação de Segurança Exigida
+                    </strong>
+                    <p style="font-size: 0.825rem; color: var(--text-main); line-height: 1.4; margin: 0 0 0.6rem 0;">
+                        Para habilitar a exclusão definitiva, digite exatamente a frase abaixo (sensível a maiúsculas/minúsculas):
+                    </p>
+                    <div style="user-select: all; font-family: monospace; font-size: 0.9rem; font-weight: 700; background: var(--bg-color); border: 1px dashed var(--danger); padding: 0.5rem; text-align: center; color: var(--danger); margin-bottom: 0.75rem;">
+                        <span id="adminDeleteExpectedPhrase">EXCLUIR</span>
+                    </div>
+                    <div class="input-group" style="margin: 0;">
+                        <input type="text" id="adminDeleteConfirmationInput" class="input-field" placeholder="Digite a frase exata aqui..." oninput="handleAdminDeleteInput(event)" style="font-family: monospace; font-size: 0.85rem; border-color: var(--border);" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                    </div>
+                </div>
+
+                <div id="adminDeleteFeedback" style="display: none; margin-bottom: 1rem; font-size: 0.8rem; padding: 0.5rem; border-radius: 6px;"></div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+                    <button type="button" class="btn-secondary" onclick="goToAdminDeleteStep1()" style="width: auto; padding: 0.6rem 1.2rem;">
+                        ← Voltar
+                    </button>
+                    <button type="button" class="btn-danger" disabled id="btnAdminExecuteDelete" onclick="executeAdminDeleteUser()" style="width: auto; padding: 0.6rem 1.2rem; font-weight: 700; opacity: 0.5; cursor: not-allowed;">
+                        🗑️ Excluir permanentemente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Base 3.0: Módulos ES6 Core & Ponte de Compatibilidade -->
     <script type="module">
         import {
@@ -3631,8 +4361,25 @@
             signUp,
             signOut,
             updatePassword,
-            requestPasswordReset
+            requestPasswordReset,
+            onAuthStateChange
         } from './src/services/authService.js';
+
+        import {
+            checkIsAdmin,
+            checkHasAppAccess,
+            getMyAccessStatus,
+            completeLegacyProfile,
+            listAdminUsers,
+            setUserAccess,
+            getActivityMetrics,
+            getActivitySummary,
+            requestUserPasswordReset,
+            resetUserData,
+            restoreUserData,
+            getUserResetStatus,
+            deleteUserAccount
+        } from './src/services/adminService.js';
 
         import {
             fetchMetas,
@@ -3720,6 +4467,20 @@
         window.authSignOut = signOut;
         window.authUpdatePassword = updatePassword;
         window.authRequestPasswordReset = requestPasswordReset;
+        window.authOnAuthStateChange = onAuthStateChange;
+        window.adminCheckIsAdmin = checkIsAdmin;
+        window.adminCheckHasAppAccess = checkHasAppAccess;
+        window.adminGetMyAccessStatus = getMyAccessStatus;
+        window.adminCompleteLegacyProfile = completeLegacyProfile;
+        window.adminListUsers = listAdminUsers;
+        window.adminSetUserAccess = setUserAccess;
+        window.adminGetActivityMetrics = getActivityMetrics;
+        window.adminGetActivitySummary = getActivitySummary;
+        window.adminRequestUserPasswordReset = requestUserPasswordReset;
+        window.adminResetUserData = resetUserData;
+        window.adminRestoreUserData = restoreUserData;
+        window.adminGetUserResetStatus = getUserResetStatus;
+        window.adminDeleteUserAccount = deleteUserAccount;
         window.metasFetch = fetchMetas;
         window.metasFetchOrdered = fetchMetasOrdered;
         window.metasUpsert = upsertMeta;
@@ -3760,12 +4521,17 @@
 
     <script>
         let currentUser = null;
+        let currentUserIsAdmin = false;
         let rawSupabaseData = [];
         let globalData = [];
         let globalCreditSettlements = [];
         let rawMetas = [];
         let userBudgets = {};
         let charts = {};
+
+        // Estado de recuperação de senha segura (Fase 4.5-C5-C.1 Hardening)
+        let isPasswordRecoverySession = false;
+        let authSubscription = null;
 
         // ESTADO GLOBAL: Catálogos Gerenciados 2.0
         let globalCategorias = [];
@@ -3820,22 +4586,189 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
+
+            // Detecção de eventos de autenticação (ex: recuperação de senha via link)
+            if (typeof authOnAuthStateChange === 'function' && !authSubscription) {
+                try {
+                    const { data: authListener } = authOnAuthStateChange((event, session) => {
+                        if (event === 'PASSWORD_RECOVERY' && session) {
+                            isPasswordRecoverySession = true;
+                            showResetPasswordScreen();
+                        }
+                    });
+                    authSubscription = authListener?.subscription || null;
+                } catch (e) {
+                    console.warn('[Auth] Falha ao registrar onAuthStateChange:', e);
+                }
+            }
+
             checkSession();
         });
 
         async function checkSession() {
+            // Se o usuário acessou via link de recuperação (#/reset-password ou hash com recovery)
+            const currentHash = (window.location.hash || '').toLowerCase();
+            if (currentHash.includes('reset-password') || currentHash.includes('type=recovery')) {
+                showResetPasswordScreen();
+                return;
+            }
+
             const { data: { session } } = await authGetSession();
             if (session) {
                 currentUser = session.user;
                 document.getElementById('loginView').style.display = 'none';
+
+                // Verificação de Autorização e Perfil (Fase 4.5-C5-F)
+                // Princípio da Falha Segura (Fail-Safe Defaults): fallback estritamente fechado (pending, sem acesso)
+                let accessInfo = { status: 'pending', hasAccess: false, isAdmin: false };
+                try {
+                    accessInfo = await adminGetMyAccessStatus();
+                } catch (err) {
+                    console.warn('[Auth] Falha ao consultar status de acesso do usuário. Falha fechada (pending):', err);
+                    accessInfo = { status: 'pending', hasAccess: false, isAdmin: false };
+                }
+
+                const isAdmin = Boolean(accessInfo.isAdmin);
+                currentUserIsAdmin = isAdmin;
+
+                // CASO A: Administrador possui acesso ao aplicativo para gerenciar o sistema
+                if (isAdmin) {
+                    const tabAdminBtn = document.getElementById('tabAdminBtn');
+                    if (tabAdminBtn) tabAdminBtn.style.display = 'inline-flex';
+
+                    const adminAccountCard = document.getElementById('adminAccountCard');
+                    if (adminAccountCard) adminAccountCard.style.display = 'block';
+
+                    const mobileMoreAdminBtn = document.getElementById('mobileMoreAdminBtn');
+                    if (mobileMoreAdminBtn) mobileMoreAdminBtn.style.display = 'flex';
+
+                    document.getElementById('completeProfileView').style.display = 'none';
+                    document.getElementById('pendingApprovalView').style.display = 'none';
+                    document.getElementById('appView').style.display = 'block';
+
+                    loadDashboardData();
+                    loadMetasData();
+                    loadCatalogsData();
+                    return;
+                }
+
+                // Configurações para usuário não-admin
+                const tabAdminBtn = document.getElementById('tabAdminBtn');
+                if (tabAdminBtn) tabAdminBtn.style.display = 'none';
+
+                const adminAccountCard = document.getElementById('adminAccountCard');
+                if (adminAccountCard) adminAccountCard.style.display = 'none';
+
+                const mobileMoreAdminBtn = document.getElementById('mobileMoreAdminBtn');
+                if (mobileMoreAdminBtn) mobileMoreAdminBtn.style.display = 'none';
+
+                // CASO B: Usuário legado sem perfil cadastrado
+                if (accessInfo.status === 'needs_profile') {
+                    clearFinancialMemory();
+                    document.getElementById('appView').style.display = 'none';
+                    document.getElementById('pendingApprovalView').style.display = 'none';
+                    document.getElementById('completeProfileView').style.display = 'block';
+                    document.getElementById('legacyNomeInput')?.focus();
+                    return;
+                }
+
+                // CASO C, D, E e Bloqueios: Usuário comum pending, rejected, suspended ou desconhecido
+                if (accessInfo.status !== 'approved') {
+                    clearFinancialMemory();
+                    document.getElementById('appView').style.display = 'none';
+                    document.getElementById('completeProfileView').style.display = 'none';
+                    document.getElementById('pendingApprovalView').style.display = 'block';
+
+                    const iconEl = document.getElementById('approvalStatusIcon');
+                    const titleEl = document.getElementById('approvalStatusTitle');
+                    const msgEl = document.getElementById('approvalStatusMessage');
+
+                    if (accessInfo.status === 'pending') {
+                        if (iconEl) iconEl.innerText = '⏳';
+                        if (titleEl) titleEl.innerText = 'Aguardando Aprovação';
+                        if (msgEl) msgEl.innerText = 'Seu cadastro está aguardando aprovação do administrador do sistema.';
+                    } else if (accessInfo.status === 'rejected') {
+                        if (iconEl) iconEl.innerText = '🚫';
+                        if (titleEl) titleEl.innerText = 'Acesso Não Autorizado';
+                        if (msgEl) msgEl.innerText = 'Seu pedido de acesso não foi aprovado pelo administrador.';
+                    } else if (accessInfo.status === 'suspended') {
+                        if (iconEl) iconEl.innerText = '🔒';
+                        if (titleEl) titleEl.innerText = 'Acesso Suspenso';
+                        if (msgEl) msgEl.innerText = 'Seu acesso a este sistema foi temporariamente suspenso pelo administrador.';
+                    } else {
+                        if (iconEl) iconEl.innerText = '⏳';
+                        if (titleEl) titleEl.innerText = 'Aguardando Aprovação';
+                        if (msgEl) msgEl.innerText = 'Seu cadastro está aguardando aprovação do administrador do sistema.';
+                    }
+                    return;
+                }
+
+                // CASO F: Usuário comum APROVADO (approved)
+                document.getElementById('completeProfileView').style.display = 'none';
+                document.getElementById('pendingApprovalView').style.display = 'none';
                 document.getElementById('appView').style.display = 'block';
 
                 loadDashboardData();
                 loadMetasData();
                 loadCatalogsData();
             } else {
-                document.getElementById('loginView').style.display = 'block';
+                currentUser = null;
+                currentUserIsAdmin = false;
+                clearFinancialMemory();
+
+                const tabAdminBtn = document.getElementById('tabAdminBtn');
+                if (tabAdminBtn) tabAdminBtn.style.display = 'none';
+                const adminAccountCard = document.getElementById('adminAccountCard');
+                if (adminAccountCard) adminAccountCard.style.display = 'none';
+                const mobileMoreAdminBtn = document.getElementById('mobileMoreAdminBtn');
+                if (mobileMoreAdminBtn) mobileMoreAdminBtn.style.display = 'none';
+
+                document.getElementById('completeProfileView').style.display = 'none';
+                document.getElementById('pendingApprovalView').style.display = 'none';
                 document.getElementById('appView').style.display = 'none';
+                document.getElementById('loginView').style.display = 'block';
+            }
+        }
+
+        async function handleCompleteLegacyProfile(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('legacyNomeInput');
+            const btnEl = document.getElementById('completeProfileBtnText');
+            const msgEl = document.getElementById('completeProfileMessage');
+
+            const nome = (inputEl?.value || '').trim();
+            if (!nome || nome.length < 2) {
+                if (msgEl) {
+                    msgEl.innerText = 'Por favor, informe seu nome completo (mínimo 2 caracteres).';
+                    msgEl.style.display = 'block';
+                    msgEl.style.color = 'var(--danger)';
+                }
+                return;
+            }
+
+            if (nome.length > 80) {
+                if (msgEl) {
+                    msgEl.innerText = 'O nome deve ter no máximo 80 caracteres.';
+                    msgEl.style.display = 'block';
+                    msgEl.style.color = 'var(--danger)';
+                }
+                return;
+            }
+
+            btnEl.innerText = 'Salvando...';
+
+            const { success, error } = await adminCompleteLegacyProfile(nome);
+            btnEl.innerText = 'Continuar';
+
+            if (!success || error) {
+                if (msgEl) {
+                    msgEl.innerText = 'Erro ao salvar perfil: ' + (error?.message || 'Tente novamente.');
+                    msgEl.style.display = 'block';
+                    msgEl.style.color = 'var(--danger)';
+                }
+            } else {
+                showToast('Cadastro atualizado com sucesso!', 'success');
+                checkSession();
             }
         }
 
@@ -3965,9 +4898,21 @@
         }
 
         async function handleSignUp() {
+            const nome = (document.getElementById('nome')?.value || '').trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('senha').value;
             const signUpBtn = document.getElementById('signUpBtnText');
+
+            if (!nome || nome.length < 2) {
+                showMessage("Por favor, informe seu nome completo (mínimo 2 caracteres).");
+                document.getElementById('nome')?.focus();
+                return;
+            }
+
+            if (nome.length > 80) {
+                showMessage("O nome deve ter no máximo 80 caracteres.");
+                return;
+            }
 
             if (!email || !password) {
                 showMessage("Por favor, informe um e-mail e uma senha.");
@@ -3981,7 +4926,12 @@
 
             signUpBtn.innerText = "Criando conta...";
 
-            const { data, error } = await authSignUp(email, password);
+            // Envia SOMENTE o nome em user_metadata. NUNCA enviar status ou role.
+            const { data, error } = await authSignUp(email, password, {
+                data: {
+                    display_name: nome
+                }
+            });
 
             signUpBtn.innerText = "Criar Nova Conta";
 
@@ -3989,7 +4939,7 @@
                 showMessage("Erro ao criar conta: " + error.message);
             } else {
                 if (data.session) {
-                    showMessage("Conta criada e logada com sucesso!", false);
+                    showMessage("Conta criada com sucesso! Seu acesso está aguardando aprovação.", false);
                     checkSession();
                 } else {
                     showMessage("Conta criada! Verifique a caixa de entrada do seu e-mail para confirmar a conta antes de entrar.", false);
@@ -4015,9 +4965,22 @@
             }
         });
 
+        function clearFinancialMemory() {
+            rawSupabaseData = [];
+            allTransacoes = [];
+            globalCreditSettlements = [];
+            allMetas = [];
+            allCategorias = [];
+            allSubcategorias = [];
+            allCartoes = [];
+            allTags = [];
+        }
+
         async function logout() {
+            clearFinancialMemory();
             await authSignOut();
             currentUser = null;
+            currentUserIsAdmin = false;
             window.location.hash = '';
             window.location.reload();
         }
@@ -4061,7 +5024,24 @@
 
                 // Resolução inicial de rota após carregamento completo
                 const requestedTab = getRouteFromHash();
-                if (requestedTab) {
+                if (requestedTab === 'admin') {
+                    const isAdmin = await adminCheckIsAdmin();
+                    if (!isAdmin) {
+                        currentUserIsAdmin = false;
+                        showToast('Acesso negado: apenas administradores podem acessar a Central Administrativa.', 'error');
+                        switchTab('resumo', false);
+                        setRoutingSync(true);
+                        window.location.hash = '#/dashboard';
+                    } else {
+                        currentUserIsAdmin = true;
+                        switchTab('admin', false);
+                        const targetHash = '#/admin';
+                        if (window.location.hash !== targetHash) {
+                            setRoutingSync(true);
+                            window.location.hash = targetHash;
+                        }
+                    }
+                } else if (requestedTab) {
                     switchTab(requestedTab, false);
                     const canonical = TAB_TO_CANONICAL_ROUTE[requestedTab] || 'dashboard';
                     const targetHash = `#/${canonical}`;
@@ -5823,7 +6803,9 @@
             'novo': 'novo',
             'novo-registro': 'novo',
             'conta': 'conta',
-            'perfil': 'conta'
+            'perfil': 'conta',
+            'admin': 'admin',
+            'reset-password': 'reset-password'
         };
 
         const TAB_TO_CANONICAL_ROUTE = {
@@ -5835,16 +6817,26 @@
             'investimentos': 'investimentos',
             'gerenciar-listas': 'configuracoes',
             'novo': 'novo',
-            'conta': 'conta'
+            'conta': 'conta',
+            'admin': 'admin',
+            'reset-password': 'reset-password'
         };
 
         function getRouteFromHash() {
             const raw = (window.location.hash || '').replace(/^#\/?/, '').trim().toLowerCase();
             if (!raw) return null;
-            return ROUTE_MAP[raw] || null;
+            // Trata hashes com query params ou fragments adicionais (ex: reset-password?access_token=...)
+            const cleanRoute = raw.split('?')[0].split('&')[0];
+            return ROUTE_MAP[cleanRoute] || null;
         }
 
-        function handleHashChange() {
+        async function handleHashChange() {
+            const currentHash = (window.location.hash || '').toLowerCase();
+            if (currentHash.includes('reset-password') || currentHash.includes('type=recovery')) {
+                showResetPasswordScreen();
+                return;
+            }
+
             if (!currentUser) return;
             if (getRoutingSync()) {
                 setRoutingSync(false);
@@ -5852,6 +6844,22 @@
             }
 
             const targetTab = getRouteFromHash();
+            if (targetTab === 'admin') {
+                // Rota Administrativa: Guard de Segurança via RPC is_admin()
+                const isAdmin = await adminCheckIsAdmin();
+                if (!isAdmin) {
+                    currentUserIsAdmin = false;
+                    showToast('Acesso negado: apenas administradores podem acessar a Central Administrativa.', 'error');
+                    switchTab('resumo', false);
+                    setRoutingSync(true);
+                    window.location.hash = '#/dashboard';
+                    return;
+                }
+                currentUserIsAdmin = true;
+                switchTab('admin', false);
+                return;
+            }
+
             if (targetTab) {
                 switchTab(targetTab, false);
             } else {
@@ -6031,6 +7039,7 @@
                     updateDynamicFaturaDropdown();
                 }
             }
+            if(tabId === 'admin') loadAdminUsersView();
         }
 
         async function manualSync() {
@@ -8916,6 +9925,1158 @@
                 container.appendChild(card);
             });
         }
+
+        /* ==========================================================
+           🛡️ CENTRAL ADMINISTRATIVA — CONTROLADORES & INTERFACE
+           ========================================================== */
+        let adminSearchTimeout = null;
+        let adminUsersCache = [];
+
+        function handleAdminSearchInput() {
+            clearTimeout(adminSearchTimeout);
+            adminSearchTimeout = setTimeout(() => {
+                loadAdminUsersView();
+            }, 300);
+        }
+
+        function formatAdminDateTime(isoStr) {
+            if (!isoStr) return 'Nunca';
+            try {
+                const d = new Date(isoStr);
+                if (isNaN(d.getTime())) return 'Nunca';
+                return d.toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return 'Nunca';
+            }
+        }
+
+        async function loadAdminUsersView() {
+            // Guard de Segurança
+            if (!currentUser) return;
+
+            const loadingEl = document.getElementById('adminUsersLoading');
+            const errorEl = document.getElementById('adminUsersError');
+            const errorMsgEl = document.getElementById('adminUsersErrorMessage');
+            const emptyEl = document.getElementById('adminUsersEmpty');
+            const tableRespEl = document.getElementById('adminUsersTableResponsive');
+            const tbody = document.getElementById('adminUsersTableBody');
+            const searchInput = document.getElementById('adminSearchInput');
+            const statusFilter = document.getElementById('adminStatusFilter');
+
+            if (loadingEl) loadingEl.style.display = 'block';
+            if (errorEl) errorEl.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = 'none';
+            if (tableRespEl) tableRespEl.style.display = 'none';
+
+            const searchTerm = (searchInput?.value || '').trim();
+            const statusTerm = (statusFilter?.value || '').trim();
+
+            try {
+                // Consulta a lista restrita de usuários e métricas via adminService em paralelo
+                const [usersRes, summaryRes, metricsRes] = await Promise.all([
+                    adminListUsers({
+                        search: searchTerm || null,
+                        status: statusTerm || null,
+                        limit: 100,
+                        offset: 0
+                    }),
+                    adminGetActivitySummary ? adminGetActivitySummary().catch(() => ({ summary: null, error: null })) : Promise.resolve({ summary: null }),
+                    adminGetActivityMetrics ? adminGetActivityMetrics().catch(() => ({ metrics: [], error: null })) : Promise.resolve({ metrics: [] })
+                ]);
+
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                if (usersRes.error) {
+                    if (errorEl) errorEl.style.display = 'block';
+                    if (errorMsgEl) errorMsgEl.innerText = usersRes.error.message || 'Erro ao carregar usuários.';
+                    return;
+                }
+
+                adminUsersCache = usersRes.users || [];
+
+                // Atualiza contadores dos KPI Cards de Status
+                let allUsersForMetrics = adminUsersCache;
+                if (searchTerm || statusTerm) {
+                    const fullRes = await adminListUsers({ limit: 100, offset: 0 });
+                    if (!fullRes.error && Array.isArray(fullRes.users)) {
+                        allUsersForMetrics = fullRes.users;
+                    }
+                }
+
+                const total = allUsersForMetrics.length;
+                const pending = allUsersForMetrics.filter(u => u.access_status === 'pending').length;
+                const approved = allUsersForMetrics.filter(u => u.access_status === 'approved').length;
+                const suspended = allUsersForMetrics.filter(u => u.access_status === 'suspended').length;
+
+                const totalEl = document.getElementById('adminTotalUsers');
+                const pendingEl = document.getElementById('adminPendingUsers');
+                const approvedEl = document.getElementById('adminApprovedUsers');
+                const suspendedEl = document.getElementById('adminSuspendedUsers');
+
+                if (totalEl) totalEl.innerText = total;
+                if (pendingEl) pendingEl.innerText = pending;
+                if (approvedEl) approvedEl.innerText = approved;
+                if (suspendedEl) suspendedEl.innerText = suspended;
+
+                // Atualiza Cards de Atividade do Sistema (Falha Graciosa / Resumo Global)
+                const active7dEl = document.getElementById('adminActive7d');
+                const active30dEl = document.getElementById('adminActive30d');
+                const inactive30dEl = document.getElementById('adminInactive30d');
+
+                const summaryData = summaryRes?.summary || null;
+                if (summaryData) {
+                    if (active7dEl) active7dEl.innerText = summaryData.active_7d ?? '0';
+                    if (active30dEl) active30dEl.innerText = summaryData.active_30d ?? '0';
+                    if (inactive30dEl) inactive30dEl.innerText = summaryData.inactive_30d ?? '0';
+                } else {
+                    // Fallback gracioso se a RPC de summary não responder
+                    if (active7dEl) active7dEl.innerText = '-';
+                    if (active30dEl) active30dEl.innerText = '-';
+                    if (inactive30dEl) inactive30dEl.innerText = '-';
+                }
+
+                // Mapeamento de métricas por user_id
+                const metricsMap = new Map();
+                if (metricsRes && Array.isArray(metricsRes.metrics)) {
+                    metricsRes.metrics.forEach(m => {
+                        if (m && m.user_id) {
+                            metricsMap.set(m.user_id, m);
+                        }
+                    });
+                }
+
+                if (adminUsersCache.length === 0) {
+                    if (emptyEl) {
+                        emptyEl.style.display = 'block';
+                        const emptyMsg = document.getElementById('adminUsersEmptyMessage');
+                        if (emptyMsg) {
+                            emptyMsg.innerText = (searchTerm || statusTerm)
+                                ? 'Nenhum usuário encontrado para os filtros selecionados.'
+                                : 'Nenhum usuário registrado no sistema.';
+                        }
+                    }
+                    return;
+                }
+
+                if (tableRespEl) tableRespEl.style.display = 'block';
+                if (tbody) {
+                    tbody.innerHTML = '';
+
+                    adminUsersCache.forEach(u => {
+                        const tr = document.createElement('tr');
+                        const isSelf = u.user_id === currentUser.id;
+                        const userMetric = metricsMap.get(u.user_id) || null;
+
+                        // Rótulos e classes de Status
+                        let statusBadgeHtml = '';
+                        if (u.access_status === 'approved') {
+                            statusBadgeHtml = `<span class="badge-status badge-status-approved">✓ Aprovado</span>`;
+                        } else if (u.access_status === 'pending') {
+                            statusBadgeHtml = `<span class="badge-status badge-status-pending">⏳ Aguardando aprovação</span>`;
+                        } else if (u.access_status === 'needs_profile') {
+                            statusBadgeHtml = `<span class="badge-status badge-status-needs_profile">📝 Cadastro incompleto</span>`;
+                        } else if (u.access_status === 'rejected') {
+                            statusBadgeHtml = `<span class="badge-status badge-status-rejected">✕ Rejeitado</span>`;
+                        } else if (u.access_status === 'suspended') {
+                            statusBadgeHtml = `<span class="badge-status badge-status-suspended">🔒 Suspenso</span>`;
+                        } else {
+                            statusBadgeHtml = `<span class="badge-status badge-status-pending">${escapeHtml(u.access_status || 'Pendente')}</span>`;
+                        }
+
+                        // Métricas de Atividade & Engajamento
+                        const lastActAt = userMetric ? userMetric.last_activity_at : u.last_sign_in_at;
+                        const actLevel = userMetric?.activity_level || (lastActAt ? 'LOW_ACTIVITY' : 'NEVER');
+                        const opsBand = userMetric?.operations_30d_band || '0';
+
+                        let actBadgeClass = 'badge-activity-never';
+                        let actLabel = 'Nunca utilizou';
+                        if (actLevel === 'ACTIVE') {
+                            actBadgeClass = 'badge-activity-active';
+                            actLabel = 'Ativo';
+                        } else if (actLevel === 'LOW_ACTIVITY') {
+                            actBadgeClass = 'badge-activity-low';
+                            actLabel = 'Pouco ativo';
+                        } else if (actLevel === 'INACTIVE') {
+                            actBadgeClass = 'badge-activity-inactive';
+                            actLabel = 'Inativo';
+                        }
+
+                        // Pills de Recursos Utilizados (Apenas flags booleanas EXISTS, estrita privacidade)
+                        const pTrans = userMetric?.uses_transactions;
+                        const pCards = userMetric?.uses_cards;
+                        const pInvest = userMetric?.uses_investments;
+                        const pSettle = userMetric?.uses_settlements;
+                        const pMetas = userMetric?.uses_metas;
+
+                        const featuresHtml = `
+                            <div style="display: inline-flex; flex-wrap: wrap; gap: 0.25rem;">
+                                <span class="feature-pill ${pTrans ? 'active' : ''}" title="${pTrans ? 'Utiliza lançamentos' : 'Sem lançamentos'}">📝 Lançamentos</span>
+                                <span class="feature-pill ${pCards ? 'active' : ''}" title="${pCards ? 'Utiliza cartões/faturas' : 'Sem cartões'}">💳 Cartões</span>
+                                <span class="feature-pill ${pInvest ? 'active' : ''}" title="${pInvest ? 'Possui investimentos' : 'Sem investimentos'}">📈 Investimentos</span>
+                                <span class="feature-pill ${pSettle ? 'active' : ''}" title="${pSettle ? 'Utiliza liquidação antecipada' : 'Sem liquidações'}">⚡ Quitações</span>
+                                <span class="feature-pill ${pMetas ? 'active' : ''}" title="${pMetas ? 'Possui metas configuradas' : 'Sem metas'}">🎯 Metas</span>
+                            </div>
+                        `;
+
+                        // Ações permitidas por status
+                        let actionsHtml = '';
+                        if (isSelf) {
+                            actionsHtml = `<span class="badge-status badge-admin-self" title="Sua própria conta de administrador">👑 Administrador (Você)</span>`;
+                        } else {
+                            let statusButtons = '';
+                            if (u.access_status === 'needs_profile') {
+                                statusButtons = `<span style="font-size: 0.775rem; color: var(--text-muted); font-style: italic;">Aguardando o usuário completar o cadastro</span>`;
+                            } else if (u.access_status === 'pending') {
+                                statusButtons = `
+                                    <button type="button" class="btn-success" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm);" onclick="handleAdminSetAccess('${u.user_id}', 'approved', '${escapeHtml(u.display_name || u.email)}')">
+                                        ✓ Aprovar
+                                    </button>
+                                    <button type="button" class="btn-danger" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm);" onclick="handleAdminSetAccess('${u.user_id}', 'rejected', '${escapeHtml(u.display_name || u.email)}')">
+                                        ✕ Rejeitar
+                                    </button>
+                                `;
+                            } else if (u.access_status === 'approved') {
+                                statusButtons = `
+                                    <button type="button" class="btn-danger" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm);" onclick="handleAdminSetAccess('${u.user_id}', 'suspended', '${escapeHtml(u.display_name || u.email)}')">
+                                        🔒 Suspender
+                                    </button>
+                                `;
+                            } else if (u.access_status === 'rejected') {
+                                statusButtons = `
+                                    <button type="button" class="btn-success" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm);" onclick="handleAdminSetAccess('${u.user_id}', 'approved', '${escapeHtml(u.display_name || u.email)}')">
+                                        ✓ Aprovar
+                                    </button>
+                                `;
+                            } else if (u.access_status === 'suspended') {
+                                statusButtons = `
+                                    <button type="button" class="btn-primary" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm);" onclick="handleAdminSetAccess('${u.user_id}', 'approved', '${escapeHtml(u.display_name || u.email)}')">
+                                        🔓 Reativar
+                                    </button>
+                                `;
+                            }
+
+                            // Botão padrão de "Ações da Conta" (disponível para todos os usuários exceto o próprio admin)
+                            const safeUserName = escapeHtml(u.display_name || u.email || 'Usuário');
+                            const safeEmail = escapeHtml(u.email || '');
+                            actionsHtml = `
+                                <div style="display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end; flex-wrap: wrap;">
+                                    ${statusButtons}
+                                    <button type="button" class="btn-secondary btn-user-actions" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm); border: 1px solid var(--border);" onclick="openAdminUserActionsModal('${u.user_id}', '${safeUserName}', '${safeEmail}')" title="Gerenciar ações da conta deste usuário">
+                                        ⚙️ Ações
+                                    </button>
+                                </div>
+                            `;
+                        }
+
+                        const displayName = u.display_name
+                            ? escapeHtml(u.display_name)
+                            : '<span style="color: var(--text-muted); font-style: italic;">Não informado</span>';
+
+                        tr.innerHTML = `
+                            <td class="cell-user-info">
+                                <span class="cell-user-name">${displayName}</span>
+                                <span class="cell-user-email">${escapeHtml(u.email || '')}</span>
+                            </td>
+                            <td style="font-size: 0.85rem; color: var(--text-muted); word-break: break-all;">
+                                ${escapeHtml(u.email || '')}
+                            </td>
+                            <td class="cell-user-dates">
+                                <span><strong>Cadastro:</strong> ${formatAdminDateTime(u.signup_at)}</span>
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-muted);"><strong>Última atividade:</strong> ${formatAdminDateTime(lastActAt)}</span>
+                            </td>
+                            <td style="font-size: 0.85rem; color: var(--text-muted);">
+                                ${formatAdminDateTime(lastActAt)}
+                            </td>
+                            <td class="cell-user-activity" style="text-align: center;">
+                                <span class="badge-activity ${actBadgeClass}">${actLabel}</span>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;" title="Operações registradas nos últimos 30 dias (faixa agregada)">
+                                    Faixa 30d: <strong>${opsBand}</strong>
+                                </div>
+                            </td>
+                            <td class="cell-user-features">
+                                ${featuresHtml}
+                            </td>
+                            <td class="cell-user-status" style="text-align: center;">
+                                ${statusBadgeHtml}
+                            </td>
+                            <td class="cell-user-actions">
+                                ${actionsHtml}
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+            } catch (err) {
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'block';
+                if (errorMsgEl) errorMsgEl.innerText = err.message || 'Exceção ao consultar usuários.';
+            }
+        }
+
+        async function handleAdminSetAccess(userId, newStatus, userName) {
+            if (!userId || !newStatus) return;
+
+            const actionDescriptions = {
+                'approved': 'Aprovar e liberar acesso para',
+                'rejected': 'Rejeitar a solicitação de acesso de',
+                'suspended': 'Suspender temporariamente o acesso de'
+            };
+
+            const actionPrompt = actionDescriptions[newStatus] || `Definir status (${newStatus}) para`;
+            const confirmed = window.confirm(`Deseja realmente ${actionPrompt} "${userName}"?`);
+            if (!confirmed) return;
+
+            showToast('Atualizando permissões...', 'info');
+
+            const { success, error } = await adminSetUserAccess(userId, newStatus);
+            if (!success || error) {
+                showToast('Erro ao atualizar status: ' + (error?.message || 'Falha na operação.'), 'error');
+            } else {
+                const successMsg = newStatus === 'approved'
+                    ? `Acesso concedido com sucesso para "${userName}"!`
+                    : (newStatus === 'suspended' ? `Acesso de "${userName}" foi suspenso.` : `Solicitação de "${userName}" rejeitada.`);
+                showToast(successMsg, 'success');
+                await loadAdminUsersView();
+            }
+        }
+
+        /* ==========================================================
+           🛡️ CONTROLADORES: AÇÕES DA CONTA, SENHA & RESET 48H (FASE 4.5-C5-C / C5-D)
+           ========================================================== */
+        let activeAdminActionUser = null;
+        let activeAdminActionUserResetStatus = null;
+        let isAdminResetSubmitting = false;
+        let isAdminResetStatusLoading = false;
+        let isAdminDataResetSubmitting = false;
+        let isAdminDataRestoreSubmitting = false;
+
+        function formatResetDateTime(isoString) {
+            if (!isoString) return '—';
+            try {
+                const d = new Date(isoString);
+                if (isNaN(d.getTime())) return isoString;
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                const hours = String(d.getHours()).padStart(2, '0');
+                const mins = String(d.getMinutes()).padStart(2, '0');
+                return `${day}/${month}/${year} às ${hours}:${mins}`;
+            } catch {
+                return isoString;
+            }
+        }
+
+        function getRemainingHoursText(expiresAtIso) {
+            if (!expiresAtIso) return '';
+            try {
+                const expires = new Date(expiresAtIso).getTime();
+                const now = Date.now();
+                const diffMs = expires - now;
+                if (diffMs <= 0) return 'prazo expirado';
+                const hours = Math.ceil(diffMs / (1000 * 60 * 60));
+                if (hours <= 1) return 'menos de 1 hora restante';
+                return `menos de ${hours}h restantes`;
+            } catch {
+                return '';
+            }
+        }
+
+        async function loadAdminUserResetStatus(userId) {
+            if (!userId) return;
+
+            const loadingEl = document.getElementById('adminDataResetLoading');
+            const errorEl = document.getElementById('adminDataResetError');
+            const defaultView = document.getElementById('adminDataResetDefaultView');
+            const activeView = document.getElementById('adminDataResetActiveView');
+            const badgeEl = document.getElementById('adminDataResetBadge');
+            const resetBtn = document.getElementById('btnAdminOpenResetConfirm');
+            const feedbackEl = document.getElementById('adminDataResetFeedback');
+            const createdAtEl = document.getElementById('adminActiveResetCreatedAt');
+            const expiresInfoEl = document.getElementById('adminActiveResetExpiresInfo');
+            const expiredNoticeEl = document.getElementById('adminDataResetExpiredNotice');
+
+            // Reset visual inicial (fail-closed)
+            if (feedbackEl) { feedbackEl.style.display = 'none'; feedbackEl.innerText = ''; }
+            if (loadingEl) loadingEl.style.display = 'block';
+            if (errorEl) errorEl.style.display = 'none';
+            if (defaultView) defaultView.style.display = 'none';
+            if (activeView) activeView.style.display = 'none';
+            if (badgeEl) badgeEl.style.display = 'none';
+            if (resetBtn) resetBtn.disabled = true;
+
+            isAdminResetStatusLoading = true;
+            activeAdminActionUserResetStatus = null;
+
+            // Proteção contra auto-reset
+            if (currentUser && currentUser.id === userId) {
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (defaultView) defaultView.style.display = 'block';
+                if (resetBtn) {
+                    resetBtn.disabled = true;
+                    resetBtn.title = 'Operação não permitida sobre a própria conta.';
+                }
+                isAdminResetStatusLoading = false;
+                return;
+            }
+
+            try {
+                const statusRes = await adminGetUserResetStatus(userId);
+
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                if (statusRes.error) {
+                    console.warn('[AdminReset] Erro ao carregar status do reset:', statusRes.error);
+                    if (errorEl) {
+                        errorEl.style.display = 'block';
+                        errorEl.innerText = '⚠️ Não foi possível consultar o estado do reset.';
+                    }
+                    if (resetBtn) resetBtn.disabled = true;
+                    isAdminResetStatusLoading = false;
+                    return;
+                }
+
+                activeAdminActionUserResetStatus = statusRes;
+
+                if (statusRes.hasActiveReset && statusRes.isRecoverable) {
+                    // Reset ativo e recuperável (janela de 48h)
+                    if (activeView) activeView.style.display = 'block';
+                    if (defaultView) defaultView.style.display = 'none';
+                    if (badgeEl) {
+                        badgeEl.style.display = 'inline-block';
+                        badgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
+                        badgeEl.style.color = 'var(--warning)';
+                        badgeEl.innerText = 'Reset Ativo (48h)';
+                    }
+                    if (createdAtEl) {
+                        createdAtEl.innerText = formatResetDateTime(statusRes.createdAt);
+                    }
+                    if (expiresInfoEl) {
+                        const remaining = getRemainingHoursText(statusRes.expiresAt);
+                        expiresInfoEl.innerText = `Recuperável até ${formatResetDateTime(statusRes.expiresAt)}${remaining ? ` (${remaining})` : ''}`;
+                    }
+                } else {
+                    // Sem reset ativo (normal ou expirado)
+                    if (defaultView) defaultView.style.display = 'block';
+                    if (activeView) activeView.style.display = 'none';
+                    if (badgeEl) badgeEl.style.display = 'none';
+                    if (resetBtn) resetBtn.disabled = false;
+
+                    const isExpired = statusRes.createdAt && (!statusRes.hasActiveReset || !statusRes.isRecoverable);
+                    if (expiredNoticeEl) {
+                        expiredNoticeEl.style.display = isExpired ? 'block' : 'none';
+                    }
+                }
+            } catch (err) {
+                console.error('[AdminReset] Exceção ao carregar status do reset:', err);
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.innerText = '⚠️ Não foi possível consultar o estado do reset.';
+                }
+                if (resetBtn) resetBtn.disabled = true;
+            } finally {
+                isAdminResetStatusLoading = false;
+            }
+        }
+
+        function openAdminResetConfirmModal() {
+            if (isAdminResetStatusLoading || !activeAdminActionUser) return;
+            if (activeAdminActionUserResetStatus?.hasActiveReset) {
+                showToast('Este usuário já possui um reset ativo em andamento.', 'warning');
+                return;
+            }
+
+            const modal = document.getElementById('adminResetConfirmModal');
+            const nameEl = document.getElementById('adminResetConfirmUserName');
+            const emailEl = document.getElementById('adminResetConfirmUserEmail');
+            const feedbackEl = document.getElementById('adminResetConfirmFeedback');
+            const confirmBtn = document.getElementById('btnAdminExecuteReset');
+
+            if (nameEl) nameEl.innerText = activeAdminActionUser.userName;
+            if (emailEl) emailEl.innerText = activeAdminActionUser.userEmail;
+            if (feedbackEl) { feedbackEl.style.display = 'none'; feedbackEl.innerText = ''; }
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Confirmar reset';
+            }
+
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAdminResetConfirmModal() {
+            const modal = document.getElementById('adminResetConfirmModal');
+            if (modal) modal.style.display = 'none';
+            isAdminDataResetSubmitting = false;
+        }
+
+        async function executeAdminResetData() {
+            if (!activeAdminActionUser || !activeAdminActionUser.userId) {
+                showToast('Nenhum usuário válido selecionado.', 'error');
+                return;
+            }
+
+            if (isAdminDataResetSubmitting) return;
+
+            const confirmBtn = document.getElementById('btnAdminExecuteReset');
+            const feedbackEl = document.getElementById('adminResetConfirmFeedback');
+            const sectionFeedbackEl = document.getElementById('adminDataResetFeedback');
+
+            isAdminDataResetSubmitting = true;
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerText = 'Resetando...';
+            }
+            if (feedbackEl) feedbackEl.style.display = 'none';
+
+            try {
+                const res = await adminResetUserData(activeAdminActionUser.userId);
+
+                if (!res.success || res.error) {
+                    const errMsg = res.error?.message || 'Falha ao resetar dados do usuário.';
+                    if (feedbackEl) {
+                        feedbackEl.style.display = 'block';
+                        feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                        feedbackEl.style.color = 'var(--danger)';
+                        feedbackEl.style.border = '1px solid var(--danger)';
+                        feedbackEl.innerText = `❌ ${errMsg}`;
+                    }
+                    showToast('Erro no reset: ' + errMsg, 'error');
+                    return;
+                }
+
+                // Sucesso: fecha modal de confirmação e atualiza interface
+                closeAdminResetConfirmModal();
+
+                const successMsg = 'Dados resetados com sucesso. É possível desfazer esta ação por até 48 horas.';
+                if (sectionFeedbackEl) {
+                    sectionFeedbackEl.style.display = 'block';
+                    sectionFeedbackEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                    sectionFeedbackEl.style.color = 'var(--success)';
+                    sectionFeedbackEl.style.border = '1px solid var(--success)';
+                    sectionFeedbackEl.innerText = `✅ ${successMsg}`;
+                }
+                showToast(successMsg, 'success', 5000);
+
+                await loadAdminUserResetStatus(activeAdminActionUser.userId);
+                await loadAdminUsersView();
+
+            } catch (err) {
+                console.error('[AdminReset] Exceção ao executar reset:', err);
+                if (feedbackEl) {
+                    feedbackEl.style.display = 'block';
+                    feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                    feedbackEl.style.color = 'var(--danger)';
+                    feedbackEl.style.border = '1px solid var(--danger)';
+                    feedbackEl.innerText = `❌ Exceção ao processar reset: ${err.message || err}`;
+                }
+                showToast('Erro inesperado ao resetar dados.', 'error');
+            } finally {
+                isAdminDataResetSubmitting = false;
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = 'Confirmar reset';
+                }
+            }
+        }
+
+        function openAdminRestoreConfirmModal() {
+            if (isAdminResetStatusLoading || !activeAdminActionUser) return;
+            if (!activeAdminActionUserResetStatus?.hasActiveReset || !activeAdminActionUserResetStatus?.isRecoverable) {
+                showToast('Não há reset recuperável ativo para este usuário.', 'warning');
+                return;
+            }
+
+            const modal = document.getElementById('adminRestoreConfirmModal');
+            const nameEl = document.getElementById('adminRestoreConfirmUserName');
+            const emailEl = document.getElementById('adminRestoreConfirmUserEmail');
+            const feedbackEl = document.getElementById('adminRestoreConfirmFeedback');
+            const restoreBtn = document.getElementById('btnAdminExecuteRestore');
+
+            if (nameEl) nameEl.innerText = activeAdminActionUser.userName;
+            if (emailEl) emailEl.innerText = activeAdminActionUser.userEmail;
+            if (feedbackEl) { feedbackEl.style.display = 'none'; feedbackEl.innerText = ''; }
+            if (restoreBtn) {
+                restoreBtn.disabled = false;
+                restoreBtn.innerText = 'Restaurar dados';
+            }
+
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAdminRestoreConfirmModal() {
+            const modal = document.getElementById('adminRestoreConfirmModal');
+            if (modal) modal.style.display = 'none';
+            isAdminDataRestoreSubmitting = false;
+        }
+
+        async function executeAdminRestoreData() {
+            if (!activeAdminActionUser || !activeAdminActionUser.userId || !activeAdminActionUserResetStatus?.resetId) {
+                showToast('Dados de identificação do reset incompletos ou ausentes.', 'error');
+                return;
+            }
+
+            if (isAdminDataRestoreSubmitting) return;
+
+            const restoreBtn = document.getElementById('btnAdminExecuteRestore');
+            const feedbackEl = document.getElementById('adminRestoreConfirmFeedback');
+            const sectionFeedbackEl = document.getElementById('adminDataResetFeedback');
+
+            isAdminDataRestoreSubmitting = true;
+            if (restoreBtn) {
+                restoreBtn.disabled = true;
+                restoreBtn.innerText = 'Restaurando...';
+            }
+            if (feedbackEl) feedbackEl.style.display = 'none';
+
+            try {
+                const targetUserId = activeAdminActionUser.userId;
+                const resetId = activeAdminActionUserResetStatus.resetId;
+
+                const res = await adminRestoreUserData(targetUserId, resetId);
+
+                if (!res.success || res.error) {
+                    const rawMsg = (res.error?.message || '').toLowerCase();
+                    const isNewDataConflict = res.error?.code === '22000' ||
+                        rawMsg.includes('novos dados') ||
+                        rawMsg.includes('dados criados');
+
+                    const userErrMsg = isNewDataConflict
+                        ? 'Não foi possível restaurar porque o usuário já possui novos dados após o reset.'
+                        : (res.error?.message || 'Falha ao restaurar dados do usuário.');
+
+                    if (feedbackEl) {
+                        feedbackEl.style.display = 'block';
+                        feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                        feedbackEl.style.color = 'var(--danger)';
+                        feedbackEl.style.border = '1px solid var(--danger)';
+                        feedbackEl.innerText = `❌ ${userErrMsg}`;
+                    }
+                    showToast(userErrMsg, 'error', 5000);
+                    return;
+                }
+
+                // Sucesso: fecha modal de confirmação e atualiza interface
+                closeAdminRestoreConfirmModal();
+
+                const successMsg = 'Dados restaurados com sucesso!';
+                if (sectionFeedbackEl) {
+                    sectionFeedbackEl.style.display = 'block';
+                    sectionFeedbackEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                    sectionFeedbackEl.style.color = 'var(--success)';
+                    sectionFeedbackEl.style.border = '1px solid var(--success)';
+                    sectionFeedbackEl.innerText = `✅ ${successMsg}`;
+                }
+                showToast(successMsg, 'success');
+
+                await loadAdminUserResetStatus(activeAdminActionUser.userId);
+                await loadAdminUsersView();
+
+            } catch (err) {
+                console.error('[AdminRestore] Exceção ao executar restauração:', err);
+                if (feedbackEl) {
+                    feedbackEl.style.display = 'block';
+                    feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                    feedbackEl.style.color = 'var(--danger)';
+                    feedbackEl.style.border = '1px solid var(--danger)';
+                    feedbackEl.innerText = `❌ Exceção ao processar restauração: ${err.message || err}`;
+                }
+                showToast('Erro inesperado ao restaurar dados.', 'error');
+            } finally {
+                isAdminDataRestoreSubmitting = false;
+                if (restoreBtn) {
+                    restoreBtn.disabled = false;
+                    restoreBtn.innerText = 'Restaurar dados';
+                }
+            }
+        }
+
+        function openAdminUserActionsModal(userId, userName, userEmail) {
+            if (!userId) return;
+            activeAdminActionUser = {
+                userId,
+                userName: userName || 'Usuário',
+                userEmail: userEmail || ''
+            };
+
+            const modal = document.getElementById('adminUserActionsModal');
+            const nameEl = document.getElementById('adminModalUserName');
+            const emailInput = document.getElementById('adminModalUserEmail');
+            const feedbackEl = document.getElementById('adminPasswordResetFeedback');
+            const sendBtn = document.getElementById('btnAdminSendPasswordReset');
+
+            if (nameEl) nameEl.innerText = activeAdminActionUser.userName;
+            if (emailInput) emailInput.value = activeAdminActionUser.userEmail;
+            if (feedbackEl) {
+                feedbackEl.style.display = 'none';
+                feedbackEl.innerText = '';
+            }
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerText = '✉️ Enviar Redefinição de Senha';
+            }
+
+            if (modal) modal.style.display = 'flex';
+
+            // Carrega o status de reset de dados do usuário (Fase 4.5-C5-D)
+            loadAdminUserResetStatus(userId);
+        }
+
+        function closeAdminUserActionsModal() {
+            const modal = document.getElementById('adminUserActionsModal');
+            if (modal) modal.style.display = 'none';
+            closeAdminResetConfirmModal();
+            closeAdminRestoreConfirmModal();
+            closeAdminDeleteUserModal();
+            activeAdminActionUser = null;
+            activeAdminActionUserResetStatus = null;
+            isAdminResetSubmitting = false;
+            isAdminDataResetSubmitting = false;
+            isAdminDataRestoreSubmitting = false;
+            isAdminDeleteSubmitting = false;
+        }
+
+        async function executeAdminPasswordReset() {
+            if (!activeAdminActionUser || !activeAdminActionUser.userEmail || !activeAdminActionUser.userId) {
+                showToast('Nenhum usuário válido selecionado.', 'error');
+                return;
+            }
+
+            // Proteção contra cliques múltiplos acidentais
+            if (isAdminResetSubmitting) return;
+
+            const sendBtn = document.getElementById('btnAdminSendPasswordReset');
+            const feedbackEl = document.getElementById('adminPasswordResetFeedback');
+
+            isAdminResetSubmitting = true;
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.innerText = '⏳ Enviando...';
+            }
+            if (feedbackEl) feedbackEl.style.display = 'none';
+
+            try {
+                const targetEmail = activeAdminActionUser.userEmail;
+                const targetUserId = activeAdminActionUser.userId;
+                const targetUserName = activeAdminActionUser.userName;
+
+                const res = await adminRequestUserPasswordReset(targetEmail, targetUserId);
+
+                if (res.rateLimited) {
+                    const waitMsg = res.retryAfterSeconds
+                        ? `Aguarde ${res.retryAfterSeconds} segundos antes de tentar novamente.`
+                        : 'Muitas solicitações recentes. Aguarde alguns instantes.';
+                    const errorMsg = `Limite de solicitações atingido (Rate Limit). ${waitMsg}`;
+
+                    if (feedbackEl) {
+                        feedbackEl.style.display = 'block';
+                        feedbackEl.style.background = 'rgba(245, 158, 11, 0.15)';
+                        feedbackEl.style.color = 'var(--warning)';
+                        feedbackEl.style.border = '1px solid var(--warning)';
+                        feedbackEl.innerText = `⚠️ ${errorMsg}`;
+                    }
+                    showToast(errorMsg, 'warning', 5000);
+                    return;
+                }
+
+                if (!res.success || res.error) {
+                    const errMsg = res.error?.message || 'Falha ao enviar e-mail de redefinição.';
+                    if (feedbackEl) {
+                        feedbackEl.style.display = 'block';
+                        feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                        feedbackEl.style.color = 'var(--danger)';
+                        feedbackEl.style.border = '1px solid var(--danger)';
+                        feedbackEl.innerText = `❌ ${errMsg}`;
+                    }
+                    showToast('Erro ao solicitar redefinição: ' + errMsg, 'error');
+                    return;
+                }
+
+                // Sucesso confirmado
+                const successMsg = `Link oficial de redefinição enviado com sucesso para ${targetEmail}!`;
+                if (feedbackEl) {
+                    feedbackEl.style.display = 'block';
+                    feedbackEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                    feedbackEl.style.color = 'var(--success)';
+                    feedbackEl.style.border = '1px solid var(--success)';
+                    feedbackEl.innerText = `✅ ${successMsg}`;
+                }
+                showToast(`E-mail de redefinição enviado para "${targetUserName}".`, 'success');
+
+            } catch (err) {
+                console.error('[AdminPasswordReset] Exceção:', err);
+                if (feedbackEl) {
+                    feedbackEl.style.display = 'block';
+                    feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                    feedbackEl.style.color = 'var(--danger)';
+                    feedbackEl.style.border = '1px solid var(--danger)';
+                    feedbackEl.innerText = `❌ Exceção ao processar solicitação: ${err.message || err}`;
+                }
+                showToast('Erro inesperado: ' + (err.message || 'Falha na operação.'), 'error');
+            } finally {
+                isAdminResetSubmitting = false;
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerText = '✉️ Reenviar Redefinição';
+                }
+            }
+        }
+
+        /* ==========================================================
+           🔑 TELA / FLUXO DE REDEFINIÇÃO DE SENHA DO USUÁRIO (#/reset-password)
+           ========================================================== */
+        let isResetPasswordSubmitting = false;
+
+        function showResetPasswordScreen() {
+            // Oculta todas as telas normais da aplicação
+            const appView = document.getElementById('appView');
+            const loginView = document.getElementById('loginView');
+            const completeProfileView = document.getElementById('completeProfileView');
+            const pendingApprovalView = document.getElementById('pendingApprovalView');
+            const resetView = document.getElementById('resetPasswordView');
+
+            if (appView) appView.style.display = 'none';
+            if (loginView) loginView.style.display = 'none';
+            if (completeProfileView) completeProfileView.style.display = 'none';
+            if (pendingApprovalView) pendingApprovalView.style.display = 'none';
+
+            if (resetView) {
+                resetView.style.display = 'block';
+                const novaInput = document.getElementById('resetNovaSenha');
+                const confirmaInput = document.getElementById('resetConfirmaSenha');
+                const btn = document.getElementById('btnSubmitResetPassword');
+                const msgEl = document.getElementById('resetPasswordMessage');
+
+                if (isPasswordRecoverySession) {
+                    // Sessão de recuperação válida confirmada pelo Supabase Auth
+                    if (novaInput) { novaInput.value = ''; novaInput.disabled = false; novaInput.focus(); }
+                    if (confirmaInput) { confirmaInput.value = ''; confirmaInput.disabled = false; }
+                    if (btn) btn.disabled = false;
+                    if (msgEl) { msgEl.style.display = 'none'; msgEl.innerText = ''; }
+                } else {
+                    // Acesso direto sem sessão válida de recuperação (link expirado ou inválido)
+                    if (novaInput) { novaInput.value = ''; novaInput.disabled = true; }
+                    if (confirmaInput) { confirmaInput.value = ''; confirmaInput.disabled = true; }
+                    if (btn) btn.disabled = true;
+                    if (msgEl) {
+                        msgEl.innerText = 'Link de recuperação inválido ou expirado. Solicite um novo link de redefinição na tela de login.';
+                        msgEl.style.display = 'block';
+                        msgEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                        msgEl.style.color = 'var(--danger)';
+                        msgEl.style.border = '1px solid var(--danger)';
+                    }
+                }
+            }
+        }
+
+        async function handleResetPasswordSubmit(e) {
+            e.preventDefault();
+            if (isResetPasswordSubmitting) return;
+
+            const novaInput = document.getElementById('resetNovaSenha');
+            const confirmaInput = document.getElementById('resetConfirmaSenha');
+            const btn = document.getElementById('btnSubmitResetPassword');
+            const msgEl = document.getElementById('resetPasswordMessage');
+
+            const showResetMsg = (text, isError = true) => {
+                if (msgEl) {
+                    msgEl.innerText = text;
+                    msgEl.style.display = 'block';
+                    msgEl.style.background = isError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+                    msgEl.style.color = isError ? 'var(--danger)' : 'var(--success)';
+                    msgEl.style.border = isError ? '1px solid var(--danger)' : '1px solid var(--success)';
+                }
+            };
+
+            // Guarda estrita de sessão de recuperação (Fase 4.5-C5-C.1)
+            if (!isPasswordRecoverySession) {
+                showResetMsg('Link de recuperação inválido ou expirado. Solicite um novo link de redefinição na tela de login.', true);
+                return;
+            }
+
+            const novaSenha = (novaInput?.value || '');
+            const confirmaSenha = (confirmaInput?.value || '');
+
+            // Validação de correspondência
+            if (novaSenha !== confirmaSenha) {
+                showResetMsg('As duas senhas digitadas não coincidem!', true);
+                if (confirmaInput) confirmaInput.focus();
+                return;
+            }
+
+            // Validação de força de senha
+            if (!isStrongPassword(novaSenha)) {
+                showResetMsg('A nova senha deve ter no mínimo 8 caracteres, contendo pelo menos 1 letra maiúscula, 1 número e 1 caractere especial (!@#$%^&*).', true);
+                if (novaInput) novaInput.focus();
+                return;
+            }
+
+            isResetPasswordSubmitting = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Salvando Nova Senha...';
+            }
+            if (msgEl) msgEl.style.display = 'none';
+
+            try {
+                const { error } = await authUpdatePassword(novaSenha);
+
+                if (error) {
+                    showResetMsg('Erro ao redefinir senha: ' + error.message, true);
+                    return;
+                }
+
+                // Senha atualizada com sucesso
+                isPasswordRecoverySession = false;
+                showToast('Senha redefinida com sucesso! Você já pode entrar.', 'success');
+                showResetMsg('Senha alterada com sucesso! Redirecionando...', false);
+
+                // Limpeza estrita de credenciais da memória/DOM
+                if (novaInput) novaInput.value = '';
+                if (confirmaInput) confirmaInput.value = '';
+
+                setTimeout(() => {
+                    const resetView = document.getElementById('resetPasswordView');
+                    if (resetView) resetView.style.display = 'none';
+                    window.location.hash = '#/dashboard';
+                    checkSession();
+                }, 1200);
+
+            } catch (err) {
+                console.error('[ResetPassword] Exceção:', err);
+                showResetMsg('Exceção ao atualizar senha: ' + (err.message || 'Tente novamente.'), true);
+            } finally {
+                isResetPasswordSubmitting = false;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Salvar Nova Senha';
+                }
+            }
+        }
+
+        function cancelResetPassword() {
+            isPasswordRecoverySession = false;
+            const resetView = document.getElementById('resetPasswordView');
+            if (resetView) resetView.style.display = 'none';
+            const novaInput = document.getElementById('resetNovaSenha');
+            const confirmaInput = document.getElementById('resetConfirmaSenha');
+            if (novaInput) novaInput.value = '';
+            if (confirmaInput) confirmaInput.value = '';
+
+            window.location.hash = '';
+            checkSession();
+        }
+
+        /* ==========================================================
+           🗑️ EXCLUSÃO PERMANENTE DE CONTA DO USUÁRIO (FASE 4.5-C5-E)
+           ========================================================== */
+        let isAdminDeleteSubmitting = false;
+        let adminDeleteExpectedText = '';
+
+        function openAdminDeleteUserModal() {
+            if (!activeAdminActionUser || !activeAdminActionUser.userId) {
+                showToast('Nenhum usuário válido selecionado.', 'error');
+                return;
+            }
+
+            if (currentUser && activeAdminActionUser.userId === currentUser.id) {
+                showToast('Operação não permitida sobre a própria conta de administrador.', 'warning');
+                return;
+            }
+
+            const modal = document.getElementById('adminDeleteUserModal');
+            const nameEl = document.getElementById('adminDeleteUserName');
+            const emailEl = document.getElementById('adminDeleteUserEmail');
+            const step1 = document.getElementById('adminDeleteStep1');
+            const step2 = document.getElementById('adminDeleteStep2');
+            const phraseEl = document.getElementById('adminDeleteExpectedPhrase');
+            const inputEl = document.getElementById('adminDeleteConfirmationInput');
+            const feedbackEl = document.getElementById('adminDeleteFeedback');
+            const deleteBtn = document.getElementById('btnAdminExecuteDelete');
+
+            const hasValidDisplayName = Boolean(
+                activeAdminActionUser.userName &&
+                activeAdminActionUser.userName !== '—' &&
+                activeAdminActionUser.userName !== 'Usuário' &&
+                activeAdminActionUser.userName !== 'Não informado' &&
+                activeAdminActionUser.userName.trim().length > 0
+            );
+
+            const confirmTarget = hasValidDisplayName
+                ? activeAdminActionUser.userName.trim()
+                : (activeAdminActionUser.userEmail || '').trim();
+
+            adminDeleteExpectedText = `EXCLUIR ${confirmTarget}`;
+
+            if (nameEl) nameEl.innerText = activeAdminActionUser.userName;
+            if (emailEl) emailEl.innerText = activeAdminActionUser.userEmail;
+            if (phraseEl) phraseEl.innerText = adminDeleteExpectedText;
+            if (inputEl) inputEl.value = '';
+            if (feedbackEl) { feedbackEl.style.display = 'none'; feedbackEl.innerText = ''; }
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.style.opacity = '0.5';
+                deleteBtn.style.cursor = 'not-allowed';
+                deleteBtn.innerText = '🗑️ Excluir permanentemente';
+            }
+
+            if (step1) step1.style.display = 'block';
+            if (step2) step2.style.display = 'none';
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeAdminDeleteUserModal() {
+            const modal = document.getElementById('adminDeleteUserModal');
+            if (modal) modal.style.display = 'none';
+            const inputEl = document.getElementById('adminDeleteConfirmationInput');
+            if (inputEl) inputEl.value = '';
+            isAdminDeleteSubmitting = false;
+        }
+
+        function goToAdminDeleteStep2() {
+            const step1 = document.getElementById('adminDeleteStep1');
+            const step2 = document.getElementById('adminDeleteStep2');
+            const inputEl = document.getElementById('adminDeleteConfirmationInput');
+            const phraseEl = document.getElementById('adminDeleteExpectedPhrase');
+
+            if (phraseEl) phraseEl.innerText = adminDeleteExpectedText;
+            if (step1) step1.style.display = 'none';
+            if (step2) step2.style.display = 'block';
+            if (inputEl) {
+                inputEl.value = '';
+                inputEl.focus();
+            }
+        }
+
+        function goToAdminDeleteStep1() {
+            const step1 = document.getElementById('adminDeleteStep1');
+            const step2 = document.getElementById('adminDeleteStep2');
+            if (step1) step1.style.display = 'block';
+            if (step2) step2.style.display = 'none';
+        }
+
+        function handleAdminDeleteInput(e) {
+            const val = (e?.target?.value || '').trim();
+            const isMatch = (e?.target?.value === adminDeleteExpectedText) || (val === adminDeleteExpectedText);
+            const deleteBtn = document.getElementById('btnAdminExecuteDelete');
+            if (deleteBtn) {
+                deleteBtn.disabled = !isMatch;
+                deleteBtn.style.opacity = isMatch ? '1' : '0.5';
+                deleteBtn.style.cursor = isMatch ? 'pointer' : 'not-allowed';
+            }
+        }
+
+        async function executeAdminDeleteUser() {
+            if (!activeAdminActionUser || !activeAdminActionUser.userId) {
+                showToast('Nenhum usuário válido selecionado.', 'error');
+                return;
+            }
+
+            if (currentUser && activeAdminActionUser.userId === currentUser.id) {
+                showToast('Operação não permitida sobre a própria conta de administrador.', 'warning');
+                return;
+            }
+
+            if (isAdminDeleteSubmitting) return;
+
+            const inputEl = document.getElementById('adminDeleteConfirmationInput');
+            const inputVal = (inputEl?.value || '').trim();
+            if (inputVal !== adminDeleteExpectedText && inputEl?.value !== adminDeleteExpectedText) {
+                showToast('A frase digitada não corresponde à confirmação exigida.', 'warning');
+                return;
+            }
+
+            const deleteBtn = document.getElementById('btnAdminExecuteDelete');
+            const feedbackEl = document.getElementById('adminDeleteFeedback');
+
+            isAdminDeleteSubmitting = true;
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.innerText = 'Excluindo permanentemente...';
+            }
+            if (feedbackEl) feedbackEl.style.display = 'none';
+
+            try {
+                const targetUserId = activeAdminActionUser.userId;
+                const targetUserName = activeAdminActionUser.userName;
+
+                const res = await adminDeleteUserAccount(targetUserId);
+
+                if (!res.success || res.error) {
+                    const errMsg = res.error?.message || 'Falha ao excluir a conta do usuário.';
+                    if (feedbackEl) {
+                        feedbackEl.style.display = 'block';
+                        feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                        feedbackEl.style.color = 'var(--danger)';
+                        feedbackEl.style.border = '1px solid var(--danger)';
+                        feedbackEl.innerText = `❌ ${errMsg}`;
+                    }
+                    showToast('Erro ao excluir conta: ' + errMsg, 'error');
+                    return;
+                }
+
+                // Sucesso: fecha modais e recarrega dados da visão administrativa
+                closeAdminDeleteUserModal();
+                closeAdminUserActionsModal();
+
+                showToast(`A conta de "${targetUserName}" e todos os seus dados foram excluídos permanentemente.`, 'success', 6000);
+
+                await loadAdminUsersView();
+
+            } catch (err) {
+                console.error('[AdminDelete] Exceção ao executar exclusão:', err);
+                if (feedbackEl) {
+                    feedbackEl.style.display = 'block';
+                    feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                    feedbackEl.style.color = 'var(--danger)';
+                    feedbackEl.style.border = '1px solid var(--danger)';
+                    feedbackEl.innerText = `❌ Exceção ao processar exclusão: ${err.message || err}`;
+                }
+                showToast('Erro inesperado ao excluir conta: ' + (err.message || 'Falha'), 'error');
+            } finally {
+                isAdminDeleteSubmitting = false;
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerText = '🗑️ Excluir permanentemente';
+                }
+            }
+        }
+
+        window.loadAdminUsersView = loadAdminUsersView;
+        window.handleAdminSearchInput = handleAdminSearchInput;
+        window.handleAdminSetAccess = handleAdminSetAccess;
+        window.openAdminUserActionsModal = openAdminUserActionsModal;
+        window.closeAdminUserActionsModal = closeAdminUserActionsModal;
+        window.executeAdminPasswordReset = executeAdminPasswordReset;
+        window.showResetPasswordScreen = showResetPasswordScreen;
+        window.handleResetPasswordSubmit = handleResetPasswordSubmit;
+        window.cancelResetPassword = cancelResetPassword;
+        window.isPasswordRecoverySession = () => isPasswordRecoverySession;
+        window.setPasswordRecoverySession = (val) => { isPasswordRecoverySession = Boolean(val); };
+        window.loadAdminUserResetStatus = loadAdminUserResetStatus;
+        window.openAdminResetConfirmModal = openAdminResetConfirmModal;
+        window.closeAdminResetConfirmModal = closeAdminResetConfirmModal;
+        window.executeAdminResetData = executeAdminResetData;
+        window.openAdminRestoreConfirmModal = openAdminRestoreConfirmModal;
+        window.closeAdminRestoreConfirmModal = closeAdminRestoreConfirmModal;
+        window.executeAdminRestoreData = executeAdminRestoreData;
+        window.getActiveAdminActionUserResetStatus = () => activeAdminActionUserResetStatus;
+        window.getIsAdminResetStatusLoading = () => isAdminResetStatusLoading;
+        window.openAdminDeleteUserModal = openAdminDeleteUserModal;
+        window.closeAdminDeleteUserModal = closeAdminDeleteUserModal;
+        window.goToAdminDeleteStep2 = goToAdminDeleteStep2;
+        window.goToAdminDeleteStep1 = goToAdminDeleteStep1;
+        window.handleAdminDeleteInput = handleAdminDeleteInput;
+        window.executeAdminDeleteUser = executeAdminDeleteUser;
+        window.getAdminDeleteExpectedText = () => adminDeleteExpectedText;
+        window.getIsAdminDeleteSubmitting = () => isAdminDeleteSubmitting;
+        window.clearFinancialMemory = clearFinancialMemory;
     </script>
     <!-- PWA SERVICE WORKER REGISTRATION -->
     <script>

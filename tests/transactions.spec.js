@@ -111,8 +111,7 @@ test.describe('Transações - CRUD e Fluxo Real', () => {
         await setupAuthenticatedApp(page);
 
         // No mock: Saque R$ 200,00 - Gasto em Dinheiro R$ 60,00 = Saldo R$ 140,00
-        const saldoEspecieText = await page.locator('#kpi-dinheiro-vivo').textContent();
-        expect(saldoEspecieText).toMatch(/140,00/);
+        await expect(page.locator('#kpi-dinheiro-vivo')).toContainText('140,00');
     });
 
 });

@@ -64,3 +64,12 @@ export function updatePassword(password) {
 export function requestPasswordReset(email, options) {
     return supabaseClient.auth.resetPasswordForEmail(email, options);
 }
+
+/**
+ * Registra um callback para mudanças de estado de autenticação (ex: PASSWORD_RECOVERY, SIGNED_IN).
+ * @param {(event: string, session: object | null) => void} callback
+ * @returns {{ data: { subscription: object } }}
+ */
+export function onAuthStateChange(callback) {
+    return supabaseClient.auth.onAuthStateChange(callback);
+}

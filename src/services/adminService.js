@@ -615,6 +615,17 @@ export async function deleteUserAccount(targetUserId) {
             let customMsg = error.message;
             if (data?.error) {
                 customMsg = data.error;
+            } else if (error?.context) {
+                try {
+                    const errorJson = typeof error.context.json === 'function'
+                        ? await error.context.json()
+                        : (typeof error.context === 'object' && error.context ? error.context : null);
+                    if (errorJson?.error) {
+                        customMsg = errorJson.error;
+                    }
+                } catch {
+                    // Fallback para error.message padrão
+                }
             }
             return {
                 success: false,

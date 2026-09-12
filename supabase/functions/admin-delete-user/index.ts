@@ -58,14 +58,17 @@ serve(async (req: Request) => {
       );
     }
 
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+
     // Cliente no contexto do requisitante para validação de JWT e autorização RLS
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const { data: { user: callerUser }, error: authError } = await userClient.auth.getUser();
+    const { data: { user: callerUser }, error: authError } = await userClient.auth.getUser(token);
     if (authError || !callerUser) {
+      console.error("[admin-delete-user] Falha na validação do token:", authError?.message);
       return new Response(
         JSON.stringify({ error: "Sessão inválida ou expirada." }),
         {

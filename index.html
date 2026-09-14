@@ -10023,6 +10023,10 @@
         window.closeScheduleModal = closeScheduleModal;
         window.toggleScheduleFormFields = toggleScheduleFormFields;
         window.saveScheduleRule = saveScheduleRule;
+        const deactivateScheduleRule = executeDeleteScheduleRule;
+        window.openDeleteScheduleModal = openDeleteScheduleModal;
+        window.closeDeleteScheduleModal = closeDeleteScheduleModal;
+        window.executeDeleteScheduleRule = executeDeleteScheduleRule;
         window.deactivateScheduleRule = deactivateScheduleRule;
         window.openConfirmarOcorrenciaModal = openConfirmarOcorrenciaModal;
         window.closeConfirmarOcorrenciaModal = closeConfirmarOcorrenciaModal;
@@ -11085,7 +11089,7 @@
                             actionsHtml = `
                                 <div style="display: flex; align-items: center; gap: 0.4rem; justify-content: flex-end; flex-wrap: wrap;">
                                     ${statusButtons}
-                                    <button type="button" class="btn-secondary btn-user-actions" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm); border: 1px solid var(--border);" onclick="openAdminUserActionsModal('${u.user_id}', '${safeUserName}', '${safeEmail}')" title="Gerenciar ações da conta deste usuário">
+                                    <button type="button" class="btn-secondary btn-user-actions" data-user-id="${u.user_id}" data-user-name="${safeUserName}" data-user-email="${safeEmail}" style="padding: 0.35rem 0.65rem; font-size: 0.775rem; border-radius: var(--radius-sm); border: 1px solid var(--border);" onclick="openAdminUserActionsModal('${u.user_id}', '${safeUserName}', '${safeEmail}')" title="Gerenciar ações da conta deste usuário">
                                         ⚙️ Ações
                                     </button>
                                 </div>
@@ -11129,6 +11133,21 @@
                         `;
                         tbody.appendChild(tr);
                     });
+
+                    // Event delegation resiliente para o botão Ações da tabela de admin
+                    if (!tbody._adminActionsListenerAttached) {
+                        tbody._adminActionsListenerAttached = true;
+                        tbody.addEventListener('click', (ev) => {
+                            const btn = ev.target.closest('.btn-user-actions');
+                            if (!btn) return;
+                            const uid = btn.dataset.userId || btn.getAttribute('data-user-id');
+                            const uname = btn.dataset.userName || btn.getAttribute('data-user-name') || 'Usuário';
+                            const uemail = btn.dataset.userEmail || btn.getAttribute('data-user-email') || '';
+                            if (uid && typeof openAdminUserActionsModal === 'function') {
+                                openAdminUserActionsModal(uid, uname, uemail);
+                            }
+                        });
+                    }
                 }
 
             } catch (err) {
@@ -11517,13 +11536,16 @@
 
         function openAdminUserActionsModal(userId, userName, userEmail) {
             if (!userId) return;
+            const modal = document.getElementById('adminUserActionsModal');
+            if (modal && modal.style.display === 'flex' && activeAdminActionUser && activeAdminActionUser.userId === userId) {
+                return;
+            }
             activeAdminActionUser = {
                 userId,
                 userName: userName || 'Usuário',
                 userEmail: userEmail || ''
             };
 
-            const modal = document.getElementById('adminUserActionsModal');
             const nameEl = document.getElementById('adminModalUserName');
             const emailInput = document.getElementById('adminModalUserEmail');
             const feedbackEl = document.getElementById('adminPasswordResetFeedback');

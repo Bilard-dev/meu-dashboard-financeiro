@@ -1558,6 +1558,24 @@ async function setupAuthenticatedApp(page, {
                 });
             }
 
+            if (pathname.includes('/rest/v1/agendamentos_financeiros')) {
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    headers: { 'content-range': '*/0' },
+                    body: JSON.stringify([])
+                });
+            }
+
+            if (pathname.includes('/rest/v1/agendamento_ocorrencias')) {
+                return route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    headers: { 'content-range': '*/0' },
+                    body: JSON.stringify([])
+                });
+            }
+
             // Qualquer outra chamada Supabase não prevista é abortada com erro para segurança
             console.warn(`[TESTE-PROTEÇÃO] Chamada não mockada interceptada: ${method} ${url}`);
             return route.abort('failed');

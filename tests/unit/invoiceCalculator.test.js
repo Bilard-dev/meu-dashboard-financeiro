@@ -570,6 +570,8 @@ describe('invoiceCalculator — Calculadora Pura de Faturas e Parcelamentos', ()
                 totalLiquidadoNaCompetencia: 0,
                 totalFaturaSeguinte,
                 totalRestanteFuturo,
+                totalPrevistoAssinaturas: 0,
+                totalFaturaProjetada: totalFaturaSelecionada,
                 itemsNoMes,
                 cartoesMap
             };

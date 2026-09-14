@@ -141,10 +141,10 @@ export function projectCardExpensesForCompetence(targetYear, targetMonth, baseIt
  *
  * @param {string} selectedYm - Competência no formato 'YYYY-M' (base 0)
  * @param {Array<object>} transactions - Lista de transações brutas
- * @param {Array<object>|Map<string, object>} [settlements=[]] - Lista ou mapa de liquidações antecipadas
+ * @param {Array<object>} [scheduledOccurrences=[]] - Lista opcional de ocorrências de assinaturas previstas
  * @returns {object} Resumo financeiro puro da fatura
  */
-export function calculateInvoiceSummary(selectedYm, transactions, settlements = []) {
+export function calculateInvoiceSummary(selectedYm, transactions, settlements = [], scheduledOccurrences = []) {
     if (!selectedYm || typeof selectedYm !== 'string' || !selectedYm.includes('-')) {
         return {
             targetYear: 0,
@@ -156,6 +156,8 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
             totalLiquidadoNaCompetencia: 0,
             totalFaturaSeguinte: 0,
             totalRestanteFuturo: 0,
+            totalPrevistoAssinaturas: 0,
+            totalFaturaProjetada: 0,
             itemsNoMes: [],
             cartoesMap: {}
         };
@@ -273,9 +275,45 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
         }
     });
 
+    // Processamento de Assinaturas Previstas (Fase 4.6 — PREVISTO ≠ REALIZADO)
+    let totalPrevistoAssinaturas = 0;
+    const occurrencesList = Array.isArray(scheduledOccurrences) ? scheduledOccurrences : [];
+
+    occurrencesList.forEach(occ => {
+        if (!occ || occ.status !== 'PREVISTA') return;
+        const tipo = occ.tipo || occ.agendamento?.tipo;
+        if (tipo !== 'assinatura_cartao') return;
+
+        const pDate = new Date(occ.data_prevista + 'T12:00:00');
+        const oY = pDate.getFullYear();
+        const oM = pDate.getMonth();
+        const oValue = Number(occ.valor_previsto || 0);
+
+        if (oY === targetYear && oM === targetMonth) {
+            totalPrevistoAssinaturas += oValue;
+            itemsNoMes.push({
+                id: occ.id,
+                desc: occ.descricao || occ.agendamento?.descricao || 'Assinatura',
+                category: occ.categoria || occ.agendamento?.categoria || 'Outros',
+                subcategory: occ.subcategoria || occ.agendamento?.subcategoria || '',
+                value: oValue,
+                cartao: occ.cartao || occ.agendamento?.cartao || 'Cartão',
+                rawDate: occ.data_prevista,
+                date: occ.data_prevista,
+                parcela: 'Assinatura',
+                parcelaExibida: '⏳ Previsto',
+                isPrevisto: true,
+                status: 'PREVISTA',
+                isLiquidado: false
+            });
+        }
+    });
+
+    const totalFaturaProjetada = totalFaturaSelecionada + totalPrevistoAssinaturas;
+
     const cartoesMap = {};
     itemsNoMes.forEach(item => {
-        if (!item.isLiquidado) {
+        if (!item.isLiquidado && !item.isPrevisto) {
             const nomeCartao = item.cartao || 'Cartão';
             cartoesMap[nomeCartao] = (cartoesMap[nomeCartao] || 0) + item.value;
         }
@@ -291,6 +329,8 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
         totalLiquidadoNaCompetencia,
         totalFaturaSeguinte,
         totalRestanteFuturo,
+        totalPrevistoAssinaturas,
+        totalFaturaProjetada,
         itemsNoMes,
         cartoesMap
     };

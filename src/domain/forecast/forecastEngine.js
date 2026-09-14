@@ -16,10 +16,12 @@ import { MONTH_NAMES_BR } from '../../core/dateUtils.js';
  * @param {number} horizonMonths - Quantidade de meses a projetar (padrão: 6)
  * @param {Array<object>} transactions - Lista de transações brutas
  * @param {Array<object>|Map<string, object>} [settlements=[]] - Lista ou mapa de liquidações antecipadas
+ * @param {Array<object>} [scheduledOccurrences=[]] - Ocorrências de agendamentos financeiros (assinaturas/PIX)
  * @returns {Array<object>} Lista estruturada de dados de projeção por mês
  */
-export function calculateFinancialForecast(startYm, horizonMonths = 6, transactions = [], settlements = []) {
+export function calculateFinancialForecast(startYm, horizonMonths = 6, transactions = [], settlements = [], scheduledOccurrences = []) {
     const txs = Array.isArray(transactions) ? transactions : [];
+    const occs = Array.isArray(scheduledOccurrences) ? scheduledOccurrences : [];
     const horizon = typeof horizonMonths === 'number' && horizonMonths > 0 ? horizonMonths : 6;
     const settleMap = settlements instanceof Map ? settlements : createSettlementMap(settlements);
 
@@ -96,6 +98,25 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
             .filter(d => d && d.type === 'INVESTIMENTO' && `${d.year}-${d.month}` === ymKey)
             .reduce((acc, d) => acc + d.value, 0);
 
+        // Previsões de Agendamentos (Assinaturas no Cartão e PIX Agendado)
+        // Regra de Ouro: PREVISTO ≠ REALIZADO. Itens 'PREVISTA' não afetam totalComprometido
+        const monthOccurrences = occs.filter(o => {
+            if (!o || o.status !== 'PREVISTA' || !o.data_prevista) return false;
+            const pDate = new Date(o.data_prevista + 'T12:00:00');
+            return !isNaN(pDate.getTime()) && pDate.getFullYear() === y && pDate.getMonth() === m;
+        });
+
+        const totalPrevistoAssinaturas = monthOccurrences
+            .filter(o => o.tipo === 'assinatura_cartao' || o.agendamento?.tipo === 'assinatura_cartao')
+            .reduce((acc, o) => acc + (Number(o.valor_previsto) || 0), 0);
+
+        const totalPrevistoPix = monthOccurrences
+            .filter(o => o.tipo === 'pix_agendado' || o.agendamento?.tipo === 'pix_agendado')
+            .reduce((acc, o) => acc + (Number(o.valor_previsto) || 0), 0);
+
+        const totalPrevistoAgendamentos = totalPrevistoAssinaturas + totalPrevistoPix;
+        const totalProjetadoComPrevisao = totalComprometido + totalPrevistoAgendamentos;
+
         months.push({
             index: i,
             isCurrentMonth: (i === 0),
@@ -113,6 +134,11 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
             investimentosConfirmados,
             byCard,
             byCategory,
+            totalPrevistoAssinaturas,
+            totalPrevistoPix,
+            totalPrevistoAgendamentos,
+            totalProjetadoComPrevisao,
+            scheduledOccurrences: monthOccurrences,
             items
         });
     }

@@ -420,6 +420,11 @@ describe('forecastEngine — Motor Puro de Previsão Financeira 2.0', () => {
                     investimentosConfirmados,
                     byCard,
                     byCategory,
+                    totalPrevistoAssinaturas: 0,
+                    totalPrevistoPix: 0,
+                    totalPrevistoAgendamentos: 0,
+                    totalProjetadoComPrevisao: totalComprometido,
+                    scheduledOccurrences: [],
                     items
                 });
             }

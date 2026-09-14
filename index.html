@@ -2517,6 +2517,7 @@
             <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
             <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
             <button class="tab-btn" onclick="switchTab('previsao')">🔮 Previsão Financeira</button>
+            <button class="tab-btn" onclick="switchTab('agendamentos')">🔁 Assinaturas & Agendados</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
             <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
@@ -2835,7 +2836,8 @@
                 </div>
 
                 <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-selecionada">Fatura Selecionada</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-selecionada">Fatura Realizada</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--primary);"><div><div class="kpi-title" id="kpi-title-fatura-projetada">Fatura Projetada (com Previstas)</div><div class="kpi-value" id="kpi-fatura-projetada" style="color: var(--primary);">R$ 0,00</div></div><div class="kpi-details" id="kpi-fatura-projetada-detalhe"><small style="color:var(--text-muted);">Inclui assinaturas não confirmadas</small></div></div>
                     <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-proxima">Fatura Mês Seguinte</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
                     <div class="kpi-card"><div><div class="kpi-title">🔮 Total Pendente Futuro</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
                 </div>
@@ -2944,6 +2946,111 @@
                             <table class="data-table">
                                 <thead><tr><th>Data Origem</th><th>Descrição</th><th>Meio / Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th></tr></thead>
                                 <tbody id="forecastItemsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA: ASSINATURAS & PAGAMENTOS AGENDADOS (FASE 4.6) -->
+            <div id="tab-agendamentos" class="tab-content">
+                <div class="chart-card" style="margin-bottom: 1.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem; margin-bottom:1.2rem;">
+                        <div>
+                            <h2 class="chart-title" style="font-size: 1.25rem; margin-bottom: 0.3rem;">🔁 Assinaturas & Pagamentos Agendados</h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+                                Gerencie regras recorrentes de Cartão de Crédito e PIX. <b>Regra Canônica: PREVISTO ≠ REALIZADO</b>. A cobrança só vira despesa real após sua confirmação manual.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button type="button" class="btn-primary" onclick="openScheduleModal()" style="font-size:0.85rem; padding:0.5rem 1rem;">
+                                ➕ Nova Regra
+                            </button>
+                            <button type="button" class="action-btn" onclick="renderAgendamentosTab()" title="Atualizar Lista" style="font-size:0.85rem; padding:0.5rem 0.8rem;">
+                                🔄 Atualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARDS DE RESUMO OPERACIONAL -->
+                    <div class="kpi-container" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">
+                        <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                            <div>
+                                <div class="kpi-title">Assinaturas Ativas (Cartão)</div>
+                                <div class="kpi-value" id="kpi-agendamentos-cartao-count" style="color: var(--primary);">0</div>
+                            </div>
+                            <div class="kpi-details" id="kpi-agendamentos-cartao-val"><small style="color:var(--text-muted);">Previsto: R$ 0,00/mês</small></div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+                            <div>
+                                <div class="kpi-title">PIX Agendados Ativos</div>
+                                <div class="kpi-value" id="kpi-agendamentos-pix-count" style="color: var(--warning);">0</div>
+                            </div>
+                            <div class="kpi-details" id="kpi-agendamentos-pix-val"><small style="color:var(--text-muted);">Previsto: R$ 0,00/mês</small></div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid var(--danger);">
+                            <div>
+                                <div class="kpi-title">Ocorrências Previstas Pendentes</div>
+                                <div class="kpi-value" id="kpi-agendamentos-pendentes-count" style="color: var(--danger);">0</div>
+                            </div>
+                            <div class="kpi-details" id="kpi-agendamentos-pendentes-val"><small style="color:var(--text-muted);">Aguardando confirmação manual</small></div>
+                        </div>
+                    </div>
+
+                    <!-- SEÇÃO: OCORRÊNCIAS PREVISTAS (PRONTAS PARA CONFIRMAÇÃO OU CANCELAMENTO) -->
+                    <div style="margin-bottom: 2rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-main); margin:0;">
+                                📅 Próximas Ocorrências Previstas
+                            </h3>
+                            <small style="color:var(--text-muted);">Confirmar lança transação real; Cancelar mantém histórico sem lançar.</small>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data Prevista</th>
+                                        <th>Tipo</th>
+                                        <th>Descrição</th>
+                                        <th>Cartão / Meio</th>
+                                        <th>Categoria</th>
+                                        <th>Valor Previsto</th>
+                                        <th>Status</th>
+                                        <th style="text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedulesOccurrencesTableBody">
+                                    <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Carregando ocorrências...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="schedulesOccurrencesPagination" style="display:none; margin-top:0.85rem; text-align:center;"></div>
+                    </div>
+
+                    <!-- SEÇÃO: REGRAS PERSISTENTES CADASTRADAS -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-main); margin:0;">
+                                ⚙️ Regras de Recorrência Ativas
+                            </h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome da Regra</th>
+                                        <th>Tipo</th>
+                                        <th>Cartão / Meio</th>
+                                        <th>Dia Vencimento</th>
+                                        <th>Categoria / Sub</th>
+                                        <th>Valor Base</th>
+                                        <th>Status</th>
+                                        <th style="text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedulesRulesTableBody">
+                                    <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Carregando regras...</td></tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -3639,6 +3746,13 @@
                         <span class="mobile-more-text">
                             <strong>Previsão</strong>
                             <small>Fluxo de caixa futuro</small>
+                        </span>
+                    </button>
+                    <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('agendamentos')">
+                        <span class="mobile-more-icon">🔁</span>
+                        <span class="mobile-more-text">
+                            <strong>Assinaturas & Agendados</strong>
+                            <small>Cartão e PIX recorrentes</small>
                         </span>
                     </button>
                     <button type="button" class="mobile-more-btn" onclick="navigateToFromMore('gerenciar-listas')">
@@ -4362,6 +4476,148 @@
         </div>
     </div>
 
+    <!-- MODAL: NOVA/EDITAR REGRA DE AGENDAMENTO FINANCEIRO (FASE 4.6) -->
+    <div id="modalScheduleRule" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalScheduleTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:520px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 id="modalScheduleTitle" style="margin:0; font-size:1.15rem; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:0.5rem;">
+                    <span>🔁</span> Regra de Agendamento
+                </h3>
+                <button type="button" class="action-icon-btn" onclick="closeScheduleModal()" aria-label="Fechar" style="border:none; background:transparent; font-size:1.2rem;">✕</button>
+            </div>
+            <form id="scheduleRuleForm" onsubmit="saveScheduleRule(event)">
+                <input type="hidden" id="sched_id" value="">
+                <div class="form-grid">
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label for="sched_tipo">Tipo de Agendamento *</label>
+                        <select id="sched_tipo" class="input-field" required onchange="toggleScheduleFormFields()">
+                            <option value="assinatura_cartao" selected>Assinatura no Cartão de Crédito</option>
+                            <option value="pix_agendado">PIX Agendado</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="grid-column: span 2;">
+                        <label for="sched_descricao">Descrição / Nome do Serviço *</label>
+                        <input type="text" id="sched_descricao" class="input-field" placeholder="Ex: Netflix, Spotify, Aluguel, Academia" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="sched_valor">Valor Base Previsto (R$) *</label>
+                        <input type="number" id="sched_valor" step="0.01" class="input-field" placeholder="Ex: 55.90" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="sched_dia">Dia de Vencimento / Cobrança (1-31) *</label>
+                        <input type="number" id="sched_dia" min="1" max="31" class="input-field" placeholder="Ex: 10" required>
+                    </div>
+                    <div class="input-group" id="sched_cartao_group">
+                        <label for="sched_cartao">Cartão de Crédito *</label>
+                        <select id="sched_cartao" class="input-field">
+                            <option value="">-- Selecione o Cartão --</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="sched_categoria">Categoria *</label>
+                        <select id="sched_categoria" class="input-field" required onchange="onCategoryChange('sched_categoria', 'sched_subcategoria'); handleDynamicSelect(this, 'Categoria')">
+                            <option value="">-- Selecione --</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="sched_subcategoria">Subcategoria</label>
+                        <select id="sched_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
+                            <option value="">-- Selecione a Categoria Primeiro --</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="sched_tags">TAGs (Opcional)</label>
+                        <input type="text" id="sched_tags" class="input-field" placeholder="Ex: Fixo, Essencial">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.2rem;">
+                    <button type="button" class="btn-secondary" onclick="closeScheduleModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSaveScheduleRule" style="width:auto; padding:0.6rem 1.5rem;">Salvar Regra</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR EXCLUSÃO / DESATIVAÇÃO DE REGRA DE AGENDAMENTO (FASE 4.6-H7) -->
+    <div id="modalDeleteScheduleRule" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalDeleteScheduleRuleTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.65); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:460px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative; border-left:4px solid var(--danger);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 id="modalDeleteScheduleRuleTitle" style="margin:0; font-size:1.15rem; font-weight:700; color:var(--danger); display:flex; align-items:center; gap:0.5rem;">
+                    <span>🗑️</span> Excluir Regra de Agendamento
+                </h3>
+                <button type="button" class="action-icon-btn" onclick="closeDeleteScheduleModal()" aria-label="Fechar" style="border:none; background:transparent; font-size:1.2rem;">✕</button>
+            </div>
+            <input type="hidden" id="delete_schedule_id" value="">
+            <p style="font-size:0.95rem; color:var(--text-main); margin:0 0 0.8rem 0;">
+                Deseja excluir a regra <strong id="delete_schedule_nome" style="color:var(--primary);">-</strong>?
+            </p>
+            <div style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.3); border-radius:var(--radius-md); padding:0.85rem; margin-bottom:1.2rem; font-size:0.85rem; line-height:1.45; color:var(--text-main);">
+                <p style="margin:0 0 0.4rem 0;"><b>⚠️ O que acontece ao excluir:</b></p>
+                <ul style="margin:0; padding-left:1.2rem; color:var(--text-muted);">
+                    <li>As cobranças futuras previstas desta regra serão <b>canceladas</b>;</li>
+                    <li>Pagamentos já <b>realizados</b> e o histórico financeiro serão <b>preservados integralmente</b>;</li>
+                    <li>Nenhuma despesa ou fatura passada será alterada.</li>
+                </ul>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+                <button type="button" class="btn-secondary" onclick="closeDeleteScheduleModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                <button type="button" class="btn-danger" id="btnConfirmDeleteSchedule" onclick="executeDeleteScheduleRule()" style="width:auto; padding:0.6rem 1.4rem; font-weight:700;">Excluir Regra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR OCORRÊNCIA AGENDADA (PREVISTO -> REALIZADO) -->
+    <div id="modalConfirmarOcorrencia" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalConfirmOcorrenciaTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.65); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:480px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative; border-left:4px solid var(--success-btn);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
+                <h3 id="modalConfirmOcorrenciaTitle" style="margin:0; font-size:1.15rem; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:0.5rem;">
+                    <span>✅</span> Confirmar Cobrança Real
+                </h3>
+                <button type="button" class="action-icon-btn" onclick="closeConfirmarOcorrenciaModal()" aria-label="Fechar" style="border:none; background:transparent; font-size:1.2rem;">✕</button>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin:0 0 1rem 0;">
+                Ao confirmar, uma transação financeira real será lançada no seu extrato e a fatura do cartão será atualizada. Você pode ajustar o valor final cobrado se houver reajuste.
+            </p>
+            <form id="confirmarOcorrenciaForm" onsubmit="executeConfirmarOcorrencia(event)">
+                <input type="hidden" id="conf_ocorrencia_id" value="">
+                <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.8rem; margin-bottom:1rem; font-size:0.85rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">
+                        <span style="color:var(--text-muted);">Serviço/Regra:</span>
+                        <strong id="conf_item_desc" style="color:var(--text-main);">-</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">
+                        <span style="color:var(--text-muted);">Tipo & Meio:</span>
+                        <strong id="conf_item_tipo">-</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">
+                        <span style="color:var(--text-muted);">Data Prevista:</span>
+                        <strong id="conf_item_data_prevista">-</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-muted);">Valor Previsto Base:</span>
+                        <strong id="conf_item_valor_previsto" style="color:var(--primary);">-</strong>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="conf_valor_realizado">Valor Cobrado Real (R$) *</label>
+                        <input type="number" id="conf_valor_realizado" step="0.01" class="input-field" style="font-weight:700; font-size:1.05rem; color:var(--danger);" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="conf_data_realizada">Data Efetiva da Cobrança *</label>
+                        <input type="date" id="conf_data_realizada" class="input-field" required>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.2rem;">
+                    <button type="button" class="btn-secondary" onclick="closeConfirmarOcorrenciaModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
+                    <button type="submit" class="btn-success" id="btnExecuteConfirmOcorrencia" style="width:auto; padding:0.6rem 1.5rem; font-weight:700;">Confirmar Cobrança Real</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Base 3.0: Módulos ES6 Core & Ponte de Compatibilidade -->
     <script type="module">
         import {
@@ -4494,6 +4750,17 @@
             buildFinancialEvents
         } from './src/domain/creditSettlement/settlementEngine.js';
 
+        import {
+            fetchSchedules,
+            createSchedule,
+            updateSchedule,
+            deactivateSchedule,
+            fetchOccurrences,
+            generateOccurrencesForSchedule,
+            confirmOccurrence,
+            cancelOccurrence
+        } from './src/services/schedulesService.js';
+
         // Ponte de compatibilidade da Base 3.0 (mantém interoperabilidade com código legado e handlers inline)
         window.escapeHtml = escapeHtml;
         window.normalizeCatalogName = normalizeCatalogName;
@@ -4578,6 +4845,16 @@
         window.createSettlementMap = createSettlementMap;
         window.validateSettlementPayload = validateSettlementPayload;
         window.creditSettlementAvailable = true;
+
+        // Fase 4.6 — Assinaturas & Agendamentos
+        window.schedulesFetch = fetchSchedules;
+        window.schedulesCreate = createSchedule;
+        window.schedulesUpdate = updateSchedule;
+        window.schedulesDeactivate = deactivateSchedule;
+        window.schedulesFetchOccurrences = fetchOccurrences;
+        window.schedulesGenerateOccurrences = generateOccurrencesForSchedule;
+        window.schedulesConfirmOccurrence = confirmOccurrence;
+        window.schedulesCancelOccurrence = cancelOccurrence;
     </script>
 
     <script>
@@ -4586,6 +4863,11 @@
         let rawSupabaseData = [];
         let globalData = [];
         let globalCreditSettlements = [];
+        let globalSchedules = [];
+        let globalScheduleOccurrences = [];
+        let globalScheduleOccurrencesExpanded = false;
+        let currentForecastHorizon = 6;
+        let selectedForecastYm = null;
         let rawMetas = [];
         let userBudgets = {};
         let charts = {};
@@ -5107,9 +5389,11 @@
             document.getElementById('dashboard').style.display = 'none';
 
             try {
-                const [txsRes, settlementsRes] = await Promise.all([
+                const [txsRes, settlementsRes, schedulesRes, occsRes] = await Promise.all([
                     transactionsFetch(),
-                    currentUser ? fetchCreditSettlements(currentUser.id) : Promise.resolve({ data: [], error: null })
+                    currentUser ? fetchCreditSettlements(currentUser.id) : Promise.resolve({ data: [], error: null }),
+                    currentUser ? schedulesFetch() : Promise.resolve({ data: [], error: null }),
+                    currentUser ? schedulesFetchOccurrences() : Promise.resolve({ data: [], error: null })
                 ]);
 
                 if (txsRes.error) throw txsRes.error;
@@ -5122,6 +5406,8 @@
                     window.creditSettlementAvailable = true;
                 }
                 globalCreditSettlements = settlementsRes.data || [];
+                globalSchedules = schedulesRes.data || [];
+                globalScheduleOccurrences = occsRes.data || [];
                 filterDataByActiveProfile();
 
                 document.getElementById('loading').style.display = 'none';
@@ -6912,6 +7198,8 @@
             'faturas': 'parcelas',
             'parcelas': 'parcelas',
             'previsao': 'previsao',
+            'agendamentos': 'agendamentos',
+            'assinaturas': 'agendamentos',
             'metas': 'metas',
             'investimentos': 'investimentos',
             'configuracoes': 'gerenciar-listas',
@@ -6930,6 +7218,7 @@
             'analise': 'extrato',
             'parcelas': 'parcelas',
             'previsao': 'previsao',
+            'agendamentos': 'agendamentos',
             'metas': 'metas',
             'investimentos': 'investimentos',
             'gerenciar-listas': 'configuracoes',
@@ -7137,6 +7426,7 @@
             if(tabId === 'analise') initAnaliseTab();
             if(tabId === 'parcelas') renderParcelasTab();
             if(tabId === 'previsao') renderForecastTab();
+            if(tabId === 'agendamentos') renderAgendamentosTab();
             if(tabId === 'metas') renderMetasTab();
             if(tabId === 'investimentos') {
                 if(!document.getElementById('edit_inv_id')?.value) {
@@ -8967,14 +9257,22 @@
                 totalLiquidadoNaCompetencia,
                 totalFaturaSeguinte,
                 totalRestanteFuturo,
+                totalPrevistoAssinaturas,
+                totalFaturaProjetada,
                 itemsNoMes,
                 cartoesMap
-            } = calculateInvoiceSummary(selectedYm, globalData, globalCreditSettlements);
+            } = calculateInvoiceSummary(selectedYm, globalData, globalCreditSettlements, globalScheduleOccurrences);
 
             document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
             document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
 
             document.getElementById('kpi-fatura-atual').innerText = fmt(totalFaturaSelecionada);
+            if (document.getElementById('kpi-fatura-projetada')) {
+                document.getElementById('kpi-fatura-projetada').innerText = fmt(totalFaturaProjetada);
+            }
+            if (document.getElementById('kpi-fatura-projetada-detalhe')) {
+                document.getElementById('kpi-fatura-projetada-detalhe').innerHTML = `<small style="color:var(--text-muted);">Assinaturas previstas: ${fmt(totalPrevistoAssinaturas)}</small>`;
+            }
             document.getElementById('kpi-fatura-proxima').innerText = fmt(totalFaturaSeguinte);
             document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteFuturo);
 
@@ -9052,7 +9350,17 @@
                 let valorHtml = '';
                 let actionBtns = '';
 
-                if (isLiquidado) {
+                if (item.isPrevisto) {
+                    statusBadge = `<span class="tag-status" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">🔮 Prevista (Não cobrada)</span>`;
+                    valorHtml = `<span style="color:#d97706; font-style:italic;">${fmt(item.value)}</span>`;
+                    const safeDescEsc = escapeHtml(item.desc || '').replace(/'/g, "\\'");
+                    const ocorrenciaIdParam = item.ocorrencia_id ? `'${item.ocorrencia_id}'` : "''";
+                    actionBtns = `
+                        <button class="action-btn" title="Confirmar Cobrança Real" onclick="openConfirmarOcorrenciaModal(${ocorrenciaIdParam}, '${safeDescEsc}', 'assinatura_cartao', '${item.date.toISOString().split('T')[0]}', ${item.value})" style="padding:2px 8px; font-size:0.75rem; background:var(--success-btn); color:white;">Confirmar</button>
+                        <button class="action-icon-btn" title="Cancelar esta Ocorrência" onclick="cancelScheduleOccurrenceDirect(${ocorrenciaIdParam})">❌</button>
+                    `;
+                    tr.style.background = 'rgba(245, 158, 11, 0.05)';
+                } else if (isLiquidado) {
                     const forma = item.liquidacao?.forma_liquidacao || 'PIX';
                     const dataLiq = item.liquidacao?.data_liquidacao ? item.liquidacao.data_liquidacao.split('-').reverse().join('/') : '';
                     statusBadge = `<span class="tag-status tag-done" title="Liquidada em ${escapeHtml(dataLiq)} via ${escapeHtml(forma)}">⚡ Quitada (${escapeHtml(forma)})</span>`;
@@ -9226,6 +9534,499 @@
                 showToast('Erro ao reverter quitação: ' + err.message, 'error');
             }
         }
+
+        /* ==========================================================
+           15. MÓDULO DE ASSINATURAS E AGENDAMENTOS (FASE 4.6)
+           ========================================================== */
+        async function reloadSchedulesData() {
+            if (!currentUser) return;
+            const [schedulesRes, occsRes] = await Promise.all([
+                schedulesFetch(),
+                schedulesFetchOccurrences()
+            ]);
+            globalSchedules = schedulesRes.data || [];
+            globalScheduleOccurrences = occsRes.data || [];
+        }
+
+        async function renderAgendamentosTab() {
+            await reloadSchedulesData();
+
+            // KPIs
+            const activeRules = globalSchedules.filter(s => s.ativo);
+            const cartaoRules = activeRules.filter(s => s.tipo === 'assinatura_cartao');
+            const pixRules = activeRules.filter(s => s.tipo === 'pix_agendado');
+
+            const totalCartaoPrev = cartaoRules.reduce((acc, s) => acc + (Number(s.valor_previsto || s.valor_base) || 0), 0);
+            const totalPixPrev = pixRules.reduce((acc, s) => acc + (Number(s.valor_previsto || s.valor_base) || 0), 0);
+
+            const pendingOccs = globalScheduleOccurrences.filter(o => o.status === 'PREVISTA');
+            const totalPendingVal = pendingOccs.reduce((acc, o) => acc + (Number(o.valor_previsto) || 0), 0);
+
+            const kpiCartaoCount = document.getElementById('kpi-agendamentos-cartao-count');
+            if (kpiCartaoCount) kpiCartaoCount.innerText = cartaoRules.length;
+            const kpiCartaoVal = document.getElementById('kpi-agendamentos-cartao-val');
+            if (kpiCartaoVal) kpiCartaoVal.innerHTML = `<small style="color:var(--text-muted);">Previsto: ${fmt(totalCartaoPrev)}/mês</small>`;
+
+            const kpiPixCount = document.getElementById('kpi-agendamentos-pix-count');
+            if (kpiPixCount) kpiPixCount.innerText = pixRules.length;
+            const kpiPixVal = document.getElementById('kpi-agendamentos-pix-val');
+            if (kpiPixVal) kpiPixVal.innerHTML = `<small style="color:var(--text-muted);">Previsto: ${fmt(totalPixPrev)}/mês</small>`;
+
+            const kpiPendCount = document.getElementById('kpi-agendamentos-pendentes-count');
+            if (kpiPendCount) kpiPendCount.innerText = pendingOccs.length;
+            const kpiPendVal = document.getElementById('kpi-agendamentos-pendentes-val');
+            if (kpiPendVal) kpiPendVal.innerHTML = `<small style="color:var(--text-muted);">Pendente: ${fmt(totalPendingVal)}</small>`;
+
+            // 1. Tabela de Ocorrências Previstas
+            const occTbody = document.getElementById('schedulesOccurrencesTableBody');
+            const paginationContainer = document.getElementById('schedulesOccurrencesPagination');
+
+            if (occTbody) {
+                occTbody.innerHTML = '';
+                if (pendingOccs.length === 0) {
+                    occTbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.2rem;">Nenhuma ocorrência prevista pendente no momento. As ocorrências são geradas conforme as regras cadastradas.</td></tr>';
+                    if (paginationContainer) paginationContainer.style.display = 'none';
+                } else {
+                    const sortedOccs = [...pendingOccs].sort((a, b) => new Date(a.data_prevista) - new Date(b.data_prevista));
+                    const todayStr = new Date().toISOString().split('T')[0];
+
+                    // Classificação cronológica
+                    const vencidas = sortedOccs.filter(o => o.data_prevista < todayStr);
+                    const futurasEOuHoje = sortedOccs.filter(o => o.data_prevista >= todayStr);
+
+                    // No modo compacto: todas as vencidas + até 2 futuras/hoje (a mais próxima + no máximo 1 adicional)
+                    let displayedOccs = sortedOccs;
+                    let hiddenCount = 0;
+
+                    if (!globalScheduleOccurrencesExpanded) {
+                        const compactLimitFuturas = 2;
+                        const compactFuturas = futurasEOuHoje.slice(0, compactLimitFuturas);
+                        displayedOccs = [...vencidas, ...compactFuturas];
+                        hiddenCount = sortedOccs.length - displayedOccs.length;
+                    }
+
+                    // A primeira futura/hoje é a cobrança mais próxima
+                    const nextUpcomingId = futurasEOuHoje[0]?.id;
+
+                    displayedOccs.forEach(occ => {
+                        const tr = document.createElement('tr');
+                        const isCartao = occ.tipo === 'assinatura_cartao' || occ.agendamento?.tipo === 'assinatura_cartao';
+                        const desc = occ.descricao || occ.agendamento?.descricao || 'Agendamento';
+                        const tipoLabel = isCartao ? '💳 Assinatura Cartão' : '💸 PIX Agendado';
+                        const cartaoOuMeio = isCartao ? (occ.cartao || occ.agendamento?.cartao || 'Cartão') : 'PIX';
+                        const cat = occ.categoria || occ.agendamento?.categoria || 'Geral';
+                        const val = Number(occ.valor_previsto) || 0;
+                        const dataPrev = occ.data_prevista ? occ.data_prevista.split('-').reverse().join('/') : '-';
+
+                        const safeDescEsc = escapeHtml(desc).replace(/'/g, "\\'");
+                        const tipoParam = isCartao ? 'assinatura_cartao' : 'pix_agendado';
+
+                        const isVencida = occ.data_prevista < todayStr;
+                        const isNextUpcoming = occ.id === nextUpcomingId;
+
+                        // Destaque visual
+                        let rowStyle = '';
+                        let statusBadge = `<span class="tag-status" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">🔮 PREVISTA</span>`;
+                        let confirmBtnClass = 'btn-secondary';
+                        let confirmBtnStyle = 'padding:4px 10px; font-size:0.75rem; border-radius:4px;';
+
+                        if (isVencida) {
+                            rowStyle = 'background: rgba(239, 68, 68, 0.05);';
+                            statusBadge = `<span class="tag-status" style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; font-weight:700;">⚠️ VENCIDA</span>`;
+                            confirmBtnClass = 'btn-danger';
+                            confirmBtnStyle = 'padding:5px 12px; font-size:0.8rem; border-radius:4px; font-weight:700; box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);';
+                        } else if (isNextUpcoming) {
+                            rowStyle = 'background: rgba(16, 185, 129, 0.05);';
+                            statusBadge = `<span class="tag-status" style="background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; font-weight:700;">⏱️ PRÓXIMA</span>`;
+                            confirmBtnClass = 'btn-success';
+                            confirmBtnStyle = 'padding:5px 12px; font-size:0.8rem; border-radius:4px; font-weight:700; box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);';
+                        }
+
+                        if (rowStyle) tr.setAttribute('style', rowStyle);
+
+                        tr.innerHTML = `
+                            <td class="cell-date" style="font-weight:${isVencida || isNextUpcoming ? '700' : 'normal'};">${dataPrev}</td>
+                            <td><span style="font-size:0.8rem; font-weight:600; padding:2px 6px; border-radius:4px; background:var(--bg-color);">${tipoLabel}</span></td>
+                            <td class="cell-desc" style="font-weight:600;">${escapeHtml(desc)}</td>
+                            <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(cartaoOuMeio)}</span></td>
+                            <td>${escapeHtml(cat)}</td>
+                            <td class="cell-val" style="font-weight:700; color:var(--danger);">${fmt(val)}</td>
+                            <td>${statusBadge}</td>
+                            <td class="cell-actions" style="text-align:center; white-space:nowrap;">
+                                <button class="${confirmBtnClass}" onclick="openConfirmarOcorrenciaModal('${occ.id}', '${safeDescEsc}', '${tipoParam}', '${occ.data_prevista}', ${val})" style="${confirmBtnStyle}" title="Confirmar Cobrança e Criar Transação Real">Confirmar</button>
+                                <button class="action-icon-btn" onclick="cancelScheduleOccurrenceDirect('${occ.id}')" title="Cancelar Ocorrência (Sem Lançar Transação)">❌</button>
+                            </td>
+                        `;
+                        occTbody.appendChild(tr);
+                    });
+
+                    // Renderização do controle de expansão/recolhimento
+                    if (paginationContainer) {
+                        if (hiddenCount > 0 || globalScheduleOccurrencesExpanded) {
+                            paginationContainer.style.display = 'block';
+                            if (globalScheduleOccurrencesExpanded) {
+                                paginationContainer.innerHTML = `
+                                    <button type="button" class="action-btn" onclick="toggleScheduleOccurrencesExpanded()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; font-size:0.85rem; font-weight:600; border-radius:var(--radius-md); background:var(--card-bg); border:1px solid var(--border);">
+                                        <span>▲</span> Ocultar ocorrências futuras
+                                    </button>
+                                `;
+                            } else {
+                                paginationContainer.innerHTML = `
+                                    <button type="button" class="action-btn" onclick="toggleScheduleOccurrencesExpanded()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; font-size:0.85rem; font-weight:600; border-radius:var(--radius-md); background:var(--card-bg); border:1px solid var(--border);">
+                                        <span>▼</span> Ver próximas ${hiddenCount} ocorrências
+                                    </button>
+                                `;
+                            }
+                        } else {
+                            paginationContainer.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            // 2. Tabela de Regras
+            const rulesTbody = document.getElementById('schedulesRulesTableBody');
+            if (rulesTbody) {
+                rulesTbody.innerHTML = '';
+                const activeSchedules = globalSchedules.filter(r => r.ativo);
+                if (activeSchedules.length === 0) {
+                    rulesTbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1.2rem;">Nenhuma regra recorrente ativa cadastrada no momento. Clique em "➕ Nova Regra" acima para adicionar assinaturas ou pagamentos recorrentes.</td></tr>';
+                } else {
+                    activeSchedules.forEach(r => {
+                        const tr = document.createElement('tr');
+                        const isCartao = r.tipo === 'assinatura_cartao';
+                        const tipoLabel = isCartao ? '💳 Assinatura Cartão' : '💸 PIX Agendado';
+                        const cartaoOuMeio = isCartao ? (r.cartao || 'Cartão') : 'PIX';
+                        const statusBadge = `<span class="tag-status tag-done">Ativa</span>`;
+
+                        const safeNomeEsc = escapeHtml(r.descricao || '').replace(/'/g, "\\'");
+
+                        tr.innerHTML = `
+                            <td class="cell-desc" style="font-weight:600;">${escapeHtml(r.descricao)}</td>
+                            <td><span style="font-size:0.8rem; font-weight:600; padding:2px 6px; border-radius:4px; background:var(--bg-color);">${tipoLabel}</span></td>
+                            <td><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(cartaoOuMeio)}</span></td>
+                            <td style="font-weight:600;">Dia ${r.dia_vencimento}</td>
+                            <td>${escapeHtml(r.categoria || '')} ${r.subcategoria ? `<small style="color:var(--text-muted);">(${escapeHtml(r.subcategoria)})</small>` : ''}</td>
+                            <td class="cell-val" style="font-weight:700;">${fmt(r.valor_previsto || r.valor_base)}</td>
+                            <td>${statusBadge}</td>
+                            <td class="cell-actions" style="text-align:center; white-space:nowrap;">
+                                <button class="btn-secondary" title="Editar Regra" onclick="openScheduleModal('${r.id}')" style="padding:4px 10px; font-size:0.75rem; border-radius:4px; margin-right:4px;">✏️ Editar</button>
+                                <button class="btn-danger" title="Excluir Regra" onclick="openDeleteScheduleModal('${r.id}', '${safeNomeEsc}')" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;">🗑️ Excluir</button>
+                            </td>
+                        `;
+                        rulesTbody.appendChild(tr);
+                    });
+                }
+            }
+        }
+
+        function toggleScheduleOccurrencesExpanded() {
+            globalScheduleOccurrencesExpanded = !globalScheduleOccurrencesExpanded;
+            renderAgendamentosTab();
+        }
+
+        function toggleScheduleFormFields() {
+            const tipo = document.getElementById('sched_tipo')?.value;
+            const cartaoGroup = document.getElementById('sched_cartao_group');
+            const cartaoSelect = document.getElementById('sched_cartao');
+            if (cartaoGroup && cartaoSelect) {
+                if (tipo === 'assinatura_cartao') {
+                    cartaoGroup.style.display = 'block';
+                    cartaoSelect.required = true;
+                } else {
+                    cartaoGroup.style.display = 'none';
+                    cartaoSelect.required = false;
+                    cartaoSelect.value = '';
+                }
+            }
+        }
+
+        function populateScheduleModalDropdowns() {
+            // Preenche cartões
+            const cartaoSelect = document.getElementById('sched_cartao');
+            if (cartaoSelect) {
+                const currentVal = cartaoSelect.value;
+                cartaoSelect.innerHTML = '<option value="">-- Selecione o Cartão --</option>';
+                globalCartoes.filter(c => c.ativo).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome;
+                    opt.textContent = c.nome;
+                    cartaoSelect.appendChild(opt);
+                });
+                cartaoSelect.value = currentVal;
+            }
+
+            // Preenche categorias
+            const catSelect = document.getElementById('sched_categoria');
+            if (catSelect) {
+                const currentCat = catSelect.value;
+                catSelect.innerHTML = '<option value="">-- Selecione --</option>';
+                globalCategorias.filter(c => c.ativo).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome;
+                    opt.textContent = c.nome;
+                    catSelect.appendChild(opt);
+                });
+                catSelect.value = currentCat;
+            }
+        }
+
+        function openScheduleModal(ruleId = null) {
+            populateScheduleModalDropdowns();
+            const modal = document.getElementById('modalScheduleRule');
+            if (!modal) return;
+
+            const form = document.getElementById('scheduleRuleForm');
+            if (form) form.reset();
+
+            document.getElementById('sched_id').value = ruleId || '';
+            document.getElementById('modalScheduleTitle').innerHTML = ruleId ? '<span>✏️</span> Editar Regra de Agendamento' : '<span>🔁</span> Nova Regra de Agendamento';
+
+            if (ruleId) {
+                const rule = globalSchedules.find(s => s.id === ruleId);
+                if (rule) {
+                    document.getElementById('sched_tipo').value = rule.tipo;
+                    document.getElementById('sched_descricao').value = rule.descricao;
+                    document.getElementById('sched_valor').value = rule.valor_previsto ?? rule.valor_base ?? '';
+                    document.getElementById('sched_dia').value = rule.dia_vencimento;
+                    document.getElementById('sched_tags').value = (rule.tags || []).join(', ');
+
+                    toggleScheduleFormFields();
+
+                    if (rule.cartao) {
+                        document.getElementById('sched_cartao').value = rule.cartao;
+                    }
+                    document.getElementById('sched_categoria').value = rule.categoria || '';
+                    onCategoryChange('sched_categoria', 'sched_subcategoria');
+                    if (rule.subcategoria) {
+                        document.getElementById('sched_subcategoria').value = rule.subcategoria;
+                    }
+                }
+            } else {
+                document.getElementById('sched_tipo').value = 'assinatura_cartao';
+                toggleScheduleFormFields();
+                onCategoryChange('sched_categoria', 'sched_subcategoria');
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeScheduleModal() {
+            const modal = document.getElementById('modalScheduleRule');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function parseBrlCurrencyInput(val) {
+            if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+            if (!val) return 0;
+            const cleaned = String(val).trim().replace(/[R$\s]/g, '');
+            if (cleaned.includes(',') && cleaned.includes('.')) {
+                return parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
+            }
+            if (cleaned.includes(',')) {
+                return parseFloat(cleaned.replace(',', '.')) || 0;
+            }
+            return parseFloat(cleaned) || 0;
+        }
+
+        async function saveScheduleRule(e) {
+            if (e) e.preventDefault();
+            const id = document.getElementById('sched_id')?.value;
+            const tipo = document.getElementById('sched_tipo')?.value;
+            const descricao = (document.getElementById('sched_descricao')?.value || '').trim();
+            const valorRaw = document.getElementById('sched_valor')?.value;
+            const valor_previsto = parseBrlCurrencyInput(valorRaw);
+            const dia_vencimento = parseInt(document.getElementById('sched_dia')?.value || 1, 10);
+            const cartao = tipo === 'assinatura_cartao' ? (document.getElementById('sched_cartao')?.value || '').trim() : null;
+            const categoria = document.getElementById('sched_categoria')?.value || '';
+            const subcategoria = document.getElementById('sched_subcategoria')?.value || null;
+            const tagsRaw = document.getElementById('sched_tags')?.value || '';
+            const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+
+            if (!descricao || isNaN(valor_previsto) || valor_previsto <= 0) {
+                showToast('Informe uma descrição válida e valor maior que zero.', 'error');
+                return;
+            }
+
+            if (tipo === 'assinatura_cartao' && !cartao) {
+                showToast('Selecione o cartão de crédito para a assinatura.', 'error');
+                return;
+            }
+
+            const payload = {
+                tipo,
+                descricao,
+                valor_previsto,
+                valor_base: valor_previsto,
+                dia_vencimento,
+                cartao,
+                categoria,
+                subcategoria,
+                tags
+            };
+
+            const btn = document.getElementById('btnSaveScheduleRule');
+            if (btn) btn.disabled = true;
+
+            try {
+                if (id) {
+                    const { data, error } = await schedulesUpdate(id, payload);
+                    if (error) throw error;
+                    showToast('Regra de agendamento atualizada!', 'success');
+                } else {
+                    const { data, error } = await schedulesCreate(payload);
+                    if (error) throw error;
+                    showToast('Regra de agendamento criada com sucesso!', 'success');
+                }
+
+                closeScheduleModal();
+                await renderAgendamentosTab();
+                // Atualiza fatura e previsão com os novos dados sem quebrar fluxo de salvamento
+                try {
+                    renderParcelasTab();
+                    renderForecastTab();
+                } catch (refreshErr) {
+                    console.warn('Aviso ao atualizar visualizações secundárias:', refreshErr);
+                }
+            } catch (err) {
+                console.error('Erro ao salvar regra:', err);
+                showToast('Erro ao salvar regra: ' + (err.message || 'Erro desconhecido'), 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function openDeleteScheduleModal(id, nome) {
+            const modal = document.getElementById('modalDeleteScheduleRule');
+            if (!modal) return;
+            document.getElementById('delete_schedule_id').value = id;
+            document.getElementById('delete_schedule_nome').textContent = `"${nome}"`;
+            modal.style.display = 'flex';
+        }
+
+        function closeDeleteScheduleModal() {
+            const modal = document.getElementById('modalDeleteScheduleRule');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function executeDeleteScheduleRule() {
+            const id = document.getElementById('delete_schedule_id')?.value;
+            const nome = document.getElementById('delete_schedule_nome')?.textContent || 'Regra';
+            if (!id) return;
+
+            const btn = document.getElementById('btnConfirmDeleteSchedule');
+            if (btn) btn.disabled = true;
+
+            try {
+                const { error } = await schedulesDeactivate(id);
+                if (error) throw error;
+                showToast(`Regra ${nome} excluída com sucesso. Cobranças futuras foram canceladas e o histórico foi preservado.`, 'success');
+                closeDeleteScheduleModal();
+                await renderAgendamentosTab();
+                try {
+                    renderParcelasTab();
+                    renderForecastTab();
+                } catch (refreshErr) {
+                    console.warn('Aviso ao atualizar visualizações secundárias após exclusão:', refreshErr);
+                }
+            } catch (err) {
+                console.error('Erro ao excluir regra:', err);
+                showToast('Erro ao excluir regra: ' + (err.message || 'Erro desconhecido'), 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function openConfirmarOcorrenciaModal(ocorrenciaId, desc, tipo, dataPrevista, valorPrevisto) {
+            const modal = document.getElementById('modalConfirmarOcorrencia');
+            if (!modal) return;
+
+            document.getElementById('conf_ocorrencia_id').value = ocorrenciaId;
+            document.getElementById('conf_item_desc').innerText = desc || 'Serviço';
+            document.getElementById('conf_item_tipo').innerText = tipo === 'assinatura_cartao' ? 'Cartão de Crédito' : 'PIX';
+            document.getElementById('conf_item_data_prevista').innerText = dataPrevista ? dataPrevista.split('-').reverse().join('/') : '-';
+            document.getElementById('conf_item_valor_previsto').innerText = fmt(valorPrevisto || 0);
+
+            // Valores padrão editáveis
+            document.getElementById('conf_valor_realizado').value = fmt(valorPrevisto || 0).replace('R$', '').trim();
+            document.getElementById('conf_data_realizada').value = dataPrevista || formatLocalDateInput(new Date());
+
+            modal.style.display = 'flex';
+        }
+
+        function closeConfirmarOcorrenciaModal() {
+            const modal = document.getElementById('modalConfirmarOcorrencia');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function executeConfirmarOcorrencia(e) {
+            if (e) e.preventDefault();
+            const ocorrenciaId = document.getElementById('conf_ocorrencia_id')?.value;
+            const valorRealizadoRaw = document.getElementById('conf_valor_realizado')?.value;
+            const valorRealizado = parseBrlCurrencyInput(valorRealizadoRaw);
+            const dataRealizada = document.getElementById('conf_data_realizada')?.value;
+
+            if (!ocorrenciaId || isNaN(valorRealizado) || valorRealizado <= 0 || !dataRealizada) {
+                showToast('Preencha um valor válido e data de cobrança.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnExecuteConfirmOcorrencia');
+            if (btn) btn.disabled = true;
+
+            try {
+                const { data, error } = await schedulesConfirmOccurrence(ocorrenciaId, valorRealizado, dataRealizada);
+                if (error) throw error;
+
+                showToast('Cobrança confirmada! Transação real gerada com sucesso.', 'success');
+                closeConfirmarOcorrenciaModal();
+
+                // Recarrega transações reais e ocorrências
+                await loadDashboardData();
+                await renderAgendamentosTab();
+            } catch (err) {
+                console.error('Erro ao confirmar ocorrência:', err);
+                showToast('Erro ao confirmar cobrança: ' + (err.message || 'Erro desconhecido'), 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function cancelScheduleOccurrenceDirect(ocorrenciaId) {
+            if (!confirm('Deseja cancelar esta ocorrência prevista? Ela será marcada como CANCELADA e nenhuma despesa será lançada.')) {
+                return;
+            }
+
+            try {
+                const { error } = await schedulesCancelOccurrence(ocorrenciaId);
+                if (error) throw error;
+
+                showToast('Ocorrência cancelada com sucesso.', 'success');
+                await reloadSchedulesData();
+                await renderAgendamentosTab();
+                try {
+                    renderParcelasTab();
+                    renderForecastTab();
+                } catch (refreshErr) {
+                    console.warn('Aviso ao atualizar visualizações secundárias após cancelamento:', refreshErr);
+                }
+            } catch (err) {
+                console.error('Erro ao cancelar ocorrência:', err);
+                showToast('Erro ao cancelar: ' + (err.message || 'Erro desconhecido'), 'error');
+            }
+        }
+
+        // Exposição para chamadas inline do HTML
+        window.openScheduleModal = openScheduleModal;
+        window.closeScheduleModal = closeScheduleModal;
+        window.toggleScheduleFormFields = toggleScheduleFormFields;
+        window.saveScheduleRule = saveScheduleRule;
+        window.deactivateScheduleRule = deactivateScheduleRule;
+        window.openConfirmarOcorrenciaModal = openConfirmarOcorrenciaModal;
+        window.closeConfirmarOcorrenciaModal = closeConfirmarOcorrenciaModal;
+        window.executeConfirmarOcorrencia = executeConfirmarOcorrencia;
+        window.cancelScheduleOccurrenceDirect = cancelScheduleOccurrenceDirect;
+        window.renderAgendamentosTab = renderAgendamentosTab;
 
         function renderManageLists() {
             const catContainer = document.getElementById('manageCategoriesList');
@@ -9751,11 +10552,10 @@
         /* ==========================================================
            🔮 PREVISÃO FINANCEIRA 2.0 — MOTOR & INTERFACE
            ========================================================== */
-        let currentForecastHorizon = 6;
-        let selectedForecastYm = null;
+        /* Estado reativo inicializado no bloco global principal (topo do script) */
 
         function getFinancialForecast(startYm, horizonMonths = 6) {
-            return calculateFinancialForecast(startYm, horizonMonths, globalData);
+            return calculateFinancialForecast(startYm, horizonMonths, globalData, globalCreditSettlements, globalScheduleOccurrences);
         }
 
         function setForecastHorizon(months) {

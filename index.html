@@ -4860,6 +4860,8 @@
     <script>
         let currentUser = null;
         let currentUserIsAdmin = false;
+        let adminUsersCache = [];
+        let adminSearchTimeout = null;
         let rawSupabaseData = [];
         let globalData = [];
         let globalCreditSettlements = [];
@@ -10846,8 +10848,7 @@
         /* ==========================================================
            🛡️ CENTRAL ADMINISTRATIVA — CONTROLADORES & INTERFACE
            ========================================================== */
-        let adminSearchTimeout = null;
-        let adminUsersCache = [];
+        /* Estado administrativo inicializado no bloco global principal (topo do script) */
 
         function handleAdminSearchInput() {
             clearTimeout(adminSearchTimeout);

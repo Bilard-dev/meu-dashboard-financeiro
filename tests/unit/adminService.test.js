@@ -749,4 +749,20 @@ describe('adminService — getActivitySummary (Unit)', () => {
     });
 });
 
+describe('index.html — Inicialização de Estado da Central Administrativa', () => {
+    it('adminUsersCache e adminSearchTimeout devem ser inicializados no bloco global inicial evitando TDZ', async () => {
+        const fs = await import('node:fs');
+        const path = await import('node:path');
+        const indexHtml = fs.readFileSync(path.resolve('index.html'), 'utf8');
+
+        const globalStateBlock = indexHtml.match(/let currentUser = null;[\s\S]*?let charts = {};/);
+        assert.ok(globalStateBlock, 'Bloco de estado global inicial deve existir');
+        assert.match(globalStateBlock[0], /let adminUsersCache = \[\];/, 'adminUsersCache deve ser declarado no bloco global inicial');
+        assert.match(globalStateBlock[0], /let adminSearchTimeout = null;/, 'adminSearchTimeout deve ser declarado no bloco global inicial');
+
+        const occurrences = (indexHtml.match(/let adminUsersCache/g) || []).length;
+        assert.equal(occurrences, 1, 'Deve haver exatamente 1 declaração de adminUsersCache');
+    });
+});
+
 

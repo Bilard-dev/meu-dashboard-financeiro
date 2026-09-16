@@ -205,40 +205,92 @@ export function validateSettlementPayload(payload, item) {
  *   byCard: Record<string, number>
  * }}
  */
-export function calculateEffectivePaymentOutflows(selectedYm, transactions = [], settlements = []) {
-    const txs = Array.isArray(transactions) ? transactions : [];
-    const setts = Array.isArray(settlements) ? settlements : (settlements instanceof Map ? Array.from(settlements.values()) : []);
-    const settleMap = settlements instanceof Map ? settlements : createSettlementMap(setts);
+/**
+ * Calcula o agrupamento contábil e financeiro efetivo de pagamentos do mês ou período,
+ * convertendo obrigações de cartão liquidadas antecipadamente na sua respectiva saída de caixa.
+ * Suporta liquidação integral e parcial sem gerar obrigações negativas.
+ *
+ * @param {string|Array<object>} selectedYmOrTransactions - Chave 'YYYY-M', 'all' ou lista pré-filtrada de transações
+ * @param {Array<object>|Map<string, object>} [transactionsOrSettlements=[]] - Transações (se 1º arg for YM) ou Liquidações (se 1º arg for lista)
+ * @param {Array<object>|Map<string, object>} [maybeSettlements=[]] - Liquidações (se 1º arg for YM)
+ * @returns {{
+ *   totalDespesaEconomica: number,
+ *   totalSaidaFinanceira: number,
+ *   obrigacaoCartaoTotal: number,
+ *   byPaymentMethod: Record<string, number>,
+ *   byCard: Record<string, number>,
+ *   paymentMethodCounts: { pix: number, cartao: number, dinheiro: number }
+ * }}
+ */
+export function calculateEffectivePaymentOutflows(selectedYmOrTransactions, transactionsOrSettlements = [], maybeSettlements = []) {
+    let selectedYm;
+    let txs;
+    let setts;
 
-    const expensesInMonth = getExpensesByCompetence(selectedYm, txs);
+    if (Array.isArray(selectedYmOrTransactions)) {
+        selectedYm = 'all';
+        txs = selectedYmOrTransactions;
+        setts = Array.isArray(transactionsOrSettlements)
+            ? transactionsOrSettlements
+            : (transactionsOrSettlements instanceof Map ? Array.from(transactionsOrSettlements.values()) : []);
+    } else {
+        selectedYm = selectedYmOrTransactions;
+        txs = Array.isArray(transactionsOrSettlements) ? transactionsOrSettlements : [];
+        setts = Array.isArray(maybeSettlements)
+            ? maybeSettlements
+            : (maybeSettlements instanceof Map ? Array.from(maybeSettlements.values()) : []);
+    }
+
+    const settleMap = (Array.isArray(selectedYmOrTransactions) && transactionsOrSettlements instanceof Map)
+        ? transactionsOrSettlements
+        : (maybeSettlements instanceof Map ? maybeSettlements : createSettlementMap(setts));
+
+    const expensesInMonth = Array.isArray(selectedYmOrTransactions)
+        ? txs.filter(d => !d.type || d.type === 'DESPESA')
+        : getExpensesByCompetence(selectedYm, txs);
     const totalDespesaEconomica = expensesInMonth.reduce((acc, d) => acc + d.value, 0);
 
     const byPaymentMethod = {};
     const byCard = {};
+    const paymentMethodCounts = {
+        pix: 0,
+        cartao: 0,
+        dinheiro: 0
+    };
 
     // 1. Processa as despesas da competência
     expensesInMonth.forEach(d => {
-        const isCard = Boolean(d.cartao || d.pagamento === 'Cartão de Crédito');
+        const isCard = Boolean(d.cartao || (d.pagamento && d.pagamento.includes('Cartão')) || d.pagamento === 'Cartão de Crédito');
         if (!isCard) {
             const meio = d.pagamento && d.pagamento.trim() !== '' ? d.pagamento : 'Não Informado';
             byPaymentMethod[meio] = (byPaymentMethod[meio] || 0) + d.value;
+            if ((d.pagamento || '').toUpperCase() === 'PIX') {
+                paymentMethodCounts.pix += 1;
+            } else {
+                paymentMethodCounts.dinheiro += 1;
+            }
             return;
         }
 
         const pNum = d.parcelaNoMes || d.initAtual || 1;
         const settlement = (!d.isRecorrente) ? isInstallmentSettled(settleMap, d, pNum) : null;
+        const nomeCartao = d.cartao || 'Cartão';
 
         if (!settlement) {
             // Parcela NÃO liquidada: compõe obrigação aberta no cartão
             byPaymentMethod['Cartão de Crédito'] = (byPaymentMethod['Cartão de Crédito'] || 0) + d.value;
-            const nomeCartao = d.cartao || 'Cartão';
             byCard[nomeCartao] = (byCard[nomeCartao] || 0) + d.value;
+            paymentMethodCounts.cartao += 1;
         } else {
-            // Parcela LIQUIDADA: obrigação residual no cartão é R$ 0.
+            // Parcela LIQUIDADA: suporte a liquidação integral ou parcial
             const formaLiq = settlement.forma_liquidacao || 'PIX';
-            if (selectedYm === 'all') {
-                byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + d.value;
-            } else {
+            const rawSettleVal = Number(settlement.valor != null ? settlement.valor : settlement.value);
+            const settleVal = isNaN(rawSettleVal) || rawSettleVal <= 0 ? d.value : rawSettleVal;
+            const valLiquidado = Math.min(d.value, Math.max(0, settleVal));
+            const saldoResidualCartao = Math.max(0, Math.round((d.value - valLiquidado) * 100) / 100);
+
+            let shouldIncludeLiquidation = (selectedYm === 'all');
+            if (!shouldIncludeLiquidation) {
                 const liqDateStr = settlement.data_liquidacao;
                 let liqYm = '';
                 if (liqDateStr) {
@@ -256,8 +308,23 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
                     }
                 }
                 if (liqYm === selectedYm) {
-                    byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + d.value;
+                    shouldIncludeLiquidation = true;
                 }
+            }
+
+            if (shouldIncludeLiquidation && valLiquidado > 0) {
+                byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + valLiquidado;
+                if (formaLiq.toUpperCase() === 'PIX') {
+                    paymentMethodCounts.pix += 1;
+                } else {
+                    paymentMethodCounts.dinheiro += 1;
+                }
+            }
+
+            if (saldoResidualCartao > 0) {
+                byPaymentMethod['Cartão de Crédito'] = (byPaymentMethod['Cartão de Crédito'] || 0) + saldoResidualCartao;
+                byCard[nomeCartao] = (byCard[nomeCartao] || 0) + saldoResidualCartao;
+                paymentMethodCounts.cartao += 1;
             }
         }
     });
@@ -290,7 +357,7 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
             if (liqYm === selectedYm) {
                 const sNum = Number(s.parcela_numero) || 1;
                 const alreadyComputed = expensesInMonth.some(d => {
-                    const isCard = Boolean(d.cartao || d.pagamento === 'Cartão de Crédito');
+                    const isCard = Boolean(d.cartao || (d.pagamento && d.pagamento.includes('Cartão')) || d.pagamento === 'Cartão de Crédito');
                     if (!isCard || d.isRecorrente) return false;
                     const pNum = d.parcelaNoMes || d.initAtual || 1;
                     const matchTx = (s.transacao_id && d.id === s.transacao_id);
@@ -302,6 +369,11 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
                     const formaLiq = s.forma_liquidacao || 'PIX';
                     const val = Number(s.valor || s.value) || 0;
                     byPaymentMethod[formaLiq] = (byPaymentMethod[formaLiq] || 0) + val;
+                    if (formaLiq.toUpperCase() === 'PIX') {
+                        paymentMethodCounts.pix += 1;
+                    } else {
+                        paymentMethodCounts.dinheiro += 1;
+                    }
                 }
             }
         });
@@ -315,7 +387,8 @@ export function calculateEffectivePaymentOutflows(selectedYm, transactions = [],
         totalSaidaFinanceira,
         obrigacaoCartaoTotal,
         byPaymentMethod,
-        byCard
+        byCard,
+        paymentMethodCounts
     };
 }
 

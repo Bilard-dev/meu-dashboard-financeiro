@@ -881,4 +881,113 @@ describe('settlementEngine — Motor Puro de Liquidação Antecipada do Crédito
         assert.equal(eventsRange[0].id, 'tx-e');
     });
 
+    describe('48-55. Validação Canônica Contábil e Liquidação Parcial (HOTFIX 5-C.2)', () => {
+        it('48. Cenário 1: Sem liquidação 500/500 (Despesa Econômica = 500, PIX = 0, Cartão = 500)', () => {
+            const txs = [{ id: 'tx-500-1', type: 'DESPESA', desc: 'Monitor', value: 500, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, []);
+
+            assert.equal(res.totalDespesaEconomica, 500, 'Despesa econômica deve ser 500');
+            assert.equal(res.byPaymentMethod['PIX'] || 0, 0, 'PIX deve ser 0');
+            assert.equal(res.obrigacaoCartaoTotal, 500, 'Obrigação de cartão deve ser 500');
+            assert.equal(res.byCard['Nubank'], 500, 'Cartão Nubank deve reter 500');
+            assert.equal(res.paymentMethodCounts.cartao, 1, 'Contador de cartão deve ser 1');
+            assert.equal(res.paymentMethodCounts.pix, 0, 'Contador de PIX deve ser 0');
+        });
+
+        it('49. Cenário 2: Liquidação Integral 500/500 (Despesa Econômica = 500, Saída PIX = 500, Cartão = 0)', () => {
+            const txs = [{ id: 'tx-500-2', type: 'DESPESA', desc: 'Monitor', value: 500, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+            const setts = [{ id: 's-500-2', transacao_id: 'tx-500-2', parcela_numero: 1, valor: 500, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+
+            assert.equal(res.totalDespesaEconomica, 500, 'Despesa econômica permanece 500');
+            assert.equal(res.byPaymentMethod['PIX'], 500, 'Saída PIX efetiva deve ser 500');
+            assert.equal(res.obrigacaoCartaoTotal, 0, 'Obrigação de cartão deve ser 0');
+            assert.equal(res.byCard['Nubank'], undefined, 'Cartão Nubank não deve reter saldo');
+            assert.equal(res.paymentMethodCounts.pix, 1, 'Contador de PIX deve ser 1');
+            assert.equal(res.paymentMethodCounts.cartao, 0, 'Contador de cartão deve ser 0');
+        });
+
+        it('50. Cenário 3: Liquidação Parcial 500/300 (Despesa Econômica = 500, Saída PIX = 300, Cartão Restante = 200)', () => {
+            const txs = [{ id: 'tx-500-3', type: 'DESPESA', desc: 'Monitor', value: 500, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+            const setts = [{ id: 's-500-3', transacao_id: 'tx-500-3', parcela_numero: 1, valor: 300, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+
+            // Teste via YM canônico
+            const resYm = calculateEffectivePaymentOutflows('2026-8', txs, setts);
+            assert.equal(resYm.totalDespesaEconomica, 500, 'Despesa econômica deve ser 500');
+            assert.equal(resYm.byPaymentMethod['PIX'], 300, 'Saída PIX efetiva deve ser 300');
+            assert.equal(resYm.obrigacaoCartaoTotal, 200, 'Obrigação residual de cartão deve ser 200');
+            assert.equal(resYm.byCard['Nubank'], 200, 'Saldo residual do cartão Nubank deve ser 200');
+            assert.equal(resYm.paymentMethodCounts.pix, 1, 'Contador PIX deve ser 1');
+            assert.equal(resYm.paymentMethodCounts.cartao, 1, 'Contador Cartão deve ser 1');
+
+            // Teste via lista pré-filtrada (Análise de Gastos)
+            const resFiltered = calculateEffectivePaymentOutflows(txs, setts);
+            assert.equal(resFiltered.totalDespesaEconomica, 500);
+            assert.equal(resFiltered.byPaymentMethod['PIX'], 300);
+            assert.equal(resFiltered.obrigacaoCartaoTotal, 200);
+            assert.equal(resFiltered.byCard['Nubank'], 200);
+            assert.equal(resFiltered.paymentMethodCounts.pix, 1);
+            assert.equal(resFiltered.paymentMethodCounts.cartao, 1);
+        });
+
+        it('51. Cenário 4: Reversão de Liquidação Parcial restaura obrigação integral', () => {
+            const txs = [{ id: 'tx-500-4', type: 'DESPESA', desc: 'Monitor', value: 500, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+            const settsReverted = [{ id: 's-500-4', transacao_id: 'tx-500-4', parcela_numero: 1, valor: 300, forma_liquidacao: 'PIX', status: 'CANCELADA', data_liquidacao: '2026-09-10' }];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, settsReverted);
+
+            assert.equal(res.totalDespesaEconomica, 500);
+            assert.equal(res.byPaymentMethod['PIX'] || 0, 0, 'PIX deve ser 0 após reversão');
+            assert.equal(res.obrigacaoCartaoTotal, 500, 'Obrigação de cartão volta a ser 500');
+            assert.equal(res.byCard['Nubank'], 500, 'Cartão Nubank volta a 500');
+            assert.equal(res.paymentMethodCounts.pix, 0);
+            assert.equal(res.paymentMethodCounts.cartao, 1);
+        });
+
+        it('52. Cenário 5: Salvaguarda contra obrigação residual negativa (valor liquidado > valor da despesa)', () => {
+            const txs = [{ id: 'tx-500-5', type: 'DESPESA', desc: 'Monitor', value: 500, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'Cartão de Crédito', cartao: 'Nubank' }];
+            const settsOverflow = [{ id: 's-500-5', transacao_id: 'tx-500-5', parcela_numero: 1, valor: 650, forma_liquidacao: 'PIX', status: 'ATIVA', data_liquidacao: '2026-09-10' }];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, settsOverflow);
+
+            assert.equal(res.totalDespesaEconomica, 500);
+            assert.equal(res.byPaymentMethod['PIX'], 500, 'Saída PIX limitada ao teto da despesa');
+            assert.equal(res.obrigacaoCartaoTotal, 0, 'Obrigação de cartão não pode ser negativa');
+            assert.ok(res.obrigacaoCartaoTotal >= 0, 'Garante que obrigação >= 0');
+            assert.equal(res.byCard['Nubank'], undefined);
+        });
+
+        it('53. Cenário 6: Despesa PIX normal preservada integralmente', () => {
+            const txs = [{ id: 'tx-pix-norm', type: 'DESPESA', desc: 'Feira Orgânica', value: 250, rawDate: '2026-09-05', year: 2026, month: 8, pagamento: 'PIX' }];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, []);
+
+            assert.equal(res.totalDespesaEconomica, 250);
+            assert.equal(res.byPaymentMethod['PIX'], 250);
+            assert.equal(res.obrigacaoCartaoTotal, 0);
+            assert.equal(res.paymentMethodCounts.pix, 1);
+            assert.equal(res.paymentMethodCounts.cartao, 0);
+        });
+
+        it('54. Cenário 7: Despesa Dinheiro / Outros preservada integralmente', () => {
+            const txs = [{ id: 'tx-din-norm', type: 'DESPESA', desc: 'Padaria', value: 85, rawDate: '2026-09-08', year: 2026, month: 8, pagamento: 'Dinheiro' }];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, []);
+
+            assert.equal(res.totalDespesaEconomica, 85);
+            assert.equal(res.byPaymentMethod['Dinheiro'], 85);
+            assert.equal(res.obrigacaoCartaoTotal, 0);
+            assert.equal(res.paymentMethodCounts.dinheiro, 1);
+            assert.equal(res.paymentMethodCounts.cartao, 0);
+        });
+
+        it('55. Cenário 8: Isolamento de competência: transação futura/externa não vira realizada no mês consultado', () => {
+            const txs = [
+                { id: 'tx-set', type: 'DESPESA', desc: 'Atual', value: 100, rawDate: '2026-09-10', year: 2026, month: 8, pagamento: 'PIX' },
+                { id: 'tx-out-previsto', type: 'DESPESA', desc: 'Futuro Previsto', value: 900, rawDate: '2026-10-15', year: 2026, month: 9, pagamento: 'PIX' }
+            ];
+            const res = calculateEffectivePaymentOutflows('2026-8', txs, []);
+
+            assert.equal(res.totalDespesaEconomica, 100, 'Apenas a despesa de Setembro entra na competência');
+            assert.equal(res.byPaymentMethod['PIX'], 100);
+            assert.equal(res.paymentMethodCounts.pix, 1);
+        });
+    });
+
 });

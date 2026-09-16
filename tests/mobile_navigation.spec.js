@@ -243,7 +243,15 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.3 Categorias
+        // 9.3 Assinaturas & Agendados
+        await page.locator('#bnav-mais').click();
+        await page.getByRole('button', { name: /Assinaturas & Agendados/i }).click();
+        await expect(page.locator('#tab-agendamentos')).toBeVisible();
+        await expect(page).toHaveURL(/#\/agendamentos/);
+        await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
+        await expect(page.locator('#mobileMoreSheet')).toBeHidden();
+
+        // 9.4 Categorias
         await page.locator('#bnav-mais').click();
         await page.getByRole('button', { name: /Categorias/i }).click();
         await expect(page.locator('#tab-gerenciar-listas')).toBeVisible();
@@ -251,7 +259,7 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.4 Minha Conta
+        // 9.5 Minha Conta
         await page.locator('#bnav-mais').click();
         await page.getByRole('button', { name: /Minha Conta/i }).click();
         await expect(page.locator('#tab-conta')).toBeVisible();
@@ -259,9 +267,9 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.5 Confirma exatamente 6 atalhos no menu Mais Opções para usuário comum (Central Admin oculta)
+        // 9.6 Confirma exatamente 7 atalhos no menu Mais Opções para usuário comum (Central Admin oculta)
         await page.locator('#bnav-mais').click();
-        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn:visible')).toHaveCount(6);
+        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn:visible')).toHaveCount(7);
         await expect(page.locator('#mobileMoreAdminBtn')).toBeHidden();
         await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Metas/i })).toHaveCount(0);
         await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Novo Registro Completo/i })).toHaveCount(0);

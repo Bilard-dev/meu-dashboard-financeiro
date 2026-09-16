@@ -509,4 +509,44 @@ test.describe('Filtros Avançados - Parcelas/Cartões e Análise de Gastos', () 
         await expect(page.locator('#an-kpi-total')).toContainText('2.400,00');
     });
 
+    test('9. Aba Análise de Gastos: Comparativo de categoria com gasto do mês atual', async ({ page }) => {
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+
+        await setupAuthenticatedApp(page, {
+            transactions: [
+                {
+                    id: 'tx-hist',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: '2026-01-10',
+                    descricao: 'Compras Passadas',
+                    valor: 500.00,
+                    pagamento: 'PIX',
+                    categoria: 'Mercado'
+                },
+                {
+                    id: 'tx-now',
+                    user_id: 'test-user-uuid-1234',
+                    tipo: 'Despesa',
+                    data: todayStr,
+                    descricao: 'Compras Mês Atual',
+                    valor: 600.00,
+                    pagamento: 'PIX',
+                    categoria: 'Mercado'
+                }
+            ]
+        });
+
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
+        const catCards = page.locator('#an-category-averages-cards');
+        await expect(catCards).toContainText('Mercado');
+        await expect(catCards).toContainText('Mês atual (até hoje):');
+        await expect(catCards).toContainText('600,00');
+    });
+
 });

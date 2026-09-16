@@ -4659,6 +4659,13 @@
         } from './src/domain/forecast/forecastEngine.js';
 
         import {
+            calculatePeriodDivisors,
+            calculateAverageValue,
+            compareWithCurrentMonth,
+            filterCurrentMonthRealized
+        } from './src/domain/analytics/analyticsEngine.js';
+
+        import {
             getPrivacyMode,
             togglePrivacyMode,
             getRoutingSync,
@@ -4855,6 +4862,12 @@
         window.schedulesGenerateOccurrences = generateOccurrencesForSchedule;
         window.schedulesConfirmOccurrence = confirmOccurrence;
         window.schedulesCancelOccurrence = cancelOccurrence;
+
+        // Fase 4.7-A — Médias Financeiras & Análise Comparativa
+        window.calculatePeriodDivisors = calculatePeriodDivisors;
+        window.calculateAverageValue = calculateAverageValue;
+        window.compareWithCurrentMonth = compareWithCurrentMonth;
+        window.filterCurrentMonthRealized = filterCurrentMonthRealized;
     </script>
 
     <script>
@@ -8413,79 +8426,35 @@
             if (kpiPeriodoEl) kpiPeriodoEl.innerText = periodoDescTexto;
 
             // Cálculo da quantidade de meses e dias no período para cálculo de médias
-            let numMesesPeriodo = 1;
-            let numDiasPeriodo = 30;
-
-            if (periodVal === 'all') {
-                const uniqueYm = new Set(baseFiltered.map(d => `${d.year}-${d.month}`));
-                numMesesPeriodo = Math.max(1, uniqueYm.size);
-                if (baseFiltered.length > 0) {
-                    const sortedDates = baseFiltered.map(d => d.date.getTime()).sort((a,b) => a - b);
-                    const diffDays = Math.round((sortedDates[sortedDates.length - 1] - sortedDates[0]) / (1000*60*60*24)) + 1;
-                    numDiasPeriodo = Math.max(1, diffDays);
-                }
-            } else if (periodVal === 'last_3_months') {
-                numMesesPeriodo = 3;
-                numDiasPeriodo = 90;
-            } else if (periodVal === 'last_6_months') {
-                numMesesPeriodo = 6;
-                numDiasPeriodo = 180;
-            } else if (periodVal === 'current_year') {
-                numMesesPeriodo = currMonth + 1;
-                numDiasPeriodo = Math.max(1, Math.round((now - new Date(currYear, 0, 1)) / (1000*60*60*24)) + 1);
-            } else if (periodVal === 'custom') {
-                if (dataInicioVal && dataFimVal) {
-                    const dStart = new Date(dataInicioVal + 'T12:00:00');
-                    const dEnd = new Date(dataFimVal + 'T12:00:00');
-                    const diffMonths = (dEnd.getFullYear() - dStart.getFullYear()) * 12 + (dEnd.getMonth() - dStart.getMonth()) + 1;
-                    numMesesPeriodo = Math.max(1, diffMonths);
-                    const diffDays = Math.round((dEnd - dStart) / (1000*60*60*24)) + 1;
-                    numDiasPeriodo = Math.max(1, diffDays);
-                } else {
-                    const uniqueYm = new Set(baseFiltered.map(d => `${d.year}-${d.month}`));
-                    numMesesPeriodo = Math.max(1, uniqueYm.size);
-                }
-            } else if (periodVal.includes('-')) {
-                numMesesPeriodo = 1;
-                numDiasPeriodo = 30;
-            }
+            const periodDivisors = calculatePeriodDivisors(periodVal, {
+                dataInicioVal,
+                dataFimVal,
+                now,
+                transactions: baseFiltered
+            });
+            const numMesesPeriodo = periodDivisors.numMeses;
+            const numDiasPeriodo = periodDivisors.numDias;
 
             // 2. CÁLCULO DAS MÉDIAS FINANCEIRAS NO PERÍODO
             const receitasPeriodo = baseFiltered.filter(d => d.type === 'RECEITA');
             const despesasPeriodo = baseFiltered.filter(d => d.type === 'DESPESA');
             const totalReceitas = receitasPeriodo.reduce((a, b) => a + b.value, 0);
             const totalDespesas = despesasPeriodo.reduce((a, b) => a + b.value, 0);
-            const outflowsAnalise = calculateEffectivePaymentOutflows(periodVal, globalData, globalCreditSettlements);
-            const totalPix = outflowsAnalise.byPaymentMethod['PIX'] || 0;
-            const totalCartao = outflowsAnalise.byPaymentMethod['Cartão de Crédito'] || 0;
-            const totalDinheiro = Object.keys(outflowsAnalise.byPaymentMethod)
-                .filter(k => k !== 'PIX' && k !== 'Cartão de Crédito')
-                .reduce((acc, k) => acc + outflowsAnalise.byPaymentMethod[k], 0);
 
-            const activeSettlementsInPeriod = globalCreditSettlements.filter(s => {
-                if (!s || s.status !== 'ATIVA' || s.cancelled_at) return false;
-                if (!s.data_liquidacao) return false;
-                if (periodVal === 'all') return true;
-                const parts = s.data_liquidacao.split(/[-/T ]/).map(Number);
-                if (parts.length >= 2) {
-                    const liqYm = `${parts[0]}-${parts[1] - 1}`;
-                    return liqYm === periodVal;
-                }
-                return false;
-            });
-            const pixSettlementsCount = activeSettlementsInPeriod.filter(s => (s.forma_liquidacao || 'PIX') === 'PIX').length;
-            const pixCount = despesasPeriodo.filter(d => (d.pagamento || '').toUpperCase() === 'PIX').length + pixSettlementsCount;
-            const cartaoCount = despesasPeriodo.filter(d => (d.pagamento || '').includes('Cartão') || d.cartao).length;
-            const dinheiroCount = despesasPeriodo.filter(d => !((d.pagamento || '').toUpperCase() === 'PIX') && !((d.pagamento || '').includes('Cartão') || d.cartao)).length;
+            // Saídas financeiras efetivas calculadas centralizadamente pelo settlementEngine (suporta liquidação parcial e múltiplos períodos)
+            const outflows = calculateEffectivePaymentOutflows(despesasPeriodo, globalCreditSettlements);
+            const totalPix = outflows.byPaymentMethod['PIX'] || 0;
+            const totalCartao = outflows.obrigacaoCartaoTotal || 0;
+            const totalDinheiro = Object.entries(outflows.byPaymentMethod)
+                .filter(([k]) => k !== 'PIX' && k !== 'Cartão de Crédito')
+                .reduce((a, [_, v]) => a + v, 0);
+
+            const pixCount = outflows.paymentMethodCounts.pix;
+            const cartaoCount = outflows.paymentMethodCounts.cartao;
+            const dinheiroCount = outflows.paymentMethodCounts.dinheiro;
 
             function calcMedia(totalVal, count) {
-                if (modoMedia === 'operacao') {
-                    return count > 0 ? totalVal / count : 0;
-                } else if (modoMedia === 'dia') {
-                    return totalVal / numDiasPeriodo;
-                } else { // 'mes'
-                    return totalVal / numMesesPeriodo;
-                }
+                return calculateAverageValue(totalVal, count, modoMedia, numMesesPeriodo, numDiasPeriodo);
             }
 
             const mediaReceitas = calcMedia(totalReceitas, receitasPeriodo.length);
@@ -8542,10 +8511,31 @@
             const elDetDin = document.getElementById('an-detail-media-dinheiro');
             if (elDetDin) elDetDin.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalDinheiro)} (${pctDinheiro}% dos gastos)</small>`;
 
-            // 3. MÉDIAS DE GASTOS POR CATEGORIA
+            // 3. MÉDIAS DE GASTOS POR CATEGORIA E COMPARATIVO COM O MÊS ATUAL
             const catAveragesContainer = document.getElementById('an-category-averages-cards');
             if (catAveragesContainer) {
                 catAveragesContainer.innerHTML = '';
+
+                // Gasto realizado no mês atual (até hoje) para comparativo
+                const mesAtualDespesas = filterCurrentMonthRealized(globalData, {
+                    tipoVal: 'DESPESA',
+                    catVal: 'all',
+                    subVal,
+                    tagVal,
+                    payVal,
+                    cardVal,
+                    custoVal,
+                    minVal,
+                    maxVal,
+                    searchTerm
+                }, now);
+
+                const mesAtualCatMap = {};
+                mesAtualDespesas.forEach(d => {
+                    const cat = d.category || 'Outros';
+                    mesAtualCatMap[cat] = (mesAtualCatMap[cat] || 0) + (Number(d.value) || 0);
+                });
+
                 const catMap = {};
                 despesasPeriodo.forEach(d => {
                     const cat = d.category || 'Outros';
@@ -8555,7 +8545,19 @@
                     catMap[cat].items.push(d);
                 });
 
-                const sortedCatKeys = Object.keys(catMap).sort((a, b) => catMap[b].total - catMap[a].total);
+                // Adiciona também categorias com gastos no mês atual que não tiveram no período histórico
+                Object.keys(mesAtualCatMap).forEach(cat => {
+                    if (!catMap[cat]) {
+                        catMap[cat] = { total: 0, count: 0, items: [] };
+                    }
+                });
+
+                const sortedCatKeys = Object.keys(catMap).sort((a, b) => {
+                    if (catMap[b].total !== catMap[a].total) {
+                        return catMap[b].total - catMap[a].total;
+                    }
+                    return (mesAtualCatMap[b] || 0) - (mesAtualCatMap[a] || 0);
+                });
 
                 if (sortedCatKeys.length === 0) {
                     catAveragesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem; grid-column: 1 / -1;">Nenhuma despesa registrada no período para calcular médias de categorias.</div>';
@@ -8563,7 +8565,12 @@
                     sortedCatKeys.forEach(catName => {
                         const info = catMap[catName];
                         const catMedia = calcMedia(info.total, info.count);
+                        const catMediaMensal = calculateAverageValue(info.total, info.count, 'mes', numMesesPeriodo, numDiasPeriodo);
                         const catPct = totalDespesas > 0 ? ((info.total / totalDespesas) * 100).toFixed(1) : 0;
+                        const gastoMesAtual = mesAtualCatMap[catName] || 0;
+
+                        // Comparação entre a média mensal do período e o gasto realizado no mês atual até hoje
+                        const comp = compareWithCurrentMonth(catMediaMensal, gastoMesAtual);
 
                         const isSelectedCat = catVal !== 'all' && normalizeCatalogName(catName) === normalizeCatalogName(catVal);
 
@@ -8577,20 +8584,49 @@
                         card.onclick = () => filterAnaliseCategory(catName);
                         card.title = `Clique para filtrar a categoria "${catName}"`;
 
+                        let badgeColor = 'var(--text-muted, #64748b)';
+                        let badgeBg = 'rgba(148, 163, 184, 0.15)';
+                        if (comp.status === 'acima') {
+                            badgeColor = 'var(--danger, #ef4444)';
+                            badgeBg = 'rgba(239, 68, 68, 0.12)';
+                        } else if (comp.status === 'abaixo') {
+                            badgeColor = 'var(--success, #10b981)';
+                            badgeBg = 'rgba(16, 185, 129, 0.12)';
+                        } else if (comp.status === 'sem_historico') {
+                            badgeColor = '#2563eb';
+                            badgeBg = 'rgba(37, 99, 235, 0.12)';
+                        }
+
+                        const diffFormatted = comp.diferenca !== 0
+                            ? `${comp.diferenca > 0 ? '+' : ''}${fmt(comp.diferenca)}`
+                            : '';
+
                         card.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.4rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.35rem;">
                                 <div style="font-weight:700; font-size:0.95rem; color:var(--text-main);">${escapeHtml(catName)}</div>
                                 <span style="font-size:0.75rem; background:rgba(239, 68, 68, 0.1); color:var(--danger); padding:2px 6px; border-radius:4px; font-weight:700;">${catPct}%</span>
                             </div>
-                            <div style="font-size:1.25rem; font-weight:700; color:var(--danger); margin-bottom:0.3rem;">
+                            <div style="font-size:1.2rem; font-weight:700; color:var(--danger); margin-bottom:0.25rem;">
                                 ${fmt(catMedia)} <small style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">${currentModoSuffix}</small>
                             </div>
-                            <div class="progress-bar-bg" style="margin-bottom:0.5rem;">
+                            <div class="progress-bar-bg" style="margin-bottom:0.45rem;">
                                 <div class="progress-bar-fill" style="width: ${Math.min(100, catPct)}%; background: var(--danger);"></div>
                             </div>
-                            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+                            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.45rem;">
                                 <span>Total: <b>${fmt(info.total)}</b></span>
                                 <span><b>${info.count}</b> ${info.count === 1 ? 'gasto' : 'gastos'}</span>
+                            </div>
+                            <div style="padding-top:0.4rem; border-top:1px dashed var(--border-color, rgba(148,163,184,0.3)); font-size:0.75rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                                    <span style="color:var(--text-muted);">Mês atual (até hoje):</span>
+                                    <span style="font-weight:700; color:var(--text-main);">${fmt(gastoMesAtual)}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                    <span style="font-size:0.72rem; font-weight:700; padding:2px 6px; border-radius:4px; color:${badgeColor}; background:${badgeBg};">
+                                        ${comp.textoComparativo}
+                                    </span>
+                                    ${diffFormatted ? `<span style="color:var(--text-muted); font-size:0.7rem;">(${diffFormatted})</span>` : ''}
+                                </div>
                             </div>
                         `;
                         catAveragesContainer.appendChild(card);

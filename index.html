@@ -9494,6 +9494,7 @@
                 setupMonthSelector();
                 renderParcelasTab();
                 updateDashboard(document.getElementById('monthSelector')?.value);
+                try { if (typeof renderForecastTab === 'function') renderForecastTab(); } catch (fErr) { console.warn('Erro ao atualizar previsão após quitação:', fErr); }
             } catch (err) {
                 console.error('Exceção ao quitar crédito:', err);
                 showToast('Erro ao registrar quitação: ' + err.message, 'error');
@@ -9531,6 +9532,7 @@
                 setupMonthSelector();
                 renderParcelasTab();
                 updateDashboard(document.getElementById('monthSelector')?.value);
+                try { if (typeof renderForecastTab === 'function') renderForecastTab(); } catch (fErr) { console.warn('Erro ao atualizar previsão após reversão:', fErr); }
             } catch (err) {
                 console.error('Exceção ao reverter quitação:', err);
                 showToast('Erro ao reverter quitação: ' + err.message, 'error');
@@ -10795,13 +10797,31 @@
                     m.items.sort((a,b) => b.date - a.date).forEach(item => {
                         const tr = document.createElement('tr');
                         const meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
+                        const isQuitado = item.isLiquidado;
+                        const isParcial = item.isLiquidadoParcial;
+                        let statusBadge = `<span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span>`;
+                        if (isQuitado) {
+                            statusBadge += ` <span class="tag-status tag-done" style="font-size:0.7rem; margin-left:4px;" title="Obrigação liquidada antecipadamente">Quitado</span>`;
+                        } else if (isParcial) {
+                            statusBadge += ` <span class="tag-status tag-warning" style="font-size:0.7rem; margin-left:4px;" title="Liquidação parcial de ${fmt(item.valorLiquidado)}">Parcial</span>`;
+                        }
+
+                        let valHtml = '';
+                        if (isQuitado) {
+                            valHtml = `<span style="font-weight:700; color:var(--text-muted); text-decoration:line-through; font-size:0.8rem; margin-right:4px;">${fmt(item.valorOriginal)}</span><span style="font-weight:700; color:var(--success);">${fmt(0)}</span>`;
+                        } else if (isParcial) {
+                            valHtml = `<span style="font-weight:700; color:var(--danger);">${fmt(item.obrigacaoRestante)}</span> <small style="font-size:0.7rem; color:var(--text-muted); display:block;">(${fmt(item.valorLiquidado)} quitado)</small>`;
+                        } else {
+                            valHtml = `<span style="font-weight:700; color:var(--danger);">${fmt(item.obrigacaoRestante ?? item.value)}</span>`;
+                        }
+
                         tr.innerHTML = `
                             <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
                             <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
                             <td class="cell-meio"><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(meioInfo || 'Geral')}</span></td>
                             <td class="cell-cat">${escapeHtml(item.category)}</td>
-                            <td class="cell-parcela"><span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span></td>
-                            <td class="cell-val" style="font-weight:700; color:var(--danger);">${fmt(item.value)}</td>
+                            <td class="cell-parcela">${statusBadge}</td>
+                            <td class="cell-val">${valHtml}</td>
                         `;
                         tbody.appendChild(tr);
                     });

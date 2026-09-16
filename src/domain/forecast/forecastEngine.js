@@ -57,36 +57,44 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
             const isCard = item.cartao || item.pagamento === 'Cartão de Crédito';
             const pNum = item.parcelaNoMes || item.initAtual || 1;
             const settlement = (!item.isRecorrente && isCard) ? isInstallmentSettled(settleMap, item, pNum) : null;
+            const valorLiquidado = settlement ? Number(settlement.valor || 0) : 0;
+            const obrigacaoRestante = settlement
+                ? Math.max(0, Math.round(((item.value || 0) - valorLiquidado) * 100) / 100)
+                : (item.value || 0);
             return {
                 ...item,
-                isLiquidado: Boolean(settlement),
+                valorOriginal: item.value,
+                valorLiquidado,
+                obrigacaoRestante,
+                isLiquidado: Boolean(settlement && obrigacaoRestante === 0),
+                isLiquidadoParcial: Boolean(settlement && obrigacaoRestante > 0 && valorLiquidado > 0),
                 liquidacao: settlement || null
             };
         });
 
-        // Itens não-liquidados que continuam gerando comprometimento orçamentário
-        const activeItems = items.filter(item => !item.isLiquidado);
+        // Itens que continuam gerando comprometimento orçamentário (obrigação restante não zerada e não quitados)
+        const activeItems = items.filter(item => !item.isLiquidado && item.obrigacaoRestante !== 0);
 
-        // Cálculo algébrico de total comprometido (estornos / valores negativos reduzem o total)
-        const totalComprometido = activeItems.reduce((acc, item) => acc + item.value, 0);
+        // Cálculo algébrico de total comprometido considerando a obrigação restante efetiva
+        const totalComprometido = items.reduce((acc, item) => acc + item.obrigacaoRestante, 0);
 
-        const cartaoItems = activeItems.filter(item => item.cartao || item.pagamento === 'Cartão de Crédito');
-        const parcelasItems = activeItems.filter(item => item.isParcelado);
-        const recorrentesItems = activeItems.filter(item => item.isRecorrente);
-        const outrosItems = activeItems.filter(item => !item.cartao && item.pagamento !== 'Cartão de Crédito' && !item.isParcelado && !item.isRecorrente);
+        const cartaoItems = items.filter(item => (item.cartao || item.pagamento === 'Cartão de Crédito') && !item.isLiquidado && item.obrigacaoRestante !== 0);
+        const parcelasItems = items.filter(item => item.isParcelado && !item.isLiquidado && item.obrigacaoRestante !== 0);
+        const recorrentesItems = items.filter(item => item.isRecorrente && !item.isLiquidado && item.obrigacaoRestante !== 0);
+        const outrosItems = items.filter(item => !item.cartao && item.pagamento !== 'Cartão de Crédito' && !item.isParcelado && !item.isRecorrente && !item.isLiquidado && item.obrigacaoRestante !== 0);
 
-        // Breakdown por cartão
+        // Breakdown por cartão (baseado na obrigação restante)
         const byCard = {};
         cartaoItems.forEach(item => {
             const cardName = item.cartao || 'Cartão';
-            byCard[cardName] = (byCard[cardName] || 0) + item.value;
+            byCard[cardName] = (byCard[cardName] || 0) + item.obrigacaoRestante;
         });
 
-        // Breakdown por categoria
+        // Breakdown por categoria (baseado na obrigação restante)
         const byCategory = {};
         activeItems.forEach(item => {
             const catName = item.category || 'Outros';
-            byCategory[catName] = (byCategory[catName] || 0) + item.value;
+            byCategory[catName] = (byCategory[catName] || 0) + item.obrigacaoRestante;
         });
 
         // Receitas e Investimentos futuros confirmados (explícitos no banco)
@@ -126,10 +134,10 @@ export function calculateFinancialForecast(startYm, horizonMonths = 6, transacti
             label: `${MONTH_NAMES_BR[m]}/${y}`,
             shortLabel: `${MONTH_NAMES_BR[m].substring(0, 3).toUpperCase()}/${String(y).slice(-2)}`,
             totalComprometido,
-            totalCartao: cartaoItems.reduce((acc, d) => acc + d.value, 0),
-            totalParcelas: parcelasItems.reduce((acc, d) => acc + d.value, 0),
-            totalRecorrentes: recorrentesItems.reduce((acc, d) => acc + d.value, 0),
-            totalOutros: outrosItems.reduce((acc, d) => acc + d.value, 0),
+            totalCartao: cartaoItems.reduce((acc, d) => acc + d.obrigacaoRestante, 0),
+            totalParcelas: parcelasItems.reduce((acc, d) => acc + d.obrigacaoRestante, 0),
+            totalRecorrentes: recorrentesItems.reduce((acc, d) => acc + d.obrigacaoRestante, 0),
+            totalOutros: outrosItems.reduce((acc, d) => acc + d.obrigacaoRestante, 0),
             receitasConfirmadas,
             investimentosConfirmados,
             byCard,

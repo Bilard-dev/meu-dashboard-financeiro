@@ -379,7 +379,11 @@ describe('forecastEngine — Motor Puro de Previsão Financeira 2.0', () => {
                 const rawItems = legacyGetFinancialExpensesForMonth(ymKey, globalData);
                 const items = rawItems.map(item => ({
                     ...item,
+                    valorOriginal: item.value,
+                    valorLiquidado: 0,
+                    obrigacaoRestante: item.value,
                     isLiquidado: false,
+                    isLiquidadoParcial: false,
                     liquidacao: null
                 }));
                 const totalComprometido = items.reduce((acc, item) => acc + item.value, 0);
@@ -441,5 +445,236 @@ describe('forecastEngine — Motor Puro de Previsão Financeira 2.0', () => {
                 assert.deepStrictEqual(domainRes, legacyRes, `Falha de equivalência para ym=${ym}, h=${h}`);
             }
         }
+    });
+
+    describe('Liquidação Antecipada na Previsão Financeira (Fase 4.7-B)', () => {
+        const baseCompraCartao = {
+            id: 'tx-cc-1',
+            type: 'DESPESA',
+            value: 500,
+            pagamento: 'Cartão de Crédito',
+            cartao: 'Nubank',
+            rawDate: '2026-08-10',
+            year: 2026,
+            month: 7,
+            faturaDestino: 'ATUAL',
+            parcela: '1/1',
+            desc: 'Compra Eletro',
+            category: 'Casa'
+        };
+
+        it('1. Parcela de 500 sem liquidação => previsão 500', () => {
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], []);
+            assert.equal(res[0].totalComprometido, 500);
+            assert.equal(res[0].totalCartao, 500);
+            assert.equal(res[0].byCard['Nubank'], 500);
+            assert.equal(res[0].byCategory['Casa'], 500);
+            assert.equal(res[0].items[0].valorOriginal, 500);
+            assert.equal(res[0].items[0].valorLiquidado, 0);
+            assert.equal(res[0].items[0].obrigacaoRestante, 500);
+            assert.equal(res[0].items[0].isLiquidado, false);
+            assert.equal(res[0].items[0].isLiquidadoParcial, false);
+        });
+
+        it('2. Parcela de 500 + liquidação válida de 500 => previsão 0', () => {
+            const settlement = {
+                id: 'set-1',
+                transacao_id: 'tx-cc-1',
+                parcela_numero: 1,
+                valor: 500,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'ATIVA'
+            };
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlement]);
+            assert.equal(res[0].totalComprometido, 0);
+            assert.equal(res[0].totalCartao, 0);
+            assert.equal(res[0].byCard['Nubank'], undefined);
+            assert.equal(res[0].items[0].valorOriginal, 500);
+            assert.equal(res[0].items[0].valorLiquidado, 500);
+            assert.equal(res[0].items[0].obrigacaoRestante, 0);
+            assert.equal(res[0].items[0].isLiquidado, true);
+            assert.equal(res[0].items[0].isLiquidadoParcial, false);
+        });
+
+        it('3. Parcela de 500 + liquidação válida parcial de 300 => previsão 200', () => {
+            const settlement = {
+                id: 'set-2',
+                transacao_id: 'tx-cc-1',
+                parcela_numero: 1,
+                valor: 300,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'ATIVA'
+            };
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlement]);
+            assert.equal(res[0].totalComprometido, 200);
+            assert.equal(res[0].totalCartao, 200);
+            assert.equal(res[0].byCard['Nubank'], 200);
+            assert.equal(res[0].byCategory['Casa'], 200);
+            assert.equal(res[0].items[0].valorOriginal, 500);
+            assert.equal(res[0].items[0].valorLiquidado, 300);
+            assert.equal(res[0].items[0].obrigacaoRestante, 200);
+            assert.equal(res[0].items[0].isLiquidado, false);
+            assert.equal(res[0].items[0].isLiquidadoParcial, true);
+        });
+
+        it('4. Liquidação revertida (CANCELADA ou cancelled_at) => restaura valor devido de 500', () => {
+            const settlement = {
+                id: 'set-3',
+                transacao_id: 'tx-cc-1',
+                parcela_numero: 1,
+                valor: 500,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'CANCELADA',
+                cancelled_at: '2026-08-16T10:00:00Z'
+            };
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlement]);
+            assert.equal(res[0].totalComprometido, 500);
+            assert.equal(res[0].totalCartao, 500);
+            assert.equal(res[0].items[0].valorLiquidado, 0);
+            assert.equal(res[0].items[0].obrigacaoRestante, 500);
+            assert.equal(res[0].items[0].isLiquidado, false);
+        });
+
+        it('5. Liquidação superior ao devido (ex: 600) => prevê 0 (nunca negativo)', () => {
+            const settlement = {
+                id: 'set-4',
+                transacao_id: 'tx-cc-1',
+                parcela_numero: 1,
+                valor: 600,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'ATIVA'
+            };
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlement]);
+            assert.equal(res[0].totalComprometido, 0);
+            assert.equal(res[0].totalCartao, 0);
+            assert.equal(res[0].items[0].obrigacaoRestante, 0);
+            assert.equal(res[0].items[0].isLiquidado, true);
+        });
+
+        it('6. Liquidação de outra compra/parcela não interfere na obrigação desta', () => {
+            const settlementOutro = {
+                id: 'set-outro',
+                transacao_id: 'tx-cc-outra',
+                parcela_numero: 1,
+                valor: 500,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'ATIVA'
+            };
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlementOutro]);
+            assert.equal(res[0].totalComprometido, 500);
+            assert.equal(res[0].totalCartao, 500);
+            assert.equal(res[0].items[0].obrigacaoRestante, 500);
+        });
+
+        it('7. Preservação da despesa econômica original no item', () => {
+            const settlement = {
+                id: 'set-orig',
+                transacao_id: 'tx-cc-1',
+                parcela_numero: 1,
+                valor: 500,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'ATIVA'
+            };
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlement]);
+            // A compra original permanece nos items para fins de rastreabilidade
+            assert.equal(res[0].items.length, 1);
+            assert.equal(res[0].items[0].valorOriginal, 500);
+            assert.equal(res[0].items[0].value, 500);
+            assert.equal(res[0].items[0].obrigacaoRestante, 0);
+        });
+
+        it('8. Parcelamento em 3x (3 x R$ 200) com quitação antecipada apenas da parcela 2', () => {
+            const parcelamento = [
+                {
+                    id: 'tx-parc-seed',
+                    type: 'DESPESA',
+                    value: 200,
+                    pagamento: 'Cartão de Crédito',
+                    cartao: 'Nubank',
+                    rawDate: '2026-08-05',
+                    year: 2026,
+                    month: 7,
+                    faturaDestino: 'ATUAL',
+                    parcela: '1/3',
+                    desc: 'Smartphone 3x',
+                    category: 'Tecnologia',
+                    grupo_parcela_id: 'grp-phone'
+                }
+            ];
+
+            // Liquidação da parcela 2 (setembro/2026)
+            const settlementP2 = {
+                id: 'set-p2',
+                grupo_parcela_id: 'grp-phone',
+                parcela_numero: 2,
+                valor: 200,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-20',
+                status: 'ATIVA'
+            };
+
+            const res = calculateFinancialForecast('2026-7', 3, parcelamento, [settlementP2]);
+
+            // Mês 1 (Agosto - parcela 1/3): devida R$ 200
+            assert.equal(res[0].totalComprometido, 200);
+            assert.equal(res[0].totalParcelas, 200);
+            assert.equal(res[0].items[0].obrigacaoRestante, 200);
+
+            // Mês 2 (Setembro - parcela 2/3): liquidada antecipadamente R$ 200 => obrigação R$ 0
+            assert.equal(res[1].totalComprometido, 0);
+            assert.equal(res[1].totalParcelas, 0);
+            assert.equal(res[1].items[0].obrigacaoRestante, 0);
+            assert.equal(res[1].items[0].isLiquidado, true);
+
+            // Mês 3 (Outubro - parcela 3/3): devida R$ 200
+            assert.equal(res[2].totalComprometido, 200);
+            assert.equal(res[2].totalParcelas, 200);
+            assert.equal(res[2].items[0].obrigacaoRestante, 200);
+        });
+
+        it('9. Preservação rigorosa da Fase 4.6 (PREVISTO ≠ REALIZADO) junto com Liquidação Antecipada', () => {
+            const occs = [
+                {
+                    id: 'occ-1',
+                    tipo: 'assinatura_cartao',
+                    valor_previsto: 49.90,
+                    data_prevista: '2026-08-15',
+                    status: 'PREVISTA'
+                },
+                {
+                    id: 'occ-2',
+                    tipo: 'pix_agendado',
+                    valor_previsto: 100.00,
+                    data_prevista: '2026-08-20',
+                    status: 'PREVISTA'
+                }
+            ];
+
+            const settlement = {
+                id: 'set-1',
+                transacao_id: 'tx-cc-1',
+                parcela_numero: 1,
+                valor: 500,
+                forma_liquidacao: 'PIX',
+                data_liquidacao: '2026-08-15',
+                status: 'ATIVA'
+            };
+
+            const res = calculateFinancialForecast('2026-7', 2, [baseCompraCartao], [settlement], occs);
+
+            // Comprometido efetivo (cartão liquidado) = 0
+            assert.equal(res[0].totalComprometido, 0);
+            // Previsões de agendamento permanecem intactas
+            assert.equal(res[0].totalPrevistoAssinaturas, 49.90);
+            assert.equal(res[0].totalPrevistoPix, 100.00);
+            assert.equal(res[0].totalPrevistoAgendamentos, 149.90);
+            assert.equal(res[0].totalProjetadoComPrevisao, 149.90);
+        });
     });
 });

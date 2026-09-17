@@ -3488,7 +3488,7 @@
 
                         <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button type="submit" class="btn-primary" id="btnSalvar" style="flex:1;">Salvar e Ir pro Resumo</button>
-                            <button type="button" class="btn-success" onclick="addOrUpdateTransaction(event, true)" style="flex:1;">🟢 Salvar e Lançar Outro</button>
+                            <button type="button" class="btn-success" id="btnSalvarOutro" onclick="addOrUpdateTransaction(event, true)" style="flex:1;">🟢 Salvar e Lançar Outro</button>
                             <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
                         </div>
                     </form>
@@ -4878,6 +4878,7 @@
         let rawSupabaseData = [];
         let globalData = [];
         let globalCreditSettlements = [];
+        let isSavingTransaction = false;
         let globalSchedules = [];
         let globalScheduleOccurrences = [];
         let globalScheduleOccurrencesExpanded = false;
@@ -5964,64 +5965,97 @@
 
         async function saveMobileQuickTransaction(e, reset = false) {
             if (e) e.preventDefault();
+            if (isSavingTransaction) return;
 
-            const tipo = document.getElementById('m_tipo') ? document.getElementById('m_tipo').value : 'Despesa';
-            const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
-            const mParcelaSel = document.getElementById('m_parcela_select').value;
-            let valorParcelaFinal = '';
-            if (isCard) {
-                if (mParcelaSel === 'RECORRENTE') {
-                    valorParcelaFinal = 'RECORRENTE';
-                } else if (mParcelaSel === 'CUSTOM') {
-                    valorParcelaFinal = document.getElementById('m_parcela_custom').value.trim();
-                } else if (mParcelaSel !== 'À vista') {
-                    valorParcelaFinal = mParcelaSel;
-                }
-            }
+            const btnQuickSalvar = document.getElementById('btnQuickSalvar');
+            const btnQuickSalvarOutro = document.getElementById('btnQuickSalvarOutro');
+            const btnQuickMaisOpcoes = document.getElementById('btnQuickMaisOpcoes');
+            const activeBtn = reset ? btnQuickSalvarOutro : btnQuickSalvar;
+            const originalActiveText = activeBtn ? activeBtn.innerText : '';
 
-            let grupoParcelaId = null;
-            if (isCard && valorParcelaFinal && /^\d+\/\d+$/.test(valorParcelaFinal)) {
-                grupoParcelaId = crypto.randomUUID();
-            }
+            isSavingTransaction = true;
+            if (btnQuickSalvar) btnQuickSalvar.disabled = true;
+            if (btnQuickSalvarOutro) btnQuickSalvarOutro.disabled = true;
+            if (btnQuickMaisOpcoes) btnQuickMaisOpcoes.disabled = true;
+            if (activeBtn) activeBtn.innerText = 'Salvando...';
 
-            const descWithTags = buildDescWithTags(document.getElementById('m_descricao').value, document.getElementById('m_tags').value);
-
-            const payload = {
-                user_id: currentUser.id,
-                grupo_parcela_id: grupoParcelaId,
-                tipo: tipo,
-                data: document.getElementById('m_data').value,
-                descricao: descWithTags,
-                valor: parseFloat(document.getElementById('m_valor').value),
-                pagamento: document.getElementById('m_pagamento').value,
-                cartao: isCard ? document.getElementById('m_cartao').value : '',
-                fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
-                parcela: valorParcelaFinal,
-                categoria: document.getElementById('m_categoria').value || 'Outros',
-                subcategoria: document.getElementById('m_subcategoria').value || ''
-            };
-
-            const res = await transactionsInsert([payload]);
-
-            if (res.error) {
-                showToast('Erro ao lançar: ' + res.error.message, 'error');
-            } else {
-                const tipoLabel = tipo === 'Receita' ? 'Receita lançada' : (tipo === 'Saque' ? 'Saque lançado' : 'Gasto lançado');
-                showToast(`${tipoLabel} com sucesso!`, 'success');
-                if (reset) {
-                    document.getElementById('m_descricao').value = '';
-                    document.getElementById('m_valor').value = '';
-                    document.getElementById('m_tags').value = '';
-                    document.getElementById('m_parcela_select').value = 'À vista';
-                    const customEl = document.getElementById('m_parcela_custom');
-                    if (customEl) {
-                        customEl.style.display = 'none';
-                        customEl.value = '';
+            try {
+                const tipo = document.getElementById('m_tipo') ? document.getElementById('m_tipo').value : 'Despesa';
+                const isCard = document.getElementById('m_pagamento').value === 'Cartão de Crédito';
+                const mParcelaSel = document.getElementById('m_parcela_select').value;
+                let valorParcelaFinal = '';
+                if (isCard) {
+                    if (mParcelaSel === 'RECORRENTE') {
+                        valorParcelaFinal = 'RECORRENTE';
+                    } else if (mParcelaSel === 'CUSTOM') {
+                        valorParcelaFinal = document.getElementById('m_parcela_custom').value.trim();
+                    } else if (mParcelaSel !== 'À vista') {
+                        valorParcelaFinal = mParcelaSel;
                     }
-                } else {
-                    closeMobileQuickView();
                 }
-                manualSync();
+
+                let grupoParcelaId = null;
+                if (isCard && valorParcelaFinal && /^\d+\/\d+$/.test(valorParcelaFinal)) {
+                    grupoParcelaId = crypto.randomUUID();
+                }
+
+                const descWithTags = buildDescWithTags(document.getElementById('m_descricao').value, document.getElementById('m_tags').value);
+
+                const payload = {
+                    user_id: currentUser.id,
+                    grupo_parcela_id: grupoParcelaId,
+                    tipo: tipo,
+                    data: document.getElementById('m_data').value,
+                    descricao: descWithTags,
+                    valor: parseFloat(document.getElementById('m_valor').value),
+                    pagamento: document.getElementById('m_pagamento').value,
+                    cartao: isCard ? document.getElementById('m_cartao').value : '',
+                    fatura_destino: isCard ? document.getElementById('m_fatura_destino').value : 'ATUAL',
+                    parcela: valorParcelaFinal,
+                    categoria: document.getElementById('m_categoria').value || 'Outros',
+                    subcategoria: document.getElementById('m_subcategoria').value || ''
+                };
+
+                const res = await transactionsInsert([payload]);
+
+                if (res.error) {
+                    showToast('Erro ao lançar: ' + res.error.message, 'error');
+                } else {
+                    const tipoLabel = tipo === 'Receita' ? 'Receita lançada' : (tipo === 'Saque' ? 'Saque lançado' : 'Gasto lançado');
+                    showToast(`${tipoLabel} com sucesso!`, 'success');
+                    if (reset) {
+                        document.getElementById('m_descricao').value = '';
+                        document.getElementById('m_valor').value = '';
+                        document.getElementById('m_tags').value = '';
+                        document.getElementById('m_parcela_select').value = 'À vista';
+                        const customEl = document.getElementById('m_parcela_custom');
+                        if (customEl) {
+                            customEl.style.display = 'none';
+                            customEl.value = '';
+                        }
+                    } else {
+                        closeMobileQuickView();
+                    }
+                    await manualSync();
+                }
+            } catch (err) {
+                console.error('Erro inesperado ao salvar transação mobile:', err);
+                showToast('Erro inesperado ao lançar transação.', 'error');
+            } finally {
+                isSavingTransaction = false;
+                if (btnQuickSalvar) {
+                    btnQuickSalvar.disabled = false;
+                    if (btnQuickSalvar.innerText === 'Salvando...') {
+                        btnQuickSalvar.innerText = originalActiveText || 'Lançar Gasto Agora';
+                    }
+                }
+                if (btnQuickSalvarOutro) {
+                    btnQuickSalvarOutro.disabled = false;
+                    btnQuickSalvarOutro.innerText = '🟢 Salvar e Lançar Outro';
+                }
+                if (btnQuickMaisOpcoes) {
+                    btnQuickMaisOpcoes.disabled = false;
+                }
             }
         }
 
@@ -7482,98 +7516,126 @@
 
         async function addOrUpdateTransaction(e, isBatch = false) {
             if (e) e.preventDefault();
-            const btn = document.getElementById('btnSalvar');
-            const editId = document.getElementById('edit_id').value;
-            btn.innerText = 'Salvando...';
+            if (isSavingTransaction) return;
 
-            const tipo = document.getElementById('i_tipo').value;
-            const pagamento = document.getElementById('i_pagamento').value;
-            const isCard = pagamento === 'Cartão de Crédito';
+            const btnSalvar = document.getElementById('btnSalvar');
+            const btnSalvarOutro = document.getElementById('btnSalvarOutro');
+            const btnCancelar = document.getElementById('btnCancelarEdicao');
+            const editId = document.getElementById('edit_id')?.value;
+            const activeBtn = isBatch ? btnSalvarOutro : btnSalvar;
 
-            let valorParcelaFinal = '';
-            if (isCard) {
-                const pSel = document.getElementById('i_parcela_select').value;
-                if (pSel === 'RECORRENTE') {
-                    valorParcelaFinal = 'RECORRENTE';
-                } else if (pSel === 'CUSTOM') {
-                    valorParcelaFinal = document.getElementById('i_parcela_custom').value.trim();
-                } else if (pSel !== 'À vista') {
-                    valorParcelaFinal = pSel;
-                }
-            }
+            isSavingTransaction = true;
+            if (btnSalvar) btnSalvar.disabled = true;
+            if (btnSalvarOutro) btnSalvarOutro.disabled = true;
+            if (btnCancelar) btnCancelar.disabled = true;
+            if (activeBtn) activeBtn.innerText = 'Salvando...';
 
-            let grupoParcelaId = null;
-            if (editId) {
-                const existingItem = globalData.find(d => d.id === editId);
-                // Preserva estritamente o grupo_parcela_id já existente (ou null se for legado)
-                grupoParcelaId = existingItem ? (existingItem.grupo_parcela_id || null) : null;
-            } else {
-                // Nova transação: gera UUID exclusivo SOMENTE se for um parcelamento finito válido (ex: 1/3, 2/10)
-                if (isCard && valorParcelaFinal && /^\d+\/\d+$/.test(valorParcelaFinal)) {
-                    grupoParcelaId = crypto.randomUUID();
-                }
-            }
+            try {
+                const tipo = document.getElementById('i_tipo').value;
+                const pagamento = document.getElementById('i_pagamento').value;
+                const isCard = pagamento === 'Cartão de Crédito';
 
-            const descWithTags = buildDescWithTags(document.getElementById('i_descricao').value, document.getElementById('i_tags').value);
-
-            const payload = {
-                user_id: currentUser.id,
-                grupo_parcela_id: grupoParcelaId,
-                tipo: tipo,
-                data: document.getElementById('i_data').value,
-                descricao: descWithTags,
-                valor: parseFloat(document.getElementById('i_valor').value),
-                pagamento: pagamento,
-                cartao: isCard ? document.getElementById('i_cartao').value : '',
-                fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
-                parcela: valorParcelaFinal,
-                categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
-                subcategoria: document.getElementById('i_subcategoria').value || '',
-                custo: document.getElementById('i_custo').value
-            };
-
-            let res;
-            if (editId) {
-                const existingItem = globalData.find(d => d.id === editId);
-                const hasActive = globalCreditSettlements.some(s =>
-                    (!s.status || s.status === 'ATIVA') &&
-                    !s.cancelled_at &&
-                    (s.transacao_id === editId || (existingItem?.grupo_parcela_id && s.grupo_parcela_id === existingItem.grupo_parcela_id))
-                );
-
-                if (hasActive && existingItem) {
-                    const isValChanged = Math.abs(existingItem.value - payload.valor) > 0.01;
-                    const isPaymentChanged = existingItem.pagamento !== payload.pagamento || existingItem.cartao !== payload.cartao;
-                    const isParcelaChanged = (existingItem.parcela || '') !== (payload.parcela || '');
-                    const isTypeChanged = existingItem.type !== payload.tipo.toUpperCase();
-
-                    if (isValChanged || isPaymentChanged || isParcelaChanged || isTypeChanged) {
-                        showToast('Esta compra possui parcelas quitadas antecipadamente (via PIX). Para alterar valor, parcelamento ou forma de pagamento, desfaça as quitações primeiro.', 'error');
-                        btn.innerText = 'Atualizar Registro';
-                        return;
+                let valorParcelaFinal = '';
+                if (isCard) {
+                    const pSel = document.getElementById('i_parcela_select').value;
+                    if (pSel === 'RECORRENTE') {
+                        valorParcelaFinal = 'RECORRENTE';
+                    } else if (pSel === 'CUSTOM') {
+                        valorParcelaFinal = document.getElementById('i_parcela_custom').value.trim();
+                    } else if (pSel !== 'À vista') {
+                        valorParcelaFinal = pSel;
                     }
                 }
 
-                res = await transactionsUpdate(editId, payload);
-            } else {
-                res = await transactionsInsert([payload]);
-            }
-
-            if (res.error) {
-                showToast('Erro ao salvar: ' + res.error.message, 'error');
-                btn.innerText = editId ? 'Atualizar Registro' : 'Salvar e Ir pro Resumo';
-            } else {
-                showToast(editId ? 'Registro atualizado!' : 'Lançamento salvo com sucesso!', 'success');
-                if (isBatch) {
-                    document.getElementById('i_descricao').value = '';
-                    document.getElementById('i_valor').value = '';
-                    document.getElementById('i_tags').value = '';
-                    btn.innerText = 'Salvar e Ir pro Resumo';
+                let grupoParcelaId = null;
+                if (editId) {
+                    const existingItem = globalData.find(d => d.id === editId);
+                    // Preserva estritamente o grupo_parcela_id já existente (ou null se for legado)
+                    grupoParcelaId = existingItem ? (existingItem.grupo_parcela_id || null) : null;
                 } else {
-                    cancelEdit();
-                    switchTab('resumo');
+                    // Nova transação: gera UUID exclusivo SOMENTE se for um parcelamento finito válido (ex: 1/3, 2/10)
+                    if (isCard && valorParcelaFinal && /^\d+\/\d+$/.test(valorParcelaFinal)) {
+                        grupoParcelaId = crypto.randomUUID();
+                    }
                 }
-                manualSync();
+
+                const descWithTags = buildDescWithTags(document.getElementById('i_descricao').value, document.getElementById('i_tags').value);
+
+                const payload = {
+                    user_id: currentUser.id,
+                    grupo_parcela_id: grupoParcelaId,
+                    tipo: tipo,
+                    data: document.getElementById('i_data').value,
+                    descricao: descWithTags,
+                    valor: parseFloat(document.getElementById('i_valor').value),
+                    pagamento: pagamento,
+                    cartao: isCard ? document.getElementById('i_cartao').value : '',
+                    fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
+                    parcela: valorParcelaFinal,
+                    categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
+                    subcategoria: document.getElementById('i_subcategoria').value || '',
+                    custo: document.getElementById('i_custo').value
+                };
+
+                let res;
+                if (editId) {
+                    const existingItem = globalData.find(d => d.id === editId);
+                    const hasActive = globalCreditSettlements.some(s =>
+                        (!s.status || s.status === 'ATIVA') &&
+                        !s.cancelled_at &&
+                        (s.transacao_id === editId || (existingItem?.grupo_parcela_id && s.grupo_parcela_id === existingItem.grupo_parcela_id))
+                    );
+
+                    if (hasActive && existingItem) {
+                        const isValChanged = Math.abs(existingItem.value - payload.valor) > 0.01;
+                        const isPaymentChanged = existingItem.pagamento !== payload.pagamento || existingItem.cartao !== payload.cartao;
+                        const isParcelaChanged = (existingItem.parcela || '') !== (payload.parcela || '');
+                        const isTypeChanged = existingItem.type !== payload.tipo.toUpperCase();
+
+                        if (isValChanged || isPaymentChanged || isParcelaChanged || isTypeChanged) {
+                            showToast('Esta compra possui parcelas quitadas antecipadamente (via PIX). Para alterar valor, parcelamento ou forma de pagamento, desfaça as quitações primeiro.', 'error');
+                            return;
+                        }
+                    }
+
+                    res = await transactionsUpdate(editId, payload);
+                } else {
+                    res = await transactionsInsert([payload]);
+                }
+
+                if (res.error) {
+                    showToast('Erro ao salvar: ' + res.error.message, 'error');
+                } else {
+                    showToast(editId ? 'Registro atualizado!' : 'Lançamento salvo com sucesso!', 'success');
+                    if (isBatch) {
+                        document.getElementById('i_descricao').value = '';
+                        document.getElementById('i_valor').value = '';
+                        document.getElementById('i_tags').value = '';
+                    } else {
+                        cancelEdit();
+                        switchTab('resumo');
+                    }
+                    await manualSync();
+                }
+            } catch (err) {
+                console.error('Erro inesperado ao salvar transação:', err);
+                showToast('Erro inesperado ao salvar transação.', 'error');
+            } finally {
+                isSavingTransaction = false;
+                if (btnSalvar) {
+                    btnSalvar.disabled = false;
+                    if (btnSalvar.innerText === 'Salvando...') {
+                        const currentEditId = document.getElementById('edit_id')?.value;
+                        btnSalvar.innerText = currentEditId ? 'Atualizar Registro' : 'Salvar e Ir pro Resumo';
+                    }
+                }
+                if (btnSalvarOutro) {
+                    btnSalvarOutro.disabled = false;
+                    btnSalvarOutro.innerText = '🟢 Salvar e Lançar Outro';
+                }
+                if (btnCancelar) {
+                    btnCancelar.disabled = false;
+                }
             }
         }
 

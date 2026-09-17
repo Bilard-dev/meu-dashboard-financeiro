@@ -1,4 +1,5 @@
 import { createSettlementMap, isInstallmentSettled } from '../creditSettlement/settlementEngine.js';
+import { normalizeCatalogName } from '../../core/textUtils.js';
 
 /**
  * Agrupa compras de cartão de crédito identificando sementes de parcelamentos,
@@ -134,17 +135,83 @@ export function projectCardExpensesForCompetence(targetYear, targetMonth, baseIt
     return cardExpensesInMonth;
 }
 
+function matchesItemFilters(item, cartaoFilter, typeFilter, catFilter, searchFilter) {
+    if (cartaoFilter !== 'all') {
+        const itemCartao = item.cartao || item.pagamento || 'Cartão';
+        if (itemCartao !== cartaoFilter) return false;
+    }
+
+    if (catFilter !== 'all') {
+        const itemCat = item.category || item.categoria || '';
+        if (normalizeCatalogName(itemCat) !== normalizeCatalogName(catFilter)) return false;
+    }
+
+    if (typeFilter !== 'all') {
+        if (typeFilter === 'parcelado') {
+            if (!item.isParcelado || item.isRecorrente) return false;
+        } else if (typeFilter === 'recorrente') {
+            if (!item.isRecorrente) return false;
+        } else if (typeFilter === 'avista') {
+            if (item.isParcelado || item.isRecorrente) return false;
+        }
+    }
+
+    if (searchFilter) {
+        const matchDesc = (item.desc || item.descricao || '').toLowerCase().includes(searchFilter);
+        const matchCartao = (item.cartao || item.pagamento || '').toLowerCase().includes(searchFilter);
+        const matchCat = (item.category || item.categoria || '').toLowerCase().includes(searchFilter);
+        const matchSub = (item.subCat || item.subcategory || item.subcategoria || '').toLowerCase().includes(searchFilter);
+        const matchVal = (item.value != null ? String(item.value) : '').includes(searchFilter);
+        const matchTags = Array.isArray(item.tags) ? item.tags.some(t => String(t).toLowerCase().includes(searchFilter)) : false;
+        if (!matchDesc && !matchCartao && !matchCat && !matchSub && !matchVal && !matchTags) return false;
+    }
+
+    return true;
+}
+
+function matchesOccurrenceFilters(occ, cartaoFilter, typeFilter, catFilter, searchFilter) {
+    if (cartaoFilter !== 'all') {
+        const occCartao = occ.cartao || occ.agendamento?.cartao || 'Cartão';
+        if (occCartao !== cartaoFilter) return false;
+    }
+
+    if (catFilter !== 'all') {
+        const occCat = occ.categoria || occ.agendamento?.categoria || 'Outros';
+        if (normalizeCatalogName(occCat) !== normalizeCatalogName(catFilter)) return false;
+    }
+
+    if (typeFilter !== 'all') {
+        // Ocorrências de assinaturas agendadas de cartão são por definição recorrentes
+        if (typeFilter !== 'recorrente') return false;
+    }
+
+    if (searchFilter) {
+        const matchDesc = (occ.descricao || occ.agendamento?.descricao || '').toLowerCase().includes(searchFilter);
+        const matchCartao = (occ.cartao || occ.agendamento?.cartao || '').toLowerCase().includes(searchFilter);
+        const matchCat = (occ.categoria || occ.agendamento?.categoria || '').toLowerCase().includes(searchFilter);
+        const matchSub = (occ.subcategoria || occ.agendamento?.subcategoria || '').toLowerCase().includes(searchFilter);
+        const matchVal = (occ.valor_previsto != null ? String(occ.valor_previsto) : '').includes(searchFilter);
+        const tags = occ.tags || occ.agendamento?.tags || [];
+        const matchTags = Array.isArray(tags) ? tags.some(t => String(t).toLowerCase().includes(searchFilter)) : false;
+        if (!matchDesc && !matchCartao && !matchCat && !matchSub && !matchVal && !matchTags) return false;
+    }
+
+    return true;
+}
+
 /**
  * Calcula o resumo consolidado da fatura de cartão de crédito para uma competência informada.
  * Calcula totais da fatura selecionada, fatura seguinte, saldo devedor restante futuro,
- * itens da fatura com metadados e participação por cartão.
+ * itens da fatura com metadados e participação por cartão, com suporte opcional a filtros.
  *
  * @param {string} selectedYm - Competência no formato 'YYYY-M' (base 0)
  * @param {Array<object>} transactions - Lista de transações brutas
+ * @param {Array<object>|Map} [settlements=[]] - Lista ou mapa de liquidações antecipadas
  * @param {Array<object>} [scheduledOccurrences=[]] - Lista opcional de ocorrências de assinaturas previstas
+ * @param {object|null} [filters=null] - Filtros opcionais { cartao, type, category, search }
  * @returns {object} Resumo financeiro puro da fatura
  */
-export function calculateInvoiceSummary(selectedYm, transactions, settlements = [], scheduledOccurrences = []) {
+export function calculateInvoiceSummary(selectedYm, transactions, settlements = [], scheduledOccurrences = [], filters = null) {
     if (!selectedYm || typeof selectedYm !== 'string' || !selectedYm.includes('-')) {
         return {
             targetYear: 0,
@@ -175,6 +242,8 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
             totalLiquidadoNaCompetencia: 0,
             totalFaturaSeguinte: 0,
             totalRestanteFuturo: 0,
+            totalPrevistoAssinaturas: 0,
+            totalFaturaProjetada: 0,
             itemsNoMes: [],
             cartoesMap: {}
         };
@@ -187,6 +256,12 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
     const baseItemsToProject = groupCreditCardPurchases(transactions);
     const settleMap = settlements instanceof Map ? settlements : createSettlementMap(settlements);
 
+    const hasFilters = filters && typeof filters === 'object';
+    const cartaoFilter = hasFilters && filters.cartao ? filters.cartao : 'all';
+    const typeFilter = hasFilters && filters.type ? filters.type : 'all';
+    const catFilter = hasFilters && filters.category ? filters.category : 'all';
+    const searchFilter = hasFilters && typeof filters.search === 'string' ? filters.search.trim().toLowerCase() : '';
+
     let totalFaturaSelecionada = 0;
     let totalFaturaBruta = 0;
     let totalLiquidadoNaCompetencia = 0;
@@ -195,6 +270,10 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
     const itemsNoMes = [];
 
     baseItemsToProject.forEach(item => {
+        if (!matchesItemFilters(item, cartaoFilter, typeFilter, catFilter, searchFilter)) {
+            return;
+        }
+
         const pDate = new Date(item.rawDate + 'T12:00:00');
         const pYear = pDate.getFullYear();
         let pMonth = pDate.getMonth();
@@ -283,6 +362,10 @@ export function calculateInvoiceSummary(selectedYm, transactions, settlements = 
         if (!occ || occ.status !== 'PREVISTA') return;
         const tipo = occ.tipo || occ.agendamento?.tipo;
         if (tipo !== 'assinatura_cartao') return;
+
+        if (!matchesOccurrenceFilters(occ, cartaoFilter, typeFilter, catFilter, searchFilter)) {
+            return;
+        }
 
         const pDate = new Date(occ.data_prevista + 'T12:00:00');
         const oY = pDate.getFullYear();

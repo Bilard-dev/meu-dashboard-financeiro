@@ -9285,6 +9285,13 @@
             if (!monthSelector || !monthSelector.value) return;
 
             const selectedYm = monthSelector.value;
+
+            // Filtros avançados da aba de parcelas
+            const cartaoFilter = document.getElementById('parcelasCartaoFilter')?.value || 'all';
+            const typeFilter = document.getElementById('parcelasTypeFilter')?.value || 'all';
+            const catFilter = document.getElementById('parcelasCategoryFilter')?.value || 'all';
+            const searchTerm = (document.getElementById('parcelasSearchInput')?.value || '').trim();
+
             const {
                 targetYear,
                 targetMonth,
@@ -9299,7 +9306,13 @@
                 totalFaturaProjetada,
                 itemsNoMes,
                 cartoesMap
-            } = calculateInvoiceSummary(selectedYm, globalData, globalCreditSettlements, globalScheduleOccurrences);
+            } = calculateInvoiceSummary(
+                selectedYm,
+                globalData,
+                globalCreditSettlements,
+                globalScheduleOccurrences,
+                { cartao: cartaoFilter, type: typeFilter, category: catFilter, search: searchTerm }
+            );
 
             document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
             document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
@@ -9342,33 +9355,7 @@
                 });
             }
 
-            // Filtros avançados da aba de parcelas
-            const cartaoFilter = document.getElementById('parcelasCartaoFilter')?.value || 'all';
-            const typeFilter = document.getElementById('parcelasTypeFilter')?.value || 'all';
-            const catFilter = document.getElementById('parcelasCategoryFilter')?.value || 'all';
-            const searchTerm = (document.getElementById('parcelasSearchInput')?.value || '').trim().toLowerCase();
-
-            const filteredItemsNoMes = itemsNoMes.filter(item => {
-                if (cartaoFilter !== 'all' && (item.cartao || 'Cartão') !== cartaoFilter) return false;
-                if (catFilter !== 'all' && normalizeCatalogName(item.category) !== normalizeCatalogName(catFilter)) return false;
-
-                if (typeFilter === 'parcelado' && (!item.isParcelado || item.isRecorrente)) return false;
-                if (typeFilter === 'recorrente' && !item.isRecorrente) return false;
-                if (typeFilter === 'avista' && (item.isParcelado || item.isRecorrente)) return false;
-
-                if (searchTerm) {
-                    const matchDesc = (item.desc || '').toLowerCase().includes(searchTerm);
-                    const matchCartao = (item.cartao || '').toLowerCase().includes(searchTerm);
-                    const matchCat = (item.category || '').toLowerCase().includes(searchTerm);
-                    const matchSub = (item.subCat || '').toLowerCase().includes(searchTerm);
-                    const matchVal = (item.value || '').toString().includes(searchTerm);
-                    const matchTags = (item.tags || []).some(t => t.toLowerCase().includes(searchTerm));
-                    if (!matchDesc && !matchCartao && !matchCat && !matchSub && !matchVal && !matchTags) return false;
-                }
-
-                return true;
-            });
-
+            const filteredItemsNoMes = [...itemsNoMes];
             filteredItemsNoMes.sort((a, b) => b.date - a.date);
 
             const tbody = document.getElementById('parcelasTableBody');

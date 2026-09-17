@@ -584,4 +584,110 @@ describe('invoiceCalculator — Calculadora Pura de Faturas e Parcelamentos', ()
             assert.deepStrictEqual(domainRes, legacyRes, `Falha de equivalência estrita para ${ym}`);
         }
     });
+
+    describe('Filtros de Interface em calculateInvoiceSummary (HOTFIX 5-D)', () => {
+        const sampleTxs = [
+            { id: '1', type: 'DESPESA', value: 500, pagamento: 'Cartão de Crédito', cartao: 'ML CRÉDITO', rawDate: '2026-09-01', parcela: '1/5', category: 'Eletrônicos', desc: 'Notebook Dell' },
+            { id: '2', type: 'DESPESA', value: 30, pagamento: 'Cartão de Crédito', cartao: 'ML CRÉDITO', rawDate: '2026-09-05', parcela: 'RECORRENTE', category: 'Lazer', desc: 'Spotify' },
+            { id: '3', type: 'DESPESA', value: 70, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-09-10', parcela: 'À vista', category: 'Alimentação', desc: 'Almoço' },
+            { id: '4', type: 'DESPESA', value: 200, pagamento: 'Cartão de Crédito', cartao: 'Nubank', rawDate: '2026-09-12', parcela: '1/3', category: 'Eletrônicos', desc: 'Celular' }
+        ];
+
+        const sampleOccurrences = [
+            { id: 'occ-1', status: 'PREVISTA', tipo: 'assinatura_cartao', data_prevista: '2026-09-15', valor_previsto: 100, cartao: 'ML CRÉDITO', categoria: 'Saúde', descricao: 'Gympass' }
+        ];
+
+        it('22. Sem filtros: totaliza todos os cartões, lançamentos e previsões', () => {
+            const res = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences);
+            assert.equal(res.totalFaturaSelecionada, 800);
+            assert.equal(res.totalPrevistoAssinaturas, 100);
+            assert.equal(res.totalFaturaProjetada, 900);
+            assert.equal(res.totalFaturaSeguinte, 730); // 500 + 30 + 200
+            assert.equal(res.totalRestanteFuturo, 2400); // 4*500 + 2*200
+            assert.deepStrictEqual(res.cartoesMap, { 'ML CRÉDITO': 530, 'Nubank': 270 });
+        });
+
+        it('23. Filtro por cartão: filtra fatura atual, projetada, seguinte, futuro e mapa de cartões', () => {
+            const resML = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { cartao: 'ML CRÉDITO' });
+            assert.equal(resML.totalFaturaSelecionada, 530);
+            assert.equal(resML.totalPrevistoAssinaturas, 100);
+            assert.equal(resML.totalFaturaProjetada, 630);
+            assert.equal(resML.totalFaturaSeguinte, 530);
+            assert.equal(resML.totalRestanteFuturo, 2000);
+            assert.deepStrictEqual(resML.cartoesMap, { 'ML CRÉDITO': 530 });
+
+            const resNu = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { cartao: 'Nubank' });
+            assert.equal(resNu.totalFaturaSelecionada, 270);
+            assert.equal(resNu.totalPrevistoAssinaturas, 0); // Gympass é ML CRÉDITO
+            assert.equal(resNu.totalFaturaProjetada, 270);
+            assert.equal(resNu.totalFaturaSeguinte, 200);
+            assert.equal(resNu.totalRestanteFuturo, 400);
+            assert.deepStrictEqual(resNu.cartoesMap, { 'Nubank': 270 });
+        });
+
+        it('24. Filtro por tipo de compra: parceladas, recorrentes e à vista', () => {
+            const resParc = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { type: 'parcelado' });
+            assert.equal(resParc.totalFaturaSelecionada, 700); // 500 + 200
+            assert.equal(resParc.totalPrevistoAssinaturas, 0); // Gympass não é parcelado
+            assert.equal(resParc.totalFaturaProjetada, 700);
+            assert.equal(resParc.totalFaturaSeguinte, 700);
+            assert.equal(resParc.totalRestanteFuturo, 2400);
+
+            const resRec = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { type: 'recorrente' });
+            assert.equal(resRec.totalFaturaSelecionada, 30);
+            assert.equal(resRec.totalPrevistoAssinaturas, 100);
+            assert.equal(resRec.totalFaturaProjetada, 130);
+            assert.equal(resRec.totalFaturaSeguinte, 30);
+            assert.equal(resRec.totalRestanteFuturo, 0);
+
+            const resAv = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { type: 'avista' });
+            assert.equal(resAv.totalFaturaSelecionada, 70);
+            assert.equal(resAv.totalPrevistoAssinaturas, 0);
+            assert.equal(resAv.totalFaturaProjetada, 70);
+            assert.equal(resAv.totalFaturaSeguinte, 0);
+            assert.equal(resAv.totalRestanteFuturo, 0);
+        });
+
+        it('25. Filtro por categoria com normalização insensível', () => {
+            const res = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { category: 'eletrônicos' });
+            assert.equal(res.totalFaturaSelecionada, 700);
+            assert.equal(res.totalPrevistoAssinaturas, 0);
+            assert.equal(res.totalFaturaProjetada, 700);
+            assert.equal(res.itemsNoMes.length, 2);
+        });
+
+        it('26. Combinação Cartão + Tipo de Compra', () => {
+            const res = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { cartao: 'ML CRÉDITO', type: 'parcelado' });
+            assert.equal(res.totalFaturaSelecionada, 500);
+            assert.equal(res.totalPrevistoAssinaturas, 0);
+            assert.equal(res.totalFaturaProjetada, 500);
+            assert.equal(res.totalFaturaSeguinte, 500);
+            assert.equal(res.totalRestanteFuturo, 2000);
+            assert.deepStrictEqual(res.cartoesMap, { 'ML CRÉDITO': 500 });
+        });
+
+        it('27. Busca textual por termo em descrição, cartão e valor', () => {
+            const resSpotify = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { search: 'Spotify' });
+            assert.equal(resSpotify.totalFaturaSelecionada, 30);
+            assert.equal(resSpotify.itemsNoMes.length, 1);
+
+            const resGym = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { search: 'Gympass' });
+            assert.equal(resGym.totalFaturaSelecionada, 0);
+            assert.equal(resGym.totalPrevistoAssinaturas, 100);
+            assert.equal(resGym.totalFaturaProjetada, 100);
+        });
+
+        it('28. Filtro sem correspondência zera totais e retorna cartoesMap vazio de forma segura', () => {
+            const res = calculateInvoiceSummary('2026-8', sampleTxs, [], sampleOccurrences, { cartao: 'Cartão Inexistente' });
+            assert.equal(res.totalFaturaSelecionada, 0);
+            assert.equal(res.totalFaturaBruta, 0);
+            assert.equal(res.totalLiquidadoNaCompetencia, 0);
+            assert.equal(res.totalFaturaSeguinte, 0);
+            assert.equal(res.totalRestanteFuturo, 0);
+            assert.equal(res.totalPrevistoAssinaturas, 0);
+            assert.equal(res.totalFaturaProjetada, 0);
+            assert.deepStrictEqual(res.itemsNoMes, []);
+            assert.deepStrictEqual(res.cartoesMap, {});
+        });
+    });
 });

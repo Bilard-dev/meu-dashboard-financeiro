@@ -47,6 +47,8 @@ async function setupAuthenticatedApp(page, {
     cartoes = JSON.parse(JSON.stringify(mockCartoes)),
     tags = JSON.parse(JSON.stringify(mockTags)),
     settlements = [],
+    schedules = [],
+    occurrences = [],
     budgets = null,
     autoAcceptDialogs = true,
     initialUrl = '/'
@@ -59,6 +61,8 @@ async function setupAuthenticatedApp(page, {
     let inMemoryCartoes = [...cartoes];
     let inMemoryTags = [...tags];
     let inMemorySettlements = [...settlements];
+    let inMemorySchedules = [...schedules];
+    let inMemoryOccurrences = [...occurrences];
 
     const normalize = s => String(s || '').replace(/[\u00a0\s]+/g, ' ').trim().toLowerCase();
     const getQueryParam = (search, param) => {
@@ -1562,8 +1566,8 @@ async function setupAuthenticatedApp(page, {
                 return route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    headers: { 'content-range': '*/0' },
-                    body: JSON.stringify([])
+                    headers: { 'content-range': `0-${Math.max(0, inMemorySchedules.length - 1)}/${inMemorySchedules.length}` },
+                    body: JSON.stringify(inMemorySchedules)
                 });
             }
 
@@ -1571,8 +1575,8 @@ async function setupAuthenticatedApp(page, {
                 return route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    headers: { 'content-range': '*/0' },
-                    body: JSON.stringify([])
+                    headers: { 'content-range': `0-${Math.max(0, inMemoryOccurrences.length - 1)}/${inMemoryOccurrences.length}` },
+                    body: JSON.stringify(inMemoryOccurrences)
                 });
             }
 

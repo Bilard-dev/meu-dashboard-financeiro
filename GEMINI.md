@@ -1,18 +1,17 @@
 # CONTEXTO DO PROJETO
 
-Este é um sistema financeiro pessoal já existente e funcional.
+Este é um sistema financeiro pessoal ("Meu Dashboard Financeiro") totalmente funcional, maduro e em produção.
 
-O projeto foi originalmente desenvolvido com auxílio de IA, com HTML, CSS e JavaScript concentrados principalmente em um index.html.
+O projeto foi originalmente concebido com código concentrado em `index.html`, mas passou por uma reestruturação arquitetural completa (Base 3.0 até Versão 5.0). Atualmente possui arquitetura modular desacoplada em ES6 Modules (`src/core`, `src/domain`, `src/services`, `src/store`), mantendo `index.html` como ponto de entrada SPA e orquestrador de interface.
 
-Tecnologias atualmente conhecidas:
-- HTML
-- CSS
-- JavaScript
-- Supabase
-- Chart.js
-- Git/GitHub
-
-O Supabase é utilizado para banco de dados e autenticação.
+Tecnologias em produção:
+- HTML5 Semântico, CSS3 Moderno, JavaScript ES6+ Vanilla (Zero-Build frontend);
+- Supabase (PostgreSQL 15+, Supabase Auth, Row Level Security, RPCs PL/pgSQL, Triggers e Edge Functions Deno);
+- Chart.js 4.x (via CDN);
+- PWA (Web App Manifest, Service Worker offline, touch-friendly);
+- Node.js Test Runner nativo (`node:test`) para testes unitários matemáticos rápidos;
+- Playwright (`@playwright/test`) para testes E2E e fluxos completos;
+- Git / GitHub / GitHub Pages (deploy contínuo a partir da branch `main`).
 
 # PERFIL DO USUÁRIO
 
@@ -82,7 +81,9 @@ Nunca execute automaticamente:
 - remoção de colunas;
 - alteração destrutiva de tipos;
 - remoção de políticas RLS;
-- alterações destrutivas de dados.
+- alterações destrutivas de dados;
+- `supabase db push` (arrisca sobrescrever ou corromper schema remoto desincronizado);
+- `supabase migration repair` (pode criar estados inconsistentes de migration).
 
 Não execute migrations, SQL ou alterações de políticas diretamente no Supabase sem aprovação explícita, mesmo quando a alteração não for destrutiva.
 
@@ -94,6 +95,14 @@ Antes de qualquer alteração de schema, RLS ou dados:
 5. aguarde aprovação explícita.
 
 Nunca exponha chaves secretas, service_role keys, senhas, tokens ou outras credenciais.
+
+> [!CAUTION]
+> **REGRA CRÍTICA OPERACIONAL DO SUPABASE**:
+> Se um método de acesso autorizado ou esperado falhar (como autenticação de CLI, MCP, RPC ou endpoint):
+> **PARE IMEDIATAMENTE**.
+> NUNCA procure credenciais alternativas em arquivos de configuração locais, variáveis de ambiente ou diretórios de sistema.
+> NUNCA tente usar APIs de gerenciamento (Management API), chaves não autorizadas ou métodos de contorno sem instrução e aprovação humana explícita.
+> Explique ao usuário a falha do método oficial e aguarde orientações.
 
 # SEGURANÇA
 
@@ -118,7 +127,7 @@ Não altere silenciosamente cálculos relacionados a:
 - metas;
 - saldo;
 - patrimônio;
-- gastos compartilhados.
+- liquidações antecipadas de crédito.
 
 Quando uma regra financeira não estiver clara, pergunte antes de decidir o comportamento.
 
@@ -130,13 +139,20 @@ Quando possível, também verifique se a alteração afetou funcionalidades rela
 
 Não considere uma tarefa concluída apenas porque o código não apresenta erro de sintaxe.
 
-# REFATORAÇÃO
+# ARQUITETURA E REFATORAÇÃO
 
-Não divida ou reorganize o index.html apenas por preferência arquitetural.
+A modularização do sistema já foi estruturada a partir da Base 3.0:
+- O núcleo matemático e regras de negócio residem exclusivamente em `src/domain/` como funções puras e testáveis;
+- Utilitários gerais (datas, sanitização, formatação) residem em `src/core/`;
+- Acesso à rede e comunicação com Supabase residem em `src/services/`;
+- O estado de runtime compartilhado reside em `src/store/state.js`;
+- O arquivo `index.html` gerencia a interface, layout responsivo, modais e bridges globais (`window.*`).
 
-A separação do projeto em múltiplos arquivos deverá ser realizada futuramente como uma tarefa específica, planejada e testada.
-
-Não faça grandes refatorações junto com correções de bugs.
+Regras de refatoração:
+- Preserve a separação em camadas;
+- Nunca reinsira lógica matemática de domínio diretamente dentro de `index.html`;
+- Não faça refatorações cosméticas amplas junto com correções de bugs;
+- Mantenha a compatibilidade das bridges globais necessárias para eventos inline do DOM.
 
 # COMUNICAÇÃO
 
@@ -350,7 +366,7 @@ Dar atenção especial para não quebrar:
 - Parcelamentos;
 - Recorrências;
 - Dinheiro Físico;
-- Gastos Compartilhados;
+- Liquidações Antecipadas de Crédito;
 - Metas;
 - Previsão Financeira;
 - Catálogos;
@@ -397,3 +413,44 @@ SEGURANÇA + VELOCIDADE + MENOR ESCOPO.
 
 Bug simples não deve gerar auditoria completa do projeto.
 Bug financeiro/destrutivo não deve receber investigação superficial.
+
+# REGRAS PERMANENTES DE GOVERNANÇA (REGRAS A–H)
+
+Para qualquer agente, desenvolvedor ou assistente que atue neste repositório:
+
+- **Regra A — Fidelidade Estrita ao Código Real**:
+  Documente e trabalhe sempre sobre o que efetivamente existe no repositório. Nunca invente arquitetura ou documente funcionalidades inexistentes.
+
+- **Regra B — Invariante Contábil Canônica**:
+  Despesa Econômica $\neq$ Saída Financeira $\neq$ Obrigação do Cartão.
+  Toda compra no cartão abatida por liquidação antecipada (PIX) deve manter a despesa econômica original, registrar a saída financeira no PIX e abater o saldo residual do cartão via fórmula $\max(0, \text{Original} - \text{Liquidado})$.
+
+- **Regra C — Centralização Contábil de Domínio**:
+  Nunca duplique cálculos contábeis ou regras de liquidação em `index.html`. Toda operação deve passar obrigatoriamente pelas funções puras de `src/domain/` (como `calculateEffectivePaymentOutflows` em `settlementEngine.js`).
+
+- **Regra D — Proibição de Supabase db push e migration repair**:
+  Nunca execute `supabase db push` ou `supabase migration repair`. O histórico de migrations remotas não está sincronizado com a ordem sequencial local. Migrations devem ser atômicas e controladas.
+
+- **Regra E — Segregação Absoluta de Credenciais**:
+  A chave `service_role` e privilégios elevados pertencem exclusivamente a Edge Functions isoladas no servidor. Nunca exponha ou importe credenciais administrativas no frontend ou em arquivos públicos.
+
+- **Regra F — Proteção de Trilha de Auditoria e Access Gate**:
+  A tabela `admin_audit_logs` tem bloqueio estrito contra `UPDATE` e `DELETE`. Lançamentos e catálogos financeiros devem sempre obedecer ao Access Gate (`has_app_access()`).
+
+- **Regra G — Pirâmide de Testes e Não-Regressão**:
+  Mantenha a suíte de testes unitários (`npm run test:unit`) 100% verde (< 1s) para qualquer alteração de cálculo. Valide Playwright em fluxos afetados. Nunca enfraqueça asserções de testes para maquiar falhas.
+
+- **Regra H — Preservação de Dados e Histórico**:
+  Catálogos utilizam *soft-delete* (`ativo = false`). Ações destrutivas em lote ou alterações de saldo exigem aprovação explícita. O stash legado `stash@{0}` e os manuais em `docs/manual/` são bens preservados e não devem ser removidos.
+
+- **Regra I — Catálogos 100% Dinâmicos**:
+  Entidades selecionáveis e gerenciáveis (categorias, subcategorias, cartões e tags) devem ser dinâmicas e gerenciadas pelo usuário no banco de dados. Nunca reinsira listas estáticas ou opções hardcoded no código.
+
+- **Regra J — Roadmap e Escopo (Backlog de CSV/OFX e Conciliação)**:
+  Importação de extratos via CSV/OFX e conciliação bancária automática **NÃO** fazem parte do roadmap atual do projeto. Estão registradas estritamente como backlog de futuras explorações. A Previsão Financeira 2.0 permanece como parte integrante e ativa da arquitetura atual.
+
+- **Regra K — Falha Segura e Contenção no Supabase**:
+  Se o método oficial e autorizado de acesso ou mutação ao Supabase falhar, **PARE**. Não procure credenciais, não extraia tokens locais, não invoque a Management API nem improvise canais alternativos de mutação. A aplicação de SQL no editor manual do Supabase é exceção estrita, nunca padrão.
+
+- **Regra L — Concorrência e Boas Práticas Operacionais**:
+  Fluxos de persistência devem respeitar guardas de reentrância lógicas e travas de botão no cliente para evitar submissões concorrentes. Durante investigações puramente diagnósticas, nunca modifique arquivos de produção. Evite scripts PowerShell quando existirem alternativas canônicas no fluxo aprovado pelo usuário.

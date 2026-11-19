@@ -243,13 +243,9 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
         await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
         await expect(page.locator('#mobileMoreSheet')).toBeHidden();
 
-        // 9.3 Assinaturas & Agendados
+        // 9.3 Assinaturas & Agendados (removido da interface)
         await page.locator('#bnav-mais').click();
-        await page.getByRole('button', { name: /Assinaturas & Agendados/i }).click();
-        await expect(page.locator('#tab-agendamentos')).toBeVisible();
-        await expect(page).toHaveURL(/#\/agendamentos/);
-        await expect(page.locator('#bnav-mais')).toHaveClass(/active/);
-        await expect(page.locator('#mobileMoreSheet')).toBeHidden();
+        await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Assinaturas & Agendados/i })).toHaveCount(0);
 
         // 9.4 Categorias
         await page.locator('#bnav-mais').click();
@@ -269,7 +265,7 @@ test.describe('Fase 4.0 — M4.0-B: Navegação Mobile e Bottom Navigation', () 
 
         // 9.6 Confirma exatamente 7 atalhos no menu Mais Opções para usuário comum (Central Admin oculta)
         await page.locator('#bnav-mais').click();
-        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn:visible')).toHaveCount(7);
+        await expect(page.locator('#mobileMoreSheet .mobile-more-grid .mobile-more-btn:visible')).toHaveCount(6);
         await expect(page.locator('#mobileMoreAdminBtn')).toBeHidden();
         await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Metas/i })).toHaveCount(0);
         await expect(page.locator('#mobileMoreSheet').getByRole('button', { name: /Novo Registro Completo/i })).toHaveCount(0);

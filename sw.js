@@ -1,6 +1,6 @@
 // Service Worker - Dashboard Financeiro Pessoal PWA
 // Versão do Cache
-const CACHE_NAME = 'financas-pwa-v1';
+const CACHE_NAME = 'financas-pwa-v2';
 
 // Recursos essenciais da interface (App Shell)
 const STATIC_ASSETS = [
@@ -19,7 +19,6 @@ const STATIC_ASSETS = [
   './src/services/authService.js',
   './src/services/catalogsService.js',
   './src/services/creditSettlementService.js',
-  './src/services/metasService.js',
   './src/services/supabaseClient.js',
   './src/services/transactionsService.js',
   './src/store/state.js'

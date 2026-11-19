@@ -51,10 +51,10 @@ test.describe('Smoke Tests - Abertura e Autenticação', () => {
             await expect(page.locator(panel)).toHaveClass(/active/);
         }
 
-        // Metas oculta da navegação visível, mas painel preservado internamente
+        // Metas descontinuada: rota faz fallback suave para dashboard
         await expect(page.getByRole('button', { name: '🎯 Metas' })).toHaveCount(0);
         await page.goto('/#/metas');
-        await expect(page.locator('#tab-metas')).toHaveClass(/active/);
+        await expect(page.locator('#tab-resumo')).toHaveClass(/active/);
     });
 
 });

@@ -35,10 +35,14 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await expect(page.locator('button.tab-btn.active')).toContainText('Parcelas / Fatura Cartão');
     });
 
-    test('6. #/metas abre a aba de Metas internamente mantendo navegação oculta', async ({ page }) => {
+    test('6. Rotas descontinuadas (#/metas e #/agendamentos) fazem fallback suave para Dashboard', async ({ page }) => {
         await setupAuthenticatedApp(page, { initialUrl: '/#/metas' });
-        await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page.getByRole('button', { name: '🎯 Metas' })).toHaveCount(0);
+        await expect(page.locator('#tab-resumo')).toBeVisible();
+        await expect(page.locator('button.tab-btn.active')).toContainText('Resumo Geral');
+
+        await page.goto('/#/agendamentos');
+        await expect(page.locator('#tab-resumo')).toBeVisible();
+        await expect(page.locator('button.tab-btn.active')).toContainText('Resumo Geral');
     });
 
     test('7. #/previsao abre a aba de Previsão Financeira 2.0', async ({ page }) => {
@@ -152,7 +156,7 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
     });
 
     test('17. Login com formulário e deep link inicial honra a rota solicitada após autenticação', async ({ page }) => {
-        await setupAuthenticatedApp(page, { authenticated: false, initialUrl: '/#/metas' });
+        await setupAuthenticatedApp(page, { authenticated: false, initialUrl: '/#/extrato' });
         await expect(page.locator('#loginView')).toBeVisible();
 
         await page.fill('#email', 'teste@financas.com');
@@ -160,9 +164,8 @@ test.describe('Base 3.0 — SPA Hash Routing', () => {
         await page.click('#loginBtnText');
 
         await expect(page.locator('#appView')).toBeVisible();
-        await expect(page.locator('#tab-metas')).toBeVisible();
-        await expect(page.getByRole('button', { name: '🎯 Metas' })).toHaveCount(0);
-        await expect(page).toHaveURL(/#\/metas/);
+        await expect(page.locator('#tab-analise')).toBeVisible();
+        await expect(page).toHaveURL(/#\/extrato/);
     });
 
     test('18. Logout não quebra o routing e não expõe abas privadas para usuário deslogado', async ({ page }) => {

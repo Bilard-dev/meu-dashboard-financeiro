@@ -1241,28 +1241,21 @@
                         <div class="nl-seg" id="tipoSeg">
                             <button type="button" data-v="PIX" class="on" onclick="setFormMode('PIX')">PIX</button>
                             <button type="button" data-v="Cartão" onclick="setFormMode('Cartão')">Cartão</button>
-                            <button type="button" data-v="Dinheiro" onclick="setFormMode('Dinheiro')">Dinheiro</button>
                             <button type="button" data-v="Entrada" onclick="setFormMode('Entrada')">Entrada</button>
                         </div>
-                        <div class="nl-field" id="wrapTipo" style="margin-bottom: 0.65rem;">
-                            <label for="i_tipo" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px;">Tipo de Transação</label>
-                            <select id="i_tipo" class="input-field" style="width: 100%; height: 38px;" onchange="onTypeChange()">
-                                <option value="Despesa" selected>Despesa</option>
-                                <option value="Receita">Receita</option>
-                                <option value="Saque">Saque</option>
-                            </select>
-                        </div>
-                        <div class="nl-field" id="wrapPagamento" style="margin-bottom: 0.65rem;">
-                            <label for="i_pagamento" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px;">Forma de Pagamento</label>
-                            <select id="i_pagamento" class="input-field" style="width: 100%; height: 38px;" onchange="handlePaymentSelectChange(this.value)">
-                                <option value="PIX" selected>PIX</option>
-                                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                                <option value="Dinheiro">Dinheiro (Espécie)</option>
-                                <option value="Boleto">Boleto</option>
-                                <option value="Transferência">Transferência</option>
-                                <option value="Outro">Outro</option>
-                            </select>
-                        </div>
+                        <select id="i_tipo" style="position:absolute; width:1px; height:1px; opacity:0.001; z-index:-999; pointer-events:none;" onchange="onTypeChange()">
+                            <option value="Despesa" selected>Despesa</option>
+                            <option value="Receita">Receita</option>
+                            <option value="Saque">Saque</option>
+                        </select>
+                        <select id="i_pagamento" style="position:absolute; width:1px; height:1px; opacity:0.001; z-index:-999; pointer-events:none;" onchange="handlePaymentSelectChange(this.value)">
+                            <option value="PIX" selected>PIX</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Dinheiro">Dinheiro (Espécie)</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Outro">Outro</option>
+                        </select>
 
                         <!-- 2. Grid Valor e Data -->
                         <div class="nl-g2">

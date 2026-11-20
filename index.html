@@ -1491,9 +1491,6 @@
 
     
 
-    <!-- BACKDROP & TELA DE LANÇAMENTO RÁPIDO MOBILE / BOLSO -->
-    
-
     <!-- MODAL: AÇÕES DA CONTA (CENTRAL ADMINISTRATIVA - FASE 4.5-C5-C) -->
     <div id="adminUserActionsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminUserActionsModalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 99999; justify-content: center; align-items: center;">
         <div class="chart-card" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto; margin: auto; position: relative;">
@@ -2571,7 +2568,7 @@
                 // Resolução inicial de rota após carregamento completo
                 const requestedTab = getRouteFromHash();
                 if (requestedTab === 'admin') {
-                    const isAdmin = await adminCheckIsAdmin();
+                    const isAdmin = currentUserIsAdmin || (await adminCheckIsAdmin());
                     if (!isAdmin) {
                         currentUserIsAdmin = false;
                         showToast('Acesso negado: apenas administradores podem acessar a Central Administrativa.', 'error');

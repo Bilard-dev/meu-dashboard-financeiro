@@ -2542,6 +2542,7 @@
         .tx-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
         .tx-table tr.day-header td {
             padding: 0;
@@ -2558,13 +2559,29 @@
         .tx-table tr.tx-row:hover {
             background: #ffffff06;
         }
-        .tx-table tr.tx-row td {
-            padding: 12px 18px;
+        .tx-table td.dot-col {
+            width: 52px;
+            padding: 12px 0 12px 18px;
             vertical-align: middle;
         }
-        .tx-table td.dot-col {
-            width: 34px;
-            padding-right: 0;
+        .tx-table td.desc-col {
+            padding: 12px 14px;
+            vertical-align: middle;
+            width: auto;
+            overflow: hidden;
+        }
+        .tx-table td.val-col {
+            width: 140px;
+            padding: 12px 14px;
+            vertical-align: middle;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .tx-table td.acts-col {
+            width: 90px;
+            padding: 12px 18px 12px 0;
+            vertical-align: middle;
+            text-align: right;
         }
         .dot {
             width: 34px;
@@ -9018,17 +9035,17 @@
                         <td class="dot-col">
                             <div class="dot" style="background:${catColor}22; color:${catColor};">${catAbbr}</div>
                         </td>
-                        <td>
+                        <td class="desc-col">
                             <div class="desc">${escapeHtml(item.desc || 'Sem descrição')}</div>
                             <div class="meta">
                                 <span>${escapeHtml(item.category || 'Geral')}</span>${subcatText}
                                 <span class="tag">${escapeHtml(paymentLabel)}</span>
                             </div>
                         </td>
-                        <td class="val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}">
+                        <td class="val-col val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}">
                             ${isEntrada ? '+ ' : ''}${fmt(item.value)}
                         </td>
-                        <td>
+                        <td class="acts-col">
                             <div class="acts">
                                 ${actsHtml}
                             </div>
@@ -9093,16 +9110,13 @@
             const container = document.getElementById('dashboardForecastCards');
             if (!container) return;
 
-            const baseYm = (selectedYm && selectedYm !== 'all') ? selectedYm : `${new Date().getFullYear()}-${new Date().getMonth()}`;
+            const selectorVal = document.getElementById('monthSelector')?.value;
+            const baseYm = (selectedYm && selectedYm !== 'all') 
+                ? selectedYm 
+                : ((selectorVal && selectorVal !== 'all') ? selectorVal : `${new Date().getFullYear()}-${new Date().getMonth()}`);
             const forecastData = getFinancialForecast(baseYm, 4);
             const next3Months = forecastData.slice(1, 4);
             container.innerHTML = '';
-
-            const { saldoDinheiroVivo } = calculateCashBalance(globalData);
-            const chipDinheiro = document.getElementById('chipDinheiroVivo');
-            if (chipDinheiro) {
-                chipDinheiro.style.display = saldoDinheiroVivo > 0 ? 'inline-flex' : 'none';
-            }
 
             if (next3Months.length === 0) return;
 
@@ -9110,18 +9124,23 @@
 
             next3Months.forEach(m => {
                 const parts = m.yearMonth.split('-');
-                const monthIndex = parseInt(parts[1], 10);
+                const monthIndex = (parseInt(parts[1], 10) - 1 + 12) % 12;
                 const abbr = MONTH_ABBR[monthIndex] || m.label.slice(0, 3);
 
                 const chip = document.createElement('div');
                 chip.className = 'chip-up';
                 chip.style.cursor = 'pointer';
+                chip.title = `Ver previsão de ${m.label}`;
                 chip.onclick = () => {
                     selectedForecastYm = m.yearMonth;
                     switchTab('previsao');
                 };
 
-                chip.innerHTML = `${escapeHtml(abbr)} <b class="money">${fmt(m.totalComprometido)}</b>`;
+                const valHtml = m.totalComprometido > 0 
+                    ? `<b class="money">${fmt(m.totalComprometido)}</b>` 
+                    : `<b class="money" style="color:var(--muted); font-weight:600;">R$ 0,00</b>`;
+
+                chip.innerHTML = `${escapeHtml(abbr)} ${valHtml}`;
                 container.appendChild(chip);
             });
         }
@@ -10265,46 +10284,6 @@
                     });
                 }
             }
-        }
-
-        function updateDashboardForecastWidget(selectedYm) {
-            const container = document.getElementById('dashboardForecastCards');
-            if (!container) return;
-
-            const baseYm = (selectedYm && selectedYm !== 'all') ? selectedYm : `${new Date().getFullYear()}-${new Date().getMonth()}`;
-            // Pega o mês corrente + próximos 3 meses (total 4)
-            const forecastData = getFinancialForecast(baseYm, 4);
-
-            // Os próximos 3 meses futuros são os índices 1, 2, 3
-            const next3Months = forecastData.slice(1, 4);
-            container.innerHTML = '';
-
-            if (next3Months.length === 0) return;
-
-            next3Months.forEach(m => {
-                const card = document.createElement('div');
-                card.style.cssText = 'background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.75rem 0.9rem; cursor:pointer; transition:all var(--transition-fast);';
-                card.onmouseover = () => { card.style.borderColor = 'var(--primary)'; card.style.transform = 'translateY(-2px)'; };
-                card.onmouseout = () => { card.style.borderColor = 'var(--border)'; card.style.transform = 'translateY(0)'; };
-                card.onclick = () => {
-                    selectedForecastYm = m.yearMonth;
-                    switchTab('previsao');
-                };
-
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
-                        <span style="font-weight:700; font-size:0.85rem; color:var(--text-main);">${escapeHtml(m.label)}</span>
-                        <span style="font-size:0.7rem; color:var(--text-muted);">Comprometido</span>
-                    </div>
-                    <div style="font-size:1.15rem; font-weight:800; color:var(--danger);">
-                        ${fmt(m.totalComprometido)}
-                    </div>
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.2rem;">
-                        Cartão: ${fmt(m.totalCartao)}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
         }
 
         /* ==========================================================

@@ -2889,6 +2889,172 @@
             .nl-mf .nl-btn { flex: 1; padding: 11px 8px; }
             .nl-field { margin-top: 8px; }
         }
+
+        /* ==========================================================
+           ETAPA 3: NAVEGAÇÃO E HEADER ENXUTOS (REFERÊNCIA MODERNA)
+           ========================================================== */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 0 14px;
+        }
+        .brand {
+            font-weight: 800;
+            font-size: 19px;
+            letter-spacing: -0.02em;
+            margin-right: auto;
+            color: var(--text);
+        }
+        .brand small {
+            display: block;
+            font-weight: 500;
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 0;
+            margin-top: 2px;
+        }
+        .month {
+            display: flex;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .month button {
+            padding: 8px 12px;
+            color: var(--muted);
+            font-size: 16px;
+            cursor: pointer;
+            background: none;
+            border: 0;
+            transition: color 0.15s ease;
+        }
+        .month button:hover {
+            color: var(--text);
+            background: var(--line);
+        }
+        .month span {
+            min-width: 120px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text);
+            user-select: none;
+        }
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.15s ease;
+        }
+        .icon-btn:hover {
+            color: var(--text);
+            border-color: var(--muted);
+        }
+        .btn.new {
+            background: var(--blue);
+            color: #fff;
+            font-weight: 700;
+            padding: 9px 16px;
+            border-radius: 10px;
+            border: 0;
+            cursor: pointer;
+            font-size: 13.5px;
+            transition: filter 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn.new:hover {
+            filter: brightness(1.1);
+        }
+        .menu {
+            position: relative;
+        }
+        .menu-list {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 44px;
+            z-index: 1000;
+            min-width: 220px;
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.5);
+        }
+        .menu.open .menu-list {
+            display: block;
+        }
+        .menu-list button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            border: 0;
+            background: none;
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        .menu-list button:hover {
+            background: var(--line);
+        }
+        .menu-list hr {
+            border: 0;
+            border-top: 1px solid var(--line);
+            margin: 6px 0;
+        }
+        .menu-list .danger {
+            color: var(--red);
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 12px;
+            margin-bottom: 22px;
+            overflow-x: auto;
+        }
+        .nav-tabs .tab-btn {
+            padding: 9px 16px;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13.5px;
+            border-radius: 10px;
+            white-space: nowrap;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .nav-tabs .tab-btn:hover {
+            color: var(--text);
+            background: #ffffff06;
+        }
+        .nav-tabs .tab-btn.active, .nav-tabs .tab-btn.on {
+            background: var(--blue);
+            color: #fff;
+        }
+        .nav-tabs .tab-btn.admin {
+            color: var(--blue);
+            border: 1px dashed var(--blue);
+        }
+        .nav-tabs .tab-btn.admin.active {
+            background: var(--blue);
+            color: #fff;
+        }
 </style>
 </head>
 <body>
@@ -3053,32 +3219,56 @@
     <!-- DASHBOARD PRINCIPAL -->
     <div id="appView" style="display: none;">
         <header>
-            <div>
-                <h1 style="display: flex; align-items: center;">Painel Financeiro</h1>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Gestão Patrimonial & Controladoria Pessoal</p>
+            <div class="brand">
+                Painel Financeiro
+                <small>Gestão patrimonial & controladoria pessoal</small>
             </div>
-            <div class="header-controls">
-                <button class="action-btn" id="tabNovoBtn" style="background-color: var(--primary); color: white; font-weight: 600;" onclick="switchTab('novo')">➕ Novo Registro</button>
-                <button class="action-btn" onclick="openMobileQuickView()">📱 Lançador Celular</button>
-                <button class="action-btn" onclick="manualSync()" id="syncBtn" title="Atualizar Dados" style="font-size: 1.05rem; padding: 0.55rem 0.75rem;">🔄</button>
-                <button class="action-btn" onclick="togglePrivacy()" id="privacyToggleBtn" title="Modo Privacidade (Ocultar/Exibir Valores)" style="font-size: 1.05rem; padding: 0.55rem 0.75rem;">👁️</button>
-                <div class="select-container" id="filterContainer">
-                    <select id="monthSelector"><option value="all">Ano Inteiro</option></select>
+            
+            <!-- Controle de Mês Compacto (‹ Mês Ano ›) -->
+            <div class="month">
+                <button type="button" id="prevMonthBtn" onclick="changeMonthOffset(-1)" aria-label="Mês anterior">‹</button>
+                <span id="monthLabel">Mês Atual</span>
+                <button type="button" id="nextMonthBtn" onclick="changeMonthOffset(1)" aria-label="Próximo mês">›</button>
+            </div>
+
+            <!-- Botão Privacidade (Modo Ocultar Valores) -->
+            <button type="button" class="icon-btn" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">👁️</button>
+
+            <!-- Botão de Destaque Novo Registro -->
+            <button type="button" class="btn new" id="tabNovoBtn" onclick="switchTab('novo')">+ Novo registro</button>
+
+            <!-- Menu Dropdown da Conta e Configurações -->
+            <div class="menu" id="headerMenu">
+                <button type="button" class="icon-btn" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">☰</button>
+                <div class="menu-list" id="headerMenuList">
+                    <button type="button" onclick="openMobileQuickView(); closeHeaderMenu();">📱 Lançador celular</button>
+                    <button type="button" onclick="manualSync(); closeHeaderMenu();" id="syncBtn">🔄 Sincronizar dados</button>
+                    <button type="button" onclick="switchTab('gerenciar-listas'); closeHeaderMenu();">⚙️ Gerenciar Categorias</button>
+                    <button type="button" onclick="switchTab('conta'); closeHeaderMenu();">🔒 Minha Conta & Tema</button>
+                    <button type="button" id="menuAdminBtn" style="display:none;" onclick="switchTab('admin'); closeHeaderMenu();">🛡️ Central Admin</button>
+                    <hr>
+                    <button type="button" class="danger" onclick="logout()">🚪 Sair</button>
                 </div>
-                <button class="btn-danger" onclick="logout()">Sair</button>
+            </div>
+
+            <!-- Seletor original de mês mantido para 100% de compatibilidade com testes e automações -->
+            <div class="select-container" id="filterContainer" style="display:none;">
+                <select id="monthSelector"><option value="all">Ano Inteiro</option></select>
             </div>
         </header>
 
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('resumo')">Resumo Geral</button>
-            <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
-            <button class="tab-btn" onclick="switchTab('parcelas')">Parcelas / Fatura Cartão</button>
-            <button class="tab-btn" onclick="switchTab('previsao')">🔮 Previsão Financeira</button>
+        <!-- NAVEGAÇÃO ENXUTA (ETAPA 3) -->
+        <nav class="nav-tabs" id="tabs">
+            <button class="tab-btn active on" onclick="switchTab('resumo')">Resumo Geral</button>
+            <button class="tab-btn" onclick="switchTab('parcelas')">Faturas & Parcelas</button>
+            <button class="tab-btn" onclick="switchTab('previsao')">Previsão Financeira</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
-            <button class="tab-btn" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
-            <button class="tab-btn" onclick="switchTab('conta')">🔒 Minha Conta</button>
-            <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')" style="display: none; background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(37, 99, 235, 0.1)); border: 1px dashed var(--primary); color: var(--primary);">🛡️ Central Admin</button>
-        </div>
+            <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
+            <!-- Botões secundários mantidos ocultos para compatibilidade com seletores de testes -->
+            <button class="tab-btn" id="tabCategoriasBtn" style="display:none;" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
+            <button class="tab-btn" id="tabContaBtn" style="display:none;" onclick="switchTab('conta')">🔒 Minha Conta</button>
+            <button class="tab-btn admin" id="tabAdminBtn" onclick="switchTab('admin')" style="display: none;">🛡️ Central Admin</button>
+        </nav>
 
         <div id="loading" class="loading" style="display: none;">Conectando ao Supabase...</div>
 
@@ -7866,6 +8056,62 @@
                 hint.textContent = 'Preenchido pelo histórico: ' + match.category + (match.subCat ? ' (' + match.subCat + ')' : '') + ' · ' + (match.pagamento || 'PIX');
             }
         }
+
+
+        /* ==========================================================
+           ETAPA 3: NAVEGAÇÃO, MÊS COMPACTO E MENU DROPDOWN
+           ========================================================== */
+        function toggleHeaderMenu() {
+            const menu = document.getElementById('headerMenu');
+            if (menu) menu.classList.toggle('open');
+        }
+
+        function closeHeaderMenu() {
+            const menu = document.getElementById('headerMenu');
+            if (menu) menu.classList.remove('open');
+        }
+
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('headerMenu');
+            if (menu && !menu.contains(e.target)) {
+                menu.classList.remove('open');
+            }
+        });
+
+        function updateMonthLabel() {
+            const sel = document.getElementById('monthSelector');
+            const label = document.getElementById('monthLabel');
+            if (!sel || !label) return;
+
+            const selectedOpt = sel.options[sel.selectedIndex];
+            if (selectedOpt) {
+                label.textContent = selectedOpt.textContent || selectedOpt.value;
+            }
+        }
+
+        function changeMonthOffset(delta) {
+            const sel = document.getElementById('monthSelector');
+            if (!sel || sel.options.length === 0) return;
+
+            let newIdx = sel.selectedIndex - delta; // Em listas cronológicas descendentes, anterior = +1, próximo = -1
+            if (newIdx < 0) newIdx = 0;
+            if (newIdx >= sel.options.length) newIdx = sel.options.length - 1;
+
+            if (newIdx !== sel.selectedIndex) {
+                sel.selectedIndex = newIdx;
+                updateMonthLabel();
+                sel.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Sincroniza o label do mês quando o seletor original mudar
+        document.addEventListener('DOMContentLoaded', () => {
+            const sel = document.getElementById('monthSelector');
+            if (sel) {
+                sel.addEventListener('change', updateMonthLabel);
+                updateMonthLabel();
+            }
+        });
 
 async function addOrUpdateTransaction(e, isBatch = false) {
             if (e) e.preventDefault();

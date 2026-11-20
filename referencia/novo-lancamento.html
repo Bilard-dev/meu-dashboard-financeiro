@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novo lançamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1220;--panel:#141b2e;--panel2:#1a2338;--field:#1d2740;--line:#2a3550;--text:#e8ecf6;--muted:#8591ad;--green:#4cc38a;--red:#ef6f6c;--violet:#9d8cff;--blue:#4f8cff}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',system-ui,sans-serif;font-size:14px;min-height:100dvh;display:grid;place-items:center}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.overlay{position:fixed;inset:0;background:#05081080;display:none;place-items:center;padding:12px}
+.overlay.open{display:grid}
+.modal{--accent:var(--red);background:var(--panel);border:1px solid var(--line);border-radius:18px;width:100%;max-width:640px;max-height:calc(100dvh - 24px);overflow:auto;padding:18px 22px 16px;box-shadow:0 24px 60px #000a}
+.modal[data-tipo=entrada]{--accent:var(--green)}
+.modal[data-tipo=aporte]{--accent:var(--violet)}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mh h2{font-size:18px;font-weight:800;letter-spacing:-.01em}
+.x{width:30px;height:30px;border-radius:8px;color:var(--muted)}
+.x:hover{background:var(--line);color:var(--text)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--bg);padding:4px;border-radius:11px}
+.seg button{padding:8px;border-radius:8px;font-weight:700;color:var(--muted)}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--field);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+#tipoSeg button.on{color:var(--accent)}
+.seg.small button{padding:7px}
+.field{margin-top:12px;min-width:0}
+.field>label,.lrow label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.lrow{display:flex;justify-content:space-between;align-items:center}
+.lrow label{margin-bottom:5px}
+.mini{display:flex;gap:4px;margin-bottom:5px}
+.mini button{font-size:11.5px;font-weight:700;color:var(--blue);padding:1px 7px;border-radius:6px}
+.mini button:hover{background:var(--line)}
+input,select{width:100%;background:var(--field);border:1px solid transparent;border-radius:10px;padding:10px 12px}
+input::placeholder{color:#5d6a88}
+input:focus,select:focus{border-color:var(--blue);outline:none}
+.err input,.err .money{border-color:var(--red)}
+.g2{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+.money{display:flex;align-items:center;gap:8px;background:var(--field);border:1px solid transparent;border-radius:10px;padding:0 12px}
+.money:focus-within{border-color:var(--blue)}
+.money span{color:var(--muted);font-weight:700}
+.money input{background:none;border:0;padding:8px 0;font-size:24px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 13px;border-radius:99px;background:var(--field);color:var(--text);font-weight:600;font-size:13px;border:1px solid transparent}
+.chip:hover{border-color:var(--line)}
+.chip.on{background:var(--blue);color:#fff}
+select.chip{width:auto;padding:7px 28px 7px 13px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+select.chip.on{color:#fff;background-color:var(--blue);background-image:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(135deg,#fff 50%,transparent 50%)}
+.opts{display:flex;gap:14px;margin-top:10px}
+.opts button{color:var(--blue);font-weight:700;font-size:13px;padding:2px 0}
+.opts button:hover{text-decoration:underline}
+.extra:empty,.extra:not(:has(.field:not([hidden]))){display:none}
+.hint{font-size:12px;color:var(--green);min-height:0;margin-top:4px}
+.hint:empty{display:none}
+.extra{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.mf{display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.kbd{margin-right:auto;color:var(--muted);font-size:12px}
+.btn{background:var(--blue);color:#fff;font-weight:800;padding:11px 22px;border-radius:10px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:var(--field);color:var(--text);font-weight:700;padding:11px 16px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,90px);background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 18px;font-weight:600;transition:transform .25s;box-shadow:0 10px 30px #000a;z-index:50}
+.toast.show{transform:translate(-50%,0)}
+#reopen{background:var(--blue);color:#fff;font-weight:800;padding:12px 22px;border-radius:12px}
+@media(max-width:560px){
+ .overlay{align-items:end;padding:0}
+ .modal{border-radius:18px 18px 0 0;max-height:100dvh;padding:14px 16px}
+ .kbd{display:none}.mf .btn{flex:1;padding:12px 8px}
+ .field{margin-top:10px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<button id="reopen" hidden>+ Novo lançamento</button>
+
+<div class="overlay open" id="ov">
+ <form class="modal" id="f" data-tipo="despesa" novalidate aria-label="Novo lançamento">
+  <div class="mh"><h2>Novo lançamento</h2><button type="button" class="x" id="close" aria-label="Fechar">✕</button></div>
+
+  <div class="seg" id="tipoSeg">
+   <button type="button" data-v="despesa" class="on">Despesa</button>
+   <button type="button" data-v="entrada">Entrada</button>
+   <button type="button" data-v="aporte">Aporte</button>
+  </div>
+
+  <div class="g2">
+   <div class="field" id="fValor"><label for="valor">Valor</label><div class="money"><span>R$</span><input id="valor" inputmode="numeric" placeholder="0,00" autocomplete="off"></div></div>
+   <div class="field"><div class="lrow"><label for="data">Data</label><span class="mini"><button type="button" data-d="0">Hoje</button><button type="button" data-d="-1">Ontem</button></span></div><input type="date" id="data"></div>
+  </div>
+
+  <div class="field" id="fDesc"><label for="desc">Descrição</label><input id="desc" placeholder="Ex.: Mercado, Uber, Almoço…" autocomplete="off"><div class="hint" id="hint"></div></div>
+
+  <div class="field"><label>Forma de pagamento</label><div class="chips" id="pay"></div></div>
+
+  <div class="field"><label>Categoria</label><div class="chips" id="cats"></div></div>
+
+  <div class="extra">
+   <div class="field" id="parcWrap" hidden><label for="parc">Parcelas</label><select id="parc"></select></div>
+   <div class="field" id="subWrap" hidden><label for="sub">Subcategoria</label><select id="sub"></select></div>
+   <div class="field" id="tagWrap" hidden><label for="tags">Tags</label><input id="tags" placeholder="Viagem, Aniversário" autocomplete="off"></div>
+  </div>
+  <div class="opts"><button type="button" id="addSub" hidden>+ Subcategoria</button><button type="button" id="addTag">+ Tags</button></div>
+
+  <div class="mf">
+   <span class="kbd">Enter salva · Ctrl+Enter salva e lança outro</span>
+   <button type="button" class="btn ghost" id="again">Salvar e lançar outro</button>
+   <button type="submit" class="btn" id="save">Salvar</button>
+  </div>
+ </form>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const PAY=['PIX','Cartão','ML Crédito','Débito','Dinheiro'];
+const CARD=['Cartão','ML Crédito'];
+const TOP=['Alimentação','Transporte','Presentes','Lazer Casal','Esporte','Equipamentos'];
+const MORE=['Barbearia','Cantina DAXV','Gastos voluntários','Investimento','Salário','Saúde','Educação','Assinaturas'];
+const SUBS={Transporte:['Viagem APMBB','Aplicativo','Combustível'],Alimentação:['Mercado','Restaurante','Lanche'],Investimento:['Investimento Casal','Reserva']};
+const history=[
+ {desc:'Cantina DAXV',cat:'Cantina DAXV',pay:'PIX'},{desc:'Passagem passaro marron',cat:'Transporte',pay:'PIX'},
+ {desc:'Barbearia Jacson',cat:'Barbearia',pay:'PIX'},{desc:'Passagem Tau x SP',cat:'Transporte',pay:'ML Crédito',sub:'Viagem APMBB'},
+ {desc:'Mercado do bairro',cat:'Alimentação',pay:'PIX',sub:'Mercado'},{desc:'Presente vic',cat:'Presentes',pay:'PIX'}
+];
+const log=[];
+const s={tipo:'despesa',pay:'PIX',cat:'',showSub:false,showTag:false,payTouched:false,catTouched:false};
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+/* montagem */
+$('#parc').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}x</option>`).join('');
+function drawPay(){
+ $('#pay').innerHTML=PAY.map(p=>`<button type="button" class="chip${s.pay===p?' on':''}" data-v="${p}">${p}</button>`).join('');
+ $('#parcWrap').hidden=!CARD.includes(s.pay);
+}
+function drawCats(){
+ const inMore=MORE.includes(s.cat);
+ $('#cats').innerHTML=TOP.map(c=>`<button type="button" class="chip${s.cat===c?' on':''}" data-v="${c}">${c}</button>`).join('')
+  +`<select class="chip${inMore?' on':''}" id="more" aria-label="Mais categorias"><option value="">Mais…</option>${MORE.map(c=>`<option${s.cat===c?' selected':''}>${c}</option>`).join('')}</select>`;
+ const subs=SUBS[s.cat];
+ $('#addSub').hidden=!subs||s.showSub;
+ $('#subWrap').hidden=!subs||!s.showSub;
+ if(subs)$('#sub').innerHTML='<option value="">—</option>'+subs.map(x=>`<option>${x}</option>`).join('');
+}
+function drawTag(){$('#tagWrap').hidden=!s.showTag;$('#addTag').hidden=s.showTag}
+function reset(full){
+ $('#valor').value='';$('#desc').value='';$('#tags').value='';$('#hint').textContent='';
+ s.cat='';s.catTouched=false;s.payTouched=false;s.showSub=false;s.showTag=false;
+ if(full){s.tipo='despesa';s.pay='PIX';$('#data').value=iso(new Date())}
+ setTipo(s.tipo);drawPay();drawCats();drawTag();
+ document.querySelectorAll('.err').forEach(e=>e.classList.remove('err'));
+}
+function setTipo(v){s.tipo=v;$('#f').dataset.tipo=v;document.querySelectorAll('#tipoSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+
+/* eventos */
+$('#tipoSeg').onclick=e=>{const b=e.target.closest('button');if(b)setTipo(b.dataset.v)};
+$('#pay').onclick=e=>{const b=e.target.closest('button');if(!b)return;s.pay=b.dataset.v;s.payTouched=true;drawPay()};
+$('#cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;s.cat=s.cat===b.dataset.v?'':b.dataset.v;s.catTouched=true;s.showSub=false;drawCats()};
+$('#cats').addEventListener('change',e=>{if(e.target.id==='more'){s.cat=e.target.value;s.catTouched=true;s.showSub=false;drawCats()}});
+$('#addSub').onclick=()=>{s.showSub=true;drawCats();$('#sub').focus()};
+$('#addTag').onclick=()=>{s.showTag=true;drawTag();$('#tags').focus()};
+document.querySelectorAll('.mini button').forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+Number(b.dataset.d));$('#data').value=iso(d)});
+
+$('#valor').addEventListener('input',e=>{
+ let d=e.target.value.replace(/\D/g,'').replace(/^0+/,'');
+ if(!d){e.target.value='';return}
+ d=d.padStart(3,'0');
+ e.target.value=d.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+d.slice(-2);
+});
+
+$('#desc').addEventListener('input',e=>{
+ const v=e.target.value.trim().toLowerCase();
+ $('#fDesc').classList.remove('err');
+ if(v.length<3){$('#hint').textContent='';return}
+ const m=history.find(h=>h.desc.toLowerCase().startsWith(v))||history.find(h=>h.desc.toLowerCase().includes(v));
+ if(!m){$('#hint').textContent='';return}
+ const parts=[];
+ if(!s.catTouched){s.cat=m.cat;s.showSub=!!m.sub;drawCats();if(m.sub)$('#sub').value=m.sub;parts.push(m.cat)}
+ if(!s.payTouched){s.pay=m.pay;drawPay();parts.push(m.pay)}
+ $('#hint').textContent=parts.length?`Preenchido pelo histórico: ${parts.join(' · ')}`:'';
+});
+
+/* salvar */
+function submit(again){
+ const valor=parseFloat($('#valor').value.replace(/\./g,'').replace(',','.'));
+ const desc=$('#desc').value.trim();
+ document.querySelectorAll('.err').forEach(x=>x.classList.remove('err'));
+ if(!valor||valor<=0){$('#fValor').classList.add('err');$('#valor').focus();return}
+ if(!desc){$('#fDesc').classList.add('err');$('#desc').focus();return}
+ const o={tipo:s.tipo,valor,desc,data:$('#data').value,pagamento:s.pay,categoria:s.cat,
+  subcategoria:$('#subWrap').hidden?'':$('#sub').value,tags:$('#tagWrap').hidden?'':$('#tags').value.trim(),
+  parcelas:$('#parcWrap').hidden?1:Number($('#parc').value)};
+ log.push(o);history.unshift({desc,cat:s.cat,pay:s.pay,sub:o.subcategoria});
+ console.log('Lançamento salvo:',o);
+ toast(`Salvo: ${desc} · ${brl(valor)}`);
+ if(again){reset(false);$('#valor').focus()}else{close()}
+}
+$('#f').addEventListener('submit',e=>{e.preventDefault();submit(false)});
+$('#again').onclick=()=>submit(true);
+$('#f').addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();submit(true)}
+ else if(e.key==='Enter'&&e.target.tagName==='SELECT'){e.preventDefault()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+
+/* abrir/fechar/toast */
+function open(){reset(true);$('#ov').classList.add('open');$('#reopen').hidden=true;setTimeout(()=>$('#valor').focus(),30)}
+function close(){$('#ov').classList.remove('open');$('#reopen').hidden=false}
+$('#close').onclick=close;$('#reopen').onclick=open;
+$('#ov').addEventListener('mousedown',e=>{if(e.target.id==='ov')close()});
+let t;function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(t);t=setTimeout(()=>el.classList.remove('show'),3000)}
+reset(true);$('#valor').focus();
+</script>
+</body>
+</html>

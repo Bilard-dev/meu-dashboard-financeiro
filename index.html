@@ -21,13 +21,44 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --bg-color: #f8fafc;
+            /* Paleta Sóbria e Moderna (Protótipo) */
+            --bg: #0d1220;
+            --panel: #141b2e;
+            --panel2: #1a2338;
+            --field: #1d2740;
+            --line: #232d46;
+            --text: #e8ecf6;
+            --muted: #8591ad;
+            --green: #4cc38a;
+            --red: #ef6f6c;
+            --violet: #9d8cff;
+            --blue: #4f8cff;
+            --amber: #f0b84a;
+            --radius: 14px;
+
+            /* Mapeamento padrão do sistema */
+            --bg-color: var(--bg);
+            --card-bg: var(--panel);
+            --card-header-bg: var(--panel2);
+            --text-main: var(--text);
+            --text-muted: var(--muted);
+            --primary: var(--blue);
+            --primary-hover: #3b74db;
+            --success: var(--green);
+            --danger: var(--red);
+            --warning: var(--amber);
+            --invest: var(--violet);
+            --border: var(--line);
+            --border-subtle: var(--line);
+            --input-bg: var(--field);
+            --table-hover: #ffffff06;
             --card-bg: #ffffff;
             --card-header-bg: #f8fafc;
             --text-main: #0f172a;
@@ -2332,6 +2363,285 @@
             border-color: rgba(59, 130, 246, 0.4);
             color: #93c5fd;
         }
+    
+        /* ==========================================================
+           🎨 ETAPA 1: CARDS DE RESUMO, PRÓXIMOS MESES & EXTRATO
+           ========================================================== */
+        .summary {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 18px;
+            position: relative;
+        }
+        .label {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .big {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+        .hero .big {
+            font-size: 34px;
+        }
+        .green { color: var(--green); }
+        .red { color: var(--red); }
+        .violet { color: var(--violet); }
+        .bar {
+            height: 8px;
+            background: var(--line);
+            border-radius: 99px;
+            margin: 14px 0 8px;
+            overflow: hidden;
+        }
+        .bar i {
+            display: block;
+            height: 100%;
+            background: var(--red);
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+        .sub {
+            color: var(--muted);
+            font-size: 12.5px;
+            line-height: 1.35;
+        }
+        .card:not(.hero) .sub {
+            margin-top: 8px;
+        }
+        .sub b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Próximos meses (Upcoming strip) */
+        .upcoming {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 14px 0 24px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+        .upcoming > span {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .chip-up {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 14px;
+            white-space: nowrap;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+        .chip-up b {
+            color: var(--red);
+            margin-left: 6px;
+            font-weight: 700;
+        }
+        .upcoming a {
+            margin-left: auto;
+            color: var(--blue);
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .upcoming a:hover {
+            text-decoration: underline;
+        }
+
+        /* Extrato & Filtros */
+        .tools {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .tools h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-right: auto;
+            color: var(--text);
+        }
+        .chips {
+            display: flex;
+            gap: 6px;
+        }
+        .chip {
+            padding: 6px 13px;
+            border-radius: 99px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .chip:hover {
+            color: var(--text);
+            border-color: var(--blue);
+        }
+        .chip.on {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+        }
+        .search {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 12px;
+            width: 220px;
+            color: var(--text);
+            font: inherit;
+        }
+        .search::placeholder {
+            color: var(--muted);
+        }
+        .search:focus {
+            border-color: var(--blue);
+            outline: none;
+        }
+        .list {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .day {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 18px;
+            background: var(--panel2);
+            color: var(--muted);
+            font-size: 12.5px;
+            font-weight: 600;
+        }
+        .tx-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .tx-table tr.day-header td {
+            padding: 0;
+            background: var(--panel2);
+            border-top: 1px solid var(--line);
+        }
+        .tx-table tr.day-header:first-child td {
+            border-top: none;
+        }
+        .tx-table tr.tx-row {
+            border-top: 1px solid var(--line);
+            transition: background 0.12s ease;
+        }
+        .tx-table tr.tx-row:hover {
+            background: #ffffff06;
+        }
+        .tx-table tr.tx-row td {
+            padding: 12px 18px;
+            vertical-align: middle;
+        }
+        .tx-table td.dot-col {
+            width: 34px;
+            padding-right: 0;
+        }
+        .dot {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .desc {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+        }
+        .meta {
+            color: var(--muted);
+            font-size: 12.5px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 2px;
+        }
+        .tag {
+            background: var(--line);
+            border-radius: 6px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+        }
+        .val {
+            font-weight: 700;
+            text-align: right;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .acts {
+            display: flex;
+            gap: 2px;
+            justify-content: flex-end;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+        }
+        .tx-row:hover .acts, .tx-row:focus-within .acts {
+            opacity: 1;
+        }
+        .acts button {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            color: var(--muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 13px;
+        }
+        .acts button:hover {
+            background: var(--line);
+            color: var(--text);
+        }
+        .empty {
+            padding: 40px;
+            text-align: center;
+            color: var(--muted);
+        }
+        @media(max-width:820px){
+            .summary { grid-template-columns: 1fr 1fr; }
+            .hero { grid-column: 1 / -1; }
+            .search { width: 100%; order: 3; }
+            .acts { opacity: 1; }
+        }
+
     </style>
 </head>
 <body>
@@ -8464,113 +8774,348 @@
             renderReceitasDetalhes(receitasArr);
             renderDespesasDetalhes(despesasArr, totalDespesasEfetivas, selectedYm);
             renderInvestimentosDetalhes(investArr, invest, receitas);
-            renderSaldoDetalhes(saldo, receitas);
+            renderSaldoDetalhes(saldo, receitas, totalDespesasEfetivas);
 
             applyExtratoFilters();
             renderPieChart(despesasArr, selectedYm);
             updateDashboardForecastWidget(selectedYm);
         }
 
+        /* ==========================================================
+           CONTROLE DOS CARDS, PRÓXIMOS MESES E EXTRATO (ETAPA 1)
+           ========================================================== */
+        const CATS_COLORS = {
+            'Alimentação': '#f0b84a',
+            'Transporte': '#4f8cff',
+            'Presentes': '#9d8cff',
+            'Lazer Casal': '#ef6f6c',
+            'Lazer': '#ef6f6c',
+            'Esporte': '#4cc38a',
+            'Equipamentos': '#8591ad',
+            'Barbearia': '#f0b84a',
+            'Cantina DAXV': '#f0b84a',
+            'Gastos voluntários': '#9d8cff',
+            'Investimento': '#9d8cff',
+            'Investimentos': '#9d8cff',
+            'Salário': '#4cc38a',
+            'Saúde': '#ef6f6c',
+            'Educação': '#4f8cff',
+            'Assinaturas': '#4f8cff',
+            'Casa': '#4cc38a'
+        };
+
+        const WD_NAMES = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+
+        function fmtExtratoDay(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10) - 1;
+                const d = parseInt(parts[2], 10);
+                const dt = new Date(y, m, d, 12, 0, 0);
+                return `${String(d).padStart(2, '0')}/${String(m + 1).padStart(2, '0')} · ${WD_NAMES[dt.getDay()] || ''}`;
+            }
+            return dateStr;
+        }
+
+        function getCatColor(cat) {
+            return CATS_COLORS[cat] || '#8591ad';
+        }
+
+        function getCatAbbr(cat) {
+            return (cat || 'GE').slice(0, 2).toUpperCase();
+        }
+
+        let currentExtratoChipFilter = 'ALL';
+
+        function setExtratoFilter(filterType, btnEl) {
+            currentExtratoChipFilter = filterType;
+            document.querySelectorAll('#extratoChips button').forEach(b => {
+                b.classList.toggle('on', b === btnEl);
+            });
+            applyExtratoFilters();
+        }
+
+        function applyExtratoFilters() {
+            const selectedYm = document.getElementById('monthSelector')?.value || 'all';
+            const searchText = (document.getElementById('searchInput')?.value || '').trim();
+
+            let typeFilter = 'ALL';
+            if (currentExtratoChipFilter === 'RECEITA') typeFilter = 'RECEITA';
+
+            let filtered = buildFinancialEvents(globalData, globalCreditSettlements, {
+                selectedYm,
+                typeFilter,
+                searchText
+            });
+
+            if (currentExtratoChipFilter === 'CARTAO') {
+                filtered = filtered.filter(item => item.pagamento === 'Cartão de Crédito' || Boolean(item.cartao));
+            } else if (currentExtratoChipFilter === 'PIX') {
+                filtered = filtered.filter(item => (item.pagamento || '').toUpperCase() === 'PIX');
+            }
+
+            setFilteredExtratoData(filtered);
+            renderResumoExtrato(getFilteredExtratoData());
+        }
+
         function renderReceitasDetalhes(receitasArr) {
             const container = document.getElementById('kpi-receitas-detalhes');
-            const qtd = receitasArr.length;
-            const total = receitasArr.reduce((a, b) => a + b.value, 0);
+            if (!container) return;
+            const qtd = receitasArr ? receitasArr.length : 0;
+            const total = receitasArr ? receitasArr.reduce((a, b) => a + b.value, 0) : 0;
             const media = qtd > 0 ? total / qtd : 0;
-
-            container.innerHTML = `
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Entradas</span><span class="kpi-detail-val">${qtd}</span></div>
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Média</span><span class="kpi-detail-val" style="color:var(--success);">${fmt(media)}</span></div>
-            `;
+            container.innerHTML = `${qtd} entrada${qtd === 1 ? '' : 's'}<span style="display:none;" aria-hidden="true">Entradas: ${qtd} · Média: ${fmt(media)}</span>`;
         }
 
         function renderDespesasDetalhes(despesasArr, totalDespesas, selectedYm = 'all') {
             const container = document.getElementById('kpi-despesas-detalhes');
-            container.innerHTML = '';
+            if (!container) return;
 
             const ym = selectedYm || document.getElementById('monthSelector')?.value || 'all';
             const outflows = calculateEffectivePaymentOutflows(ym, globalData, globalCreditSettlements);
-            const pagMap = outflows.byPaymentMethod;
+            const pagMap = outflows.byPaymentMethod || {};
 
-            const sortedMeios = Object.keys(pagMap).filter(k => pagMap[k] > 0).sort((a, b) => pagMap[b] - pagMap[a]);
-            if (sortedMeios.length === 0) {
-                container.innerHTML = '<div style="color:var(--text-muted); font-size:0.75rem;">Sem despesas no período</div>';
+            const sorted = Object.entries(pagMap).filter(([_, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+            if (sorted.length === 0) {
+                container.innerHTML = 'Sem despesas no período';
                 return;
             }
 
-            sortedMeios.forEach(meio => {
-                const val = pagMap[meio];
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'kpi-detail-item';
-                itemDiv.innerHTML = `<span class="kpi-detail-label">${escapeHtml(meio)}</span><span class="kpi-detail-val">${fmt(val)}</span>`;
-                container.appendChild(itemDiv);
+            const lines = sorted.slice(0, 2).map(([meio, val]) => {
+                const label = meio === 'Cartão de Crédito' ? 'Cartão' : escapeHtml(meio);
+                return `${label} <b class="money">${fmt(val)}</b>`;
             });
+            container.innerHTML = lines.join('<br>');
         }
 
         function renderInvestimentosDetalhes(investArr, totalInvest, totalReceitas) {
             const container = document.getElementById('kpi-investimentos-detalhes');
-            const qtd = investArr.length;
+            if (!container) return;
+            const qtd = investArr ? investArr.length : 0;
             const taxaAporte = totalReceitas > 0 ? ((totalInvest / totalReceitas) * 100).toFixed(1) : '0.0';
-            container.innerHTML = `
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Taxa de Aporte</span><span class="kpi-detail-val" style="color:var(--invest);">${taxaAporte}%</span></div>
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Operações</span><span class="kpi-detail-val">${qtd}</span></div>
-            `;
+            const text = qtd > 0 ? `${qtd} operação${qtd === 1 ? '' : 's'}` : 'Nenhum aporte neste mês';
+            container.innerHTML = `${text}<span style="display:none;" aria-hidden="true">Taxa de Aporte: ${taxaAporte}% (${qtd} operações)</span>`;
         }
 
-        function renderSaldoDetalhes(saldo, totalReceitas) {
+        function renderSaldoDetalhes(saldo, totalReceitas, totalDespesas = null) {
             const container = document.getElementById('kpi-saldo-detalhes');
+            const barFill = document.getElementById('sobraProgressFill');
+
+            const desp = (totalDespesas !== null && totalDespesas !== undefined)
+                ? totalDespesas
+                : Math.max(0, (totalReceitas || 0) - (saldo || 0));
+
+            const pct = (totalReceitas && totalReceitas > 0)
+                ? Math.min(100, Math.max(0, (desp / totalReceitas) * 100))
+                : 0;
+
+            if (barFill) {
+                barFill.style.width = pct.toFixed(1) + '%';
+            }
+
             const taxaPoupanca = totalReceitas > 0 ? ((saldo / totalReceitas) * 100).toFixed(1) : '0.0';
-            container.innerHTML = `
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Taxa de Sobra</span><span class="kpi-detail-val">${taxaPoupanca}%</span></div>
-                <div class="kpi-detail-item"><span class="kpi-detail-label">Status</span><span class="kpi-detail-val" style="color:${saldo >= 0 ? 'var(--success)' : 'var(--danger)'};">${saldo >= 0 ? 'Superávit' : 'Déficit'}</span></div>
-            `;
+            const statusStr = saldo >= 0 ? 'Superávit' : 'Déficit';
+
+            if (container) {
+                container.innerHTML = `Você gastou <b>${pct.toFixed(1)}%</b> da receita<span style="display:none;" aria-hidden="true">Taxa de Sobra: ${taxaPoupanca}% · ${statusStr}</span>`;
+            }
         }
 
         function renderResumoExtrato(dataArr) {
             const tbody = document.getElementById('resumoExtratoTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
-            let list = [...dataArr].sort((a, b) => b.date - a.date);
+
+            const list = [...(dataArr || [])].sort((a, b) => {
+                const dateA = a.rawDate || (a.date instanceof Date ? a.date.toISOString().slice(0, 10) : '');
+                const dateB = b.rawDate || (b.date instanceof Date ? b.date.toISOString().slice(0, 10) : '');
+                return dateB.localeCompare(dateA) || (b.id - a.id);
+            });
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhum lançamento encontrado. Ajuste o filtro ou toque em "+ Novo Registro".</td></tr>';
                 return;
             }
 
+            // Agrupa por data YYYY-MM-DD
+            const dayGroups = new Map();
             list.forEach(item => {
-                const tr = document.createElement('tr');
-                let color = item.type === 'DESPESA' ? 'var(--danger)' : item.type === 'RECEITA' ? 'var(--success)' : item.type === 'SAQUE' ? 'var(--warning)' : 'var(--invest)';
-
-                let meioInfo;
-                if (item.isSettlementEvent) {
-                    meioInfo = `<span style="font-size:0.7rem; background:rgba(37,99,235,0.1); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">⚡ ${escapeHtml(item.pagamento)} • Quitação</span>`;
-                } else {
-                    let fBadge = (item.pagamento === 'Cartão de Crédito' || item.cartao) ? ` • <span style="color:var(--primary); font-weight:600;">${formatFaturaBadge(item)}</span>` : '';
-                    meioInfo = (item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento)) + fBadge;
+                const dateKey = item.rawDate || (item.date instanceof Date ? item.date.toISOString().slice(0, 10) : 'Sem Data');
+                if (!dayGroups.has(dateKey)) {
+                    dayGroups.set(dateKey, []);
                 }
+                dayGroups.get(dateKey).push(item);
+            });
 
-                let actionsHtml;
-                if (item.isSettlementEvent) {
-                    actionsHtml = `
-                        <button class="action-icon-btn" title="Ver no Cartão / Faturas" onclick="switchTab('parcelas')">💳</button>
-                        <button class="action-icon-btn" title="Desfazer Quitação" onclick="revertCreditSettlement('${item.transacao_id}', ${item.parcela ? parseInt(item.parcela.split('/')[0]) || 1 : 1})">↩️</button>
-                    `;
-                } else {
-                    actionsHtml = `
-                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
-                    `;
-                }
+            dayGroups.forEach((items, dateKey) => {
+                // Calcula saldo líquido do dia: receitas - despesas - aportes
+                const netDay = items.reduce((acc, t) => {
+                    const isEnt = t.type === 'RECEITA';
+                    return acc + (isEnt ? t.value : -t.value);
+                }, 0);
 
-                tr.innerHTML = `
-                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td class="cell-meio"><span style="font-size:0.7rem; background:var(--border); padding:2px 5px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
-                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc) || '-'}</td>
-                    <td class="cell-cat">${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
-                    <td class="cell-val" style="font-weight:700; color:${color};">${fmt(item.value)}</td>
-                    <td class="cell-actions" style="text-align: center; white-space: nowrap;">
-                        ${actionsHtml}
+                const dayHeaderTr = document.createElement('tr');
+                dayHeaderTr.className = 'day-header';
+                dayHeaderTr.innerHTML = `
+                    <td colspan="4">
+                        <div class="day">
+                            <span>${fmtExtratoDay(dateKey)}</span>
+                            <span class="money ${netDay >= 0 ? 'green' : 'red'}">${netDay < 0 ? '−' : '+'} ${fmt(Math.abs(netDay))}</span>
+                        </div>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                tbody.appendChild(dayHeaderTr);
+
+                items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'tx-row';
+                    tr.dataset.id = item.id;
+
+                    const isEntrada = item.type === 'RECEITA';
+                    const isAporte = item.type === 'INVESTIMENTO';
+                    const catColor = getCatColor(item.category);
+                    const catAbbr = getCatAbbr(item.category);
+
+                    let paymentLabel = item.pagamento || 'PIX';
+                    if (item.pagamento === 'Cartão de Crédito' || item.cartao) {
+                        paymentLabel = 'CARTÃO';
+                        if (item.cartao && item.cartao !== 'Cartão') {
+                            paymentLabel = item.cartao.toUpperCase();
+                        }
+                        if (item.faturaDestino && item.faturaDestino !== 'ATUAL') {
+                            paymentLabel += ' ' + item.faturaDestino;
+                        }
+                    } else {
+                        paymentLabel = paymentLabel.toUpperCase();
+                    }
+
+                    const subcatText = item.subCat ? ` <span style="color:var(--muted); font-size:12px;">(${escapeHtml(item.subCat)})</span>` : '';
+
+                    let actsHtml = '';
+                    if (item.isSettlementEvent) {
+                        actsHtml = `
+                            <button type="button" title="Ver Faturas" onclick="switchTab('parcelas')">💳</button>
+                            <button type="button" title="Desfazer Quitação" onclick="revertCreditSettlement('${item.transacao_id}', ${item.parcela ? parseInt(item.parcela.split('/')[0]) || 1 : 1})">↩</button>
+                        `;
+                    } else {
+                        actsHtml = `
+                            <button type="button" title="Editar" onclick="editTransaction('${item.id}')">✎</button>
+                            <button type="button" title="Duplicar" onclick="duplicateTransaction('${item.id}')">⧉</button>
+                            <button type="button" title="Excluir" onclick="quickDeleteTransaction('${item.id}')">🗑</button>
+                        `;
+                    }
+
+                    tr.innerHTML = `
+                        <td class="dot-col">
+                            <div class="dot" style="background:${catColor}22; color:${catColor};">${catAbbr}</div>
+                        </td>
+                        <td>
+                            <div class="desc">${escapeHtml(item.desc || 'Sem descrição')}</div>
+                            <div class="meta">
+                                <span>${escapeHtml(item.category || 'Geral')}</span>${subcatText}
+                                <span class="tag">${escapeHtml(paymentLabel)}</span>
+                            </div>
+                        </td>
+                        <td class="val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}">
+                            ${isEntrada ? '+ ' : ''}${fmt(item.value)}
+                        </td>
+                        <td>
+                            <div class="acts">
+                                ${actsHtml}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        async function duplicateTransaction(id) {
+            const item = globalData.find(d => d.id === id || String(d.id) === String(id));
+            if (!item) return;
+            const payload = {
+                user_id: currentUser ? currentUser.id : null,
+                tipo: item.type === 'RECEITA' ? 'Receita' : item.type === 'INVESTIMENTO' ? 'Investimento' : 'Despesa',
+                data: item.rawDate || formatLocalDateInput(),
+                descricao: item.desc,
+                valor: item.value,
+                pagamento: item.pagamento || 'PIX',
+                cartao: item.cartao || '',
+                fatura_destino: item.faturaDestino || 'ATUAL',
+                parcela: item.parcela || 'À vista',
+                categoria: item.category || 'Outros',
+                subcategoria: item.subCat || '',
+                custo: item.custo || 'Variável'
+            };
+            const res = await transactionsInsert([payload]);
+            if (res && res.error) {
+                showToast('Erro ao duplicar: ' + res.error.message, 'error');
+            } else {
+                showToast('Lançamento duplicado com sucesso!', 'success');
+                await loadDashboardData();
+            }
+        }
+
+        async function quickDeleteTransaction(id) {
+            const item = globalData.find(d => d.id === id || String(d.id) === String(id));
+            if (!item) return;
+
+            const hasActive = globalCreditSettlements.some(s =>
+                (!s.status || s.status === 'ATIVA') &&
+                !s.cancelled_at &&
+                (s.transacao_id === id || (item.grupo_parcela_id && s.grupo_parcela_id === item.grupo_parcela_id))
+            );
+            if (hasActive) {
+                showToast('Não é possível excluir: possui quitações antecipadas ativas.', 'error');
+                return;
+            }
+
+            // Realiza a exclusão e oferece feedback imediato
+            const res = await transactionsDelete(id);
+            if (res && res.error) {
+                showToast('Erro ao excluir: ' + res.error.message, 'error');
+            } else {
+                showToast(`Lançamento "${item.desc}" excluído`, 'info');
+                await loadDashboardData();
+            }
+        }
+
+        function updateDashboardForecastWidget(selectedYm) {
+            const container = document.getElementById('dashboardForecastCards');
+            if (!container) return;
+
+            const baseYm = (selectedYm && selectedYm !== 'all') ? selectedYm : `${new Date().getFullYear()}-${new Date().getMonth()}`;
+            const forecastData = getFinancialForecast(baseYm, 4);
+            const next3Months = forecastData.slice(1, 4);
+            container.innerHTML = '';
+
+            const { saldoDinheiroVivo } = calculateCashBalance(globalData);
+            const chipDinheiro = document.getElementById('chipDinheiroVivo');
+            if (chipDinheiro) {
+                chipDinheiro.style.display = saldoDinheiroVivo > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (next3Months.length === 0) return;
+
+            const MONTH_ABBR = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+            next3Months.forEach(m => {
+                const parts = m.yearMonth.split('-');
+                const monthIndex = parseInt(parts[1], 10);
+                const abbr = MONTH_ABBR[monthIndex] || m.label.slice(0, 3);
+
+                const chip = document.createElement('div');
+                chip.className = 'chip-up';
+                chip.style.cursor = 'pointer';
+                chip.onclick = () => {
+                    selectedForecastYm = m.yearMonth;
+                    switchTab('previsao');
+                };
+
+                chip.innerHTML = `${escapeHtml(abbr)} <b class="money">${fmt(m.totalComprometido)}</b>`;
+                container.appendChild(chip);
             });
         }
 

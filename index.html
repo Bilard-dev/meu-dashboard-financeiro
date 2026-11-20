@@ -2023,6 +2023,7 @@
         let rawMetas = [];
         let userBudgets = {};
         let charts = {};
+        let currentExtratoChipFilter = 'ALL';
 
         // Estado de recuperação de senha segura (Fase 4.5-C5-C.1 Hardening)
         let isPasswordRecoverySession = false;
@@ -2034,6 +2035,7 @@
         let globalCartoes = [];
         let globalTags = [];
 
+        const INVEST_PALETTE = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#14b8a6', '#6366f1', '#f97316', '#84cc16'];
         const DEFAULT_INVEST_KEYWORDS = [
             'investimento', 'investimentos', 'renda fixa', 'renda variavel', 'renda variável',
             'acao', 'acoes', 'ação', 'ações', 'fii', 'fiis', 'fundo imobiliario', 'fundos imobiliarios',
@@ -2558,7 +2560,6 @@
 
                 // Preenche os seletores de fatura com base na data padrão atual
                 updateDynamicFaturaDropdown();
-                updateMobileDynamicFaturaDropdown();
 
                 await loadCatalogsData();
                 updateDashboard(document.getElementById('monthSelector').value);
@@ -2896,15 +2897,8 @@
             populateFaturaDropdown('i_fatura_destino', selectedValue);
         }
 
-        function updateMobileDynamicFaturaDropdown() {}
-        function setMobileQuickType() {}
         function openMobileQuickView() { switchTab('novo'); }
-        function closeMobileQuickView() {}
-        function handleQuickViewKeydown() {}
         function transitionQuickToFull() { switchTab('novo'); }
-        function toggleMobilePaymentFields() {}
-        function saveMobileQuickTransaction() {}
-        function saveAndResetMobile() {}
 
         function onTypeChange() {
             populateFormDropdowns();
@@ -4229,11 +4223,6 @@
         // Acessibilidade: Fecha modais abertos ao pressionar a tecla ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' || e.key === 'Esc') {
-                const creditModal = document.getElementById('creditSettlementModal');
-                if (creditModal && creditModal.style.display !== 'none') {
-                    closeCreditSettlementModal();
-                    return;
-                }
                 const catModal = document.getElementById('catalogModal');
                 if (catModal && catModal.style.display !== 'none') {
                     closeCatalogModal();
@@ -4273,10 +4262,7 @@
         window.navigateToFromMore = navigateToFromMore;
         window.updateBottomNavActive = updateBottomNavActive;
         window.openMobileQuickView = openMobileQuickView;
-        window.closeMobileQuickView = closeMobileQuickView;
-        window.setMobileQuickType = setMobileQuickType;
         window.transitionQuickToFull = transitionQuickToFull;
-        window.saveAndResetMobile = saveAndResetMobile;
 
         function switchTab(tabId, updateUrl = true) {
             if (!tabId || !document.getElementById(`tab-${tabId}`)) {
@@ -5022,20 +5008,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             }
         }
 
-        function applyExtratoFilters() {
-            const selectedYm = document.getElementById('monthSelector').value;
-            const typeFilter = document.getElementById('typeFilterSelector').value;
-            const searchText = document.getElementById('searchInput').value;
-
-            const filtered = buildFinancialEvents(globalData, globalCreditSettlements, {
-                selectedYm,
-                typeFilter,
-                searchText
-            });
-
-            setFilteredExtratoData(filtered);
-            renderResumoExtrato(getFilteredExtratoData());
-        }
 
         function setupMonthSelector() {
             const select = document.getElementById('monthSelector');
@@ -5220,7 +5192,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             renderParcelasTab();
         }
 
-        const INVEST_PALETTE = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#14b8a6', '#6366f1', '#f97316', '#84cc16'];
 
         function setupInvestSelector() {
             const periodSelect = document.getElementById('investPeriodSelector');
@@ -5928,7 +5899,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             return (cat || 'GE').slice(0, 2).toUpperCase();
         }
 
-        let currentExtratoChipFilter = 'ALL';
 
         function setExtratoFilter(filterType, btnEl) {
             currentExtratoChipFilter = filterType;
@@ -5937,6 +5907,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             });
             applyExtratoFilters();
         }
+
 
         function applyExtratoFilters() {
             const selectedYm = document.getElementById('monthSelector')?.value || 'all';
@@ -6408,13 +6379,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             });
         }
 
-        /* ==========================================================
-           14. MODAIS E AÇÕES DE LIQUIDAÇÃO ANTECIPADA (FASE 3.5)
-           ========================================================== */
-        function openCreditSettlementModal() {}
-        function closeCreditSettlementModal() {}
-        async function submitCreditSettlement() {}
-        async function revertCreditSettlement() {}
 
         function renderManageLists() {
             const catContainer = document.getElementById('manageCategoriesList');
@@ -6575,6 +6539,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 }
             }
         }
+
 
         function renderInvestmentsTab() {
             const periodVal = document.getElementById('investPeriodSelector')?.value || 'all';

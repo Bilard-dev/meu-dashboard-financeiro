@@ -3235,7 +3235,7 @@
             <div class="menu" id="headerMenu">
                 <button type="button" class="icon-btn" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">☰</button>
                 <div class="menu-list" id="headerMenuList">
-                    <button type="button" onclick="openMobileQuickView(); closeHeaderMenu();">📱 Lançador celular</button>
+                    <button type="button" onclick="switchTab('novo'); closeHeaderMenu();">➕ Novo lançamento</button>
                     <button type="button" onclick="manualSync(); closeHeaderMenu();" id="syncBtn">🔄 Sincronizar dados</button>
                     <button type="button" onclick="switchTab('gerenciar-listas'); closeHeaderMenu();">⚙️ Gerenciar Categorias</button>
                     <button type="button" onclick="switchTab('conta'); closeHeaderMenu();">🔒 Minha Conta & Tema</button>
@@ -3323,7 +3323,6 @@
                         <option value="CARTAO">Cartão</option>
                         <option value="PIX">PIX</option>
                         <option value="INVESTIMENTO">Investimentos</option>
-                        <option value="SAQUE">Saques</option>
                     </select>
                     <input type="text" id="searchInput" class="search" placeholder="Buscar descrição ou tag…" oninput="applyExtratoFilters()">
                 </div>
@@ -3389,7 +3388,6 @@
                                 <option value="all">Todos os Tipos</option>
                                 <option value="DESPESA" selected>Despesas</option>
                                 <option value="RECEITA">Receitas</option>
-                                <option value="SAQUE">💵 Saques / Dinheiro Vivo</option>
                                 <option value="INVESTIMENTO">💼 Investimentos</option>
                             </select>
                         </div>
@@ -3493,17 +3491,6 @@
                                 <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
                             </div>
                         </div>
-
-                        <div class="kpi-card" style="border-left: 4px solid var(--warning);">
-                            <div>
-                                <div class="kpi-title" id="an-title-media-dinheiro">Gasto Dinheiro/Outros Médio</div>
-                                <div class="kpi-value" id="an-kpi-media-dinheiro" style="color:var(--warning);">R$ 0,00</div>
-                            </div>
-                            <div class="kpi-details" id="an-detail-media-dinheiro">
-                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- DETALHAMENTO DE MÉDIAS POR CATEGORIA -->
                     <div id="an-category-averages-section">
@@ -4300,7 +4287,7 @@
                 <span class="bnav-icon" aria-hidden="true">💳</span>
                 <span class="bnav-label">Faturas</span>
             </button>
-            <button type="button" class="bottom-nav-fab" id="bnav-fab" onclick="openMobileQuickView()" aria-label="Lançador Celular / Novo Lançamento Rápido">
+            <button type="button" class="bottom-nav-fab" id="bnav-fab" onclick="switchTab('novo')" aria-label="Novo lançamento">
                 <span class="bnav-fab-icon" aria-hidden="true">➕</span>
             </button>
             <button type="button" class="bottom-nav-item" id="bnav-investimentos" onclick="switchTab('investimentos')" aria-label="Investimentos">
@@ -6215,21 +6202,9 @@
         }
 
         function openMobileQuickView(initialTipo = 'Despesa') {
-            const overlay = document.getElementById('mobileQuickOverlay');
-            if (overlay) overlay.style.display = 'block';
-            document.getElementById('mobileQuickView').style.display = 'block';
-            document.getElementById('m_data').value = formatLocalDateInput();
-            setMobileQuickType(initialTipo);
-            document.getElementById('m_pagamento').value = 'PIX';
-            document.getElementById('m_parcela_select').value = 'À vista';
-            const mCustom = document.getElementById('m_parcela_custom');
-            if (mCustom) {
-                mCustom.style.display = 'none';
-                mCustom.value = '';
-            }
-            updateMobileDynamicFaturaDropdown();
-            toggleMobilePaymentFields();
-            document.addEventListener('keydown', handleQuickViewKeydown);
+            switchTab('novo');
+            if (initialTipo === 'Receita') setFormMode('Entrada');
+            else setFormMode('PIX');
         }
 
         function closeMobileQuickView() {
@@ -8171,7 +8146,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     cartao: isCard ? document.getElementById('i_cartao').value : '',
                     fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
                     parcela: valorParcelaFinal,
-                    categoria: document.getElementById('i_categoria').value || (tipo === 'Saque' ? 'Saque / Caixa' : 'Outros'),
+                    categoria: document.getElementById('i_categoria').value || 'Outros',
                     subcategoria: document.getElementById('i_subcategoria').value || '',
                     custo: document.getElementById('i_custo').value
                 };

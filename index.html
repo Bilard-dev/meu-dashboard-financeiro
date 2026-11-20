@@ -2142,7 +2142,6 @@
                     document.getElementById('appView').style.display = 'block';
 
                     loadDashboardData();
-                    loadMetasData();
                     loadCatalogsData();
                     return;
                 }
@@ -2204,7 +2203,6 @@
                 document.getElementById('appView').style.display = 'block';
 
                 loadDashboardData();
-                loadMetasData();
                 loadCatalogsData();
             } else {
                 currentUser = null;
@@ -4338,6 +4336,7 @@
                     togglePaymentFields();
                     updateDynamicFaturaDropdown();
                 }
+                setTimeout(() => { document.getElementById('i_valor')?.focus(); }, 50);
             }
             if(tabId === 'admin') loadAdminUsersView();
         }
@@ -4586,6 +4585,16 @@
                 sel.addEventListener('change', updateMonthLabel);
                 updateMonthLabel();
             }
+
+            const insertForm = document.getElementById('insertForm');
+            if (insertForm) {
+                insertForm.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        addOrUpdateTransaction(e, true);
+                    }
+                });
+            }
         });
 
 async function addOrUpdateTransaction(e, isBatch = false) {
@@ -4605,6 +4614,19 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             if (activeBtn) activeBtn.innerText = 'Salvando...';
 
             try {
+                const valorRaw = document.getElementById('i_valor').value;
+                const descRaw = document.getElementById('i_descricao').value.trim();
+                const valorNum = parseFloat(valorRaw);
+                if (!valorRaw || isNaN(valorNum) || valorNum <= 0) {
+                    showToast('Informe um valor válido maior que zero.', 'warning');
+                    document.getElementById('i_valor')?.focus();
+                    return;
+                }
+                if (!descRaw) {
+                    showToast('Informe a descrição do lançamento.', 'warning');
+                    document.getElementById('i_descricao')?.focus();
+                    return;
+                }
                 const tipo = document.getElementById('i_tipo').value;
                 const pagamento = document.getElementById('i_pagamento').value;
                 const isCard = pagamento === 'Cartão de Crédito';
@@ -4685,6 +4707,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                         document.getElementById('i_descricao').value = '';
                         document.getElementById('i_valor').value = '';
                         document.getElementById('i_tags').value = '';
+                        setTimeout(() => { document.getElementById('i_valor')?.focus(); }, 50);
                     } else {
                         cancelEdit();
                         switchTab('resumo');

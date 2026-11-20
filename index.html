@@ -3049,6 +3049,81 @@
             background: var(--blue);
             color: #fff;
         }
+
+        /* ==========================================================
+           ETAPA 2: ANÁLISE DE GASTOS INTELIGENTE & TOP 5 DESPESAS
+           ========================================================== */
+        .an-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .an-grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+        .top-expenses-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            margin-top: 0.5rem;
+        }
+        .top-expense-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.7rem 0.9rem;
+            background: var(--panel2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            transition: transform 0.12s ease, border-color 0.12s ease;
+        }
+        .top-expense-item:hover {
+            transform: translateX(3px);
+            border-color: var(--blue);
+        }
+        .top-expense-rank {
+            font-weight: 800;
+            font-size: 0.8rem;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(239, 111, 108, 0.12);
+            color: var(--danger);
+            flex-shrink: 0;
+        }
+        .top-expense-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .top-expense-desc {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .top-expense-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            margin-top: 0.2rem;
+            flex-wrap: wrap;
+        }
+        .top-expense-val {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--danger);
+            white-space: nowrap;
+        }
 </style>
 </head>
 <body>
@@ -3346,179 +3421,230 @@
 
             </div>
 
-            <!-- NOVA ABA: ANÁLISE DE GASTOS AVANÇADA POR TAG E MÚLTIPLOS FILTROS -->
+            <!-- ABA: ANÁLISE INTELIGENTE DE GASTOS (ETAPA 2) -->
             <div id="tab-analise" class="tab-content">
-                <div class="chart-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+                <!-- CABEÇALHO DA ANÁLISE E SELETOR DE MÊS -->
+                <div class="chart-card" style="margin-bottom: 1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
                         <div>
-                            <h2 class="chart-title" style="font-size: 1.2rem; margin-bottom:0.25rem;">📊 Painel Avançado de Análise Multi-Filtros</h2>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin:0;">Filtre seu histórico completo por período, intervalo de datas específico, tipos, categorias, TAGs e meios de pagamento.</p>
+                            <h2 class="chart-title" style="font-size: 1.25rem; margin-bottom: 0.25rem; display:flex; align-items:center; gap:0.5rem;">
+                                <span>📊</span> Análise Inteligente de Gastos
+                            </h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Visão prática e objetiva das suas finanças e principais saídas.</p>
                         </div>
-                        <div>
-                            <button type="button" class="reset-btn" onclick="resetAnaliseFilters()" style="padding:0.45rem 0.9rem; font-size:0.85rem;">🔄 Limpar Filtros</button>
-                        </div>
-                    </div>
-
-                    <div class="form-grid" style="margin-bottom: 1rem;">
-                        <div class="input-group">
-                            <label>Filtrar Período</label>
-                            <select id="an_mes" class="input-field" onchange="onAnalisePeriodChange()">
-                                <option value="all">Todo o Histórico (Todos os Meses)</option>
-                                <option value="current_month">Mês Atual</option>
-                                <option value="last_month">Mês Anterior</option>
-                                <option value="last_3_months">Últimos 3 Meses</option>
-                                <option value="last_6_months">Últimos 6 Meses</option>
-                                <option value="current_year">Ano Atual</option>
-                                <option value="custom">📅 Intervalo Personalizado (De / Até)...</option>
-                            </select>
-                        </div>
-                        <div id="an_custom_date_container" style="display: none; grid-column: span 2; display: flex; gap: 0.75rem; align-items: center;">
-                            <div class="input-group" style="flex:1;">
-                                <label>Data Inicial</label>
-                                <input type="date" id="an_data_inicio" class="input-field" onchange="runAnaliseGastos()">
-                            </div>
-                            <div class="input-group" style="flex:1;">
-                                <label>Data Final</label>
-                                <input type="date" id="an_data_fim" class="input-field" onchange="runAnaliseGastos()">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Tipo de Transação</label>
-                            <select id="an_tipo" class="input-field" onchange="runAnaliseGastos()">
-                                <option value="all">Todos os Tipos</option>
-                                <option value="DESPESA" selected>Despesas</option>
-                                <option value="RECEITA">Receitas</option>
-                                <option value="INVESTIMENTO">💼 Investimentos</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Filtrar Categoria</label>
-                            <select id="an_categoria" class="input-field" onchange="onAnaliseCategoryChange()">
-                                <option value="all">Todas as Categorias</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Filtrar Subcategoria</label>
-                            <select id="an_subcategoria" class="input-field" onchange="runAnaliseGastos()">
-                                <option value="all">Todas as Subcategorias</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Filtrar TAG</label>
-                            <select id="an_tag" class="input-field" onchange="runAnaliseGastos()">
-                                <option value="all">Todas as TAGs</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Forma de Pagamento / Meio</label>
-                            <select id="an_pagamento" class="input-field" onchange="runAnaliseGastos()">
-                                <option value="all">Todos os Meios (PIX, Cartão, Dinheiro...)</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Cartão de Crédito</label>
-                            <select id="an_cartao" class="input-field" onchange="runAnaliseGastos()">
-                                <option value="all">Todos os Cartões</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Valor Mínimo (R$)</label>
-                            <input type="number" id="an_valor_min" class="input-field" step="0.01" placeholder="Ex: 50.00" oninput="runAnaliseGastos()">
-                        </div>
-                        <div class="input-group">
-                            <label>Valor Máximo (R$)</label>
-                            <input type="number" id="an_valor_max" class="input-field" step="0.01" placeholder="Ex: 1000.00" oninput="runAnaliseGastos()">
-                        </div>
-                        <div class="input-group" style="grid-column: span 2;">
-                            <label>🔍 Busca Textual Rápida</label>
-                            <input type="text" id="an_search" class="input-field" placeholder="Buscar por texto na descrição, observações ou tags..." oninput="runAnaliseGastos()">
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <label for="an_mes" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Mês em Análise:</label>
+                            <select id="an_mes" class="input-field" style="max-width: 220px; padding: 0.45rem 0.75rem; font-weight: 700; margin: 0;" onchange="onAnalisePeriodChange()"></select>
+                            <button type="button" class="reset-btn" onclick="resetAnaliseFilters()" style="padding:0.45rem 0.8rem; font-size:0.85rem;">🔄 Atualizar</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="kpi-container" style="margin-bottom: 1.5rem;">
-                    <div class="kpi-card"><div><div class="kpi-title">Total Filtrado</div><div class="kpi-value" id="an-kpi-total" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Média do Filtro Atual</div><div class="kpi-value" id="an-kpi-media">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Lançamentos no Filtro</div><div class="kpi-value" id="an-kpi-qtd">0</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">Período Selecionado</div><div class="kpi-value" id="an-kpi-periodo" style="font-size: 1.15rem; color: var(--text-main);">-</div></div></div>
+                <!-- CARDS DE RESUMO E COMPARATIVO DIRETO COM O MÊS ANTERIOR -->
+                <div class="kpi-container" style="margin-bottom: 1.25rem;">
+                    <div class="kpi-card" style="border-left: 4px solid var(--danger);">
+                        <div>
+                            <div class="kpi-title">Total de Gastos no Mês</div>
+                            <div class="kpi-value" id="an-total-gasto" style="color: var(--danger);">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-details" style="margin-top: 0.5rem;">
+                            <span id="an-comparativo-badge" class="tag-status tag-done" style="font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <span>≈</span> Comparando com mês anterior...
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="border-left: 4px solid var(--blue);">
+                        <div>
+                            <div class="kpi-title">Média Diária de Gastos</div>
+                            <div class="kpi-value" id="an-media-diaria" style="color: var(--text);">R$ 0,00</div>
+                        </div>
+                        <div class="kpi-details" id="an-media-diaria-detalhe" style="margin-top: 0.5rem;">
+                            <small style="color: var(--text-muted);">Calculado sobre os dias do mês</small>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="border-left: 4px solid var(--amber);">
+                        <div>
+                            <div class="kpi-title">Categoria Mais Pesada</div>
+                            <div class="kpi-value" id="an-top-categoria" style="color: var(--amber); font-size: 1.25rem;">-</div>
+                        </div>
+                        <div class="kpi-details" id="an-top-categoria-detalhe" style="margin-top: 0.5rem;">
+                            <small style="color: var(--text-muted);">R$ 0,00 (0% do mês)</small>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card" style="border-left: 4px solid var(--violet);">
+                        <div>
+                            <div class="kpi-title">Divisão PIX vs Cartão</div>
+                            <div class="kpi-value" id="an-pix-vs-cartao" style="color: var(--text); font-size: 0.95rem; display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                                <span>PIX: <b id="an-total-pix" style="color: var(--violet);">R$ 0,00</b></span>
+                                <span>Cartão: <b id="an-total-cartao" style="color: var(--primary);">R$ 0,00</b></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- PAINEL DEDICADO DE MÉDIAS FINANCEIRAS -->
-                <div class="chart-card" style="margin-bottom: 1.5rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
-                        <div>
-                            <h3 class="chart-title" style="margin-bottom:0.2rem; font-size:1.15rem;">📈 Painel de Médias Financeiras</h3>
-                            <p style="color:var(--text-muted); font-size:0.85rem; margin:0;" id="an-medias-subtitle">Visão consolidada de médias por meio de pagamento, receitas e categorias no período.</p>
+                <!-- GRID 2 COLUNAS: GRÁFICO DE PIZZA/ROSCA + TOP 5 MAIORES DESPESAS -->
+                <div class="an-grid-2col">
+                    <!-- COLUNA 1: GRÁFICO DE ROSCA DAS CATEGORIAS -->
+                    <div class="chart-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                            <h3 class="chart-title" style="font-size: 1.05rem;">🥧 Distribuição por Categoria</h3>
+                            <span id="an-cat-count-badge" class="tag-status" style="font-size: 0.72rem; background: var(--panel2); color: var(--text-muted);">0 categorias</span>
                         </div>
-                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-                            <label style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Calcular médias por:</label>
-                            <select id="an_modo_media" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.8rem; font-weight:600; font-size:0.85rem; border-radius:var(--radius-md);" onchange="runAnaliseGastos()">
+
+                        <div style="position: relative; max-width: 260px; max-height: 260px; height: 260px; margin: 0 auto 1.25rem auto;">
+                            <canvas id="anDonutChart"></canvas>
+                        </div>
+
+                        <!-- LISTA DE CATEGORIAS COM BARRAS DE IMPACTO -->
+                        <div id="anCategoryBarsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    </div>
+
+                    <!-- COLUNA 2: TOP 5 MAIORES DESPESAS DO MÊS -->
+                    <div class="chart-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                            <h3 class="chart-title" style="font-size: 1.05rem;">🎯 Top 5 Maiores Despesas do Mês</h3>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Maiores saídas</span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                            Identifique de imediato onde saíram os maiores valores no período.
+                        </p>
+
+                        <div id="anTopExpensesList" class="top-expenses-list"></div>
+                    </div>
+                </div>
+
+                <!-- DETALHAMENTO EXPANSÍVEL (FILTROS DETALHADOS E HISTÓRICO TABULAR) -->
+                <details id="anFiltrosAvancadosSection" class="chart-card" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem;">
+                    <summary style="font-weight: 700; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between;">
+                        <span>🔍 Filtros Avançados & Histórico em Tabela (Opcional)</span>
+                        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">Clique para expandir ▾</span>
+                    </summary>
+
+                    <div style="margin-top: 1.25rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+                        <div class="form-grid" style="margin-bottom: 1rem;">
+                            <div id="an_custom_date_container" style="display: none; grid-column: span 2; display: flex; gap: 0.75rem; align-items: center;">
+                                <div class="input-group" style="flex:1;">
+                                    <label>Data Inicial</label>
+                                    <input type="date" id="an_data_inicio" class="input-field" onchange="runAnaliseGastos()">
+                                </div>
+                                <div class="input-group" style="flex:1;">
+                                    <label>Data Final</label>
+                                    <input type="date" id="an_data_fim" class="input-field" onchange="runAnaliseGastos()">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Tipo de Transação</label>
+                                <select id="an_tipo" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todos os Tipos</option>
+                                    <option value="DESPESA" selected>Despesas</option>
+                                    <option value="RECEITA">Receitas</option>
+                                    <option value="INVESTIMENTO">💼 Investimentos</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Filtrar Categoria</label>
+                                <select id="an_categoria" class="input-field" onchange="onAnaliseCategoryChange()">
+                                    <option value="all">Todas as Categorias</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Filtrar Subcategoria</label>
+                                <select id="an_subcategoria" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todas as Subcategorias</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Filtrar TAG</label>
+                                <select id="an_tag" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todas as TAGs</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Forma de Pagamento</label>
+                                <select id="an_pagamento" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todos os Meios (PIX, Cartão...)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Cartão de Crédito</label>
+                                <select id="an_cartao" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todos os Cartões</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Valor Mínimo (R$)</label>
+                                <input type="number" id="an_valor_min" class="input-field" step="0.01" placeholder="Ex: 50.00" oninput="runAnaliseGastos()">
+                            </div>
+                            <div class="input-group">
+                                <label>Valor Máximo (R$)</label>
+                                <input type="number" id="an_valor_max" class="input-field" step="0.01" placeholder="Ex: 1000.00" oninput="runAnaliseGastos()">
+                            </div>
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>🔍 Busca Textual Rápida</label>
+                                <input type="text" id="an_search" class="input-field" placeholder="Buscar por descrição ou tag..." oninput="runAnaliseGastos()">
+                            </div>
+                        </div>
+
+                        <!-- KPIs COMPATIBILIDADE -->
+                        <div class="kpi-container" style="margin-bottom: 1.25rem;">
+                            <div class="kpi-card"><div><div class="kpi-title">Total Filtrado</div><div class="kpi-value" id="an-kpi-total" style="color: var(--danger);">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Média do Filtro</div><div class="kpi-value" id="an-kpi-media">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Lançamentos no Filtro</div><div class="kpi-value" id="an-kpi-qtd">0</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Período</div><div class="kpi-value" id="an-kpi-periodo" style="font-size: 1.15rem; color: var(--text-main);">-</div></div></div>
+                        </div>
+
+                        <!-- MÉDIAS POR MEIO (COMPATIBILIDADE) -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                            <span style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Calcular médias por:</span>
+                            <select id="an_modo_media" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.4rem 0.75rem; font-size:0.85rem; border-radius:var(--radius-md);" onchange="runAnaliseGastos()">
                                 <option value="mes" selected>📅 Por Mês (R$ / mês)</option>
                                 <option value="operacao">🔢 Por Operação (R$ / lançamento)</option>
                                 <option value="dia">☀️ Por Dia (R$ / dia)</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- CARDS DE MÉDIAS: RECEITAS, PIX, CARTÃO, DINHEIRO -->
-                    <div class="kpi-container" style="margin-bottom:1.5rem;">
-                        <div class="kpi-card" style="border-left: 4px solid var(--success);">
-                            <div>
-                                <div class="kpi-title" id="an-title-media-receita">Receita Média</div>
-                                <div class="kpi-value" id="an-kpi-media-receita" style="color:var(--success);">R$ 0,00</div>
+                        <div class="kpi-container" style="margin-bottom:1.25rem;">
+                            <div class="kpi-card" style="border-left: 4px solid var(--success);">
+                                <div><div class="kpi-title" id="an-title-media-receita">Receita Média</div><div class="kpi-value" id="an-kpi-media-receita" style="color:var(--success);">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-receita"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 receitas)</small></div>
                             </div>
-                            <div class="kpi-details" id="an-detail-media-receita">
-                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 receitas)</small>
+                            <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+                                <div><div class="kpi-title" id="an-title-media-pix">Gasto PIX Médio</div><div class="kpi-value" id="an-kpi-media-pix" style="color:#8b5cf6;">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-pix"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small></div>
                             </div>
-                        </div>
-
-                        <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
-                            <div>
-                                <div class="kpi-title" id="an-title-media-pix">Gasto PIX Médio</div>
-                                <div class="kpi-value" id="an-kpi-media-pix" style="color:#8b5cf6;">R$ 0,00</div>
-                            </div>
-                            <div class="kpi-details" id="an-detail-media-pix">
-                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
+                            <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                                <div><div class="kpi-title" id="an-title-media-cartao">Gasto Cartão Médio</div><div class="kpi-value" id="an-kpi-media-cartao" style="color:var(--primary);">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-cartao"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small></div>
                             </div>
                         </div>
 
-                        <div class="kpi-card" style="border-left: 4px solid var(--primary);">
-                            <div>
-                                <div class="kpi-title" id="an-title-media-cartao">Gasto Cartão Médio</div>
-                                <div class="kpi-value" id="an-kpi-media-cartao" style="color:var(--primary);">R$ 0,00</div>
-                            </div>
-                            <div class="kpi-details" id="an-detail-media-cartao">
-                                <small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small>
-                            </div>
+                        <!-- MÉDIAS POR CATEGORIA (COMPATIBILIDADE) -->
+                        <div id="an-category-averages-section" style="margin-bottom: 1.25rem;">
+                            <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-main); font-weight: 600;">🏷️ Detalhamento de Médias por Categoria</h4>
+                            <div id="an-category-averages-cards" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;"></div>
                         </div>
 
+                        <!-- TABELA DETALHADA -->
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Descrição / TAGs</th>
+                                        <th>Categoria / Sub</th>
+                                        <th>Pagamento / Meio</th>
+                                        <th>Valor</th>
+                                        <th style="text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analiseTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <!-- DETALHAMENTO DE MÉDIAS POR CATEGORIA -->
-                    <div id="an-category-averages-section">
-                        <h4 style="margin-bottom: 0.75rem; font-size: 1rem; color: var(--text-main); font-weight: 600;">🏷️ Médias de Gastos por Categoria</h4>
-                        <div id="an-category-averages-cards" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 0.5rem;"></div>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-title">Resultado da Análise</div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Descrição / TAGs</th>
-                                    <th>Categoria / Sub</th>
-                                    <th>Pagamento / Meio</th>
-                                    <th>Valor</th>
-                                    <th style="text-align:center;">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="analiseTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
+                </details>
             </div>
 
             <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS REAIS POR MÊS -->
@@ -9118,6 +9244,205 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             const pixCount = outflows.paymentMethodCounts.pix;
             const cartaoCount = outflows.paymentMethodCounts.cartao;
             const dinheiroCount = outflows.paymentMethodCounts.dinheiro;
+
+            // ==========================================================
+            // ETAPA 2: ATUALIZAÇÃO DO NOVO PAINEL INTELIGENTE & COMPARATIVO
+            // ==========================================================
+            let targetY = currYear;
+            let targetM = currMonth;
+            if (periodVal === 'last_month') {
+                const lDate = new Date(currYear, currMonth - 1, 1);
+                targetY = lDate.getFullYear();
+                targetM = lDate.getMonth();
+            } else if (periodVal && periodVal.includes('-')) {
+                const [pY, pM] = periodVal.split('-').map(Number);
+                if (!isNaN(pY) && !isNaN(pM)) {
+                    targetY = pY;
+                    targetM = pM;
+                }
+            }
+
+            const compPrevM = targetM === 0 ? 11 : targetM - 1;
+            const compPrevY = targetM === 0 ? targetY - 1 : targetY;
+            const prevExpenses = globalData.filter(d => d.type === 'DESPESA' && d.year === compPrevY && d.month === compPrevM);
+            const totalPrevExpenses = prevExpenses.reduce((a, b) => a + b.value, 0);
+
+            // 1. Card Total Gasto
+            const totalGastoEl = document.getElementById('an-total-gasto');
+            if (totalGastoEl) totalGastoEl.innerText = fmt(totalDespesas);
+
+            // 2. Comparativo direto com o mês anterior
+            const compBadge = document.getElementById('an-comparativo-badge');
+            if (compBadge) {
+                if (totalPrevExpenses > 0) {
+                    const diffPct = ((totalDespesas - totalPrevExpenses) / totalPrevExpenses) * 100;
+                    if (diffPct > 0) {
+                        compBadge.className = 'tag-status tag-danger';
+                        compBadge.innerHTML = '<span>↑</span> +' + diffPct.toFixed(1) + '% vs ' + monthNamesBR[compPrevM];
+                    } else if (diffPct < 0) {
+                        compBadge.className = 'tag-status tag-done';
+                        compBadge.innerHTML = '<span>↓</span> ' + Math.abs(diffPct).toFixed(1) + '% vs ' + monthNamesBR[compPrevM] + ' (economia)';
+                    } else {
+                        compBadge.className = 'tag-status';
+                        compBadge.innerHTML = '<span>≈</span> Gastos iguais a ' + monthNamesBR[compPrevM];
+                    }
+                } else {
+                    compBadge.className = 'tag-status';
+                    compBadge.innerHTML = '<span>ℹ️</span> Sem base anterior em ' + monthNamesBR[compPrevM];
+                }
+            }
+
+            // 3. Média Diária
+            const isCurr = (now.getFullYear() === targetY && now.getMonth() === targetM);
+            const daysCount = isCurr ? Math.max(1, now.getDate()) : new Date(targetY, targetM + 1, 0).getDate();
+            const mediaDiariaCalc = daysCount > 0 ? totalDespesas / daysCount : 0;
+            const mediaDiariaEl = document.getElementById('an-media-diaria');
+            if (mediaDiariaEl) mediaDiariaEl.innerText = fmt(mediaDiariaCalc);
+            const mediaDiariaDet = document.getElementById('an-media-diaria-detalhe');
+            if (mediaDiariaDet) mediaDiariaDet.innerHTML = '<small style="color:var(--text-muted);">Sobre ' + daysCount + ' dias ' + (isCurr ? '(mês em andamento)' : '(mês fechado)') + '</small>';
+
+            // 4. Categoria Mais Pesada & Ordenação
+            const catMapObj = {};
+            despesasPeriodo.forEach(d => {
+                const c = d.category || 'Outros';
+                catMapObj[c] = (catMapObj[c] || 0) + d.value;
+            });
+            const sortedCategories = Object.entries(catMapObj).sort((a, b) => b[1] - a[1]);
+            const topCategory = sortedCategories[0] || ['Nenhuma', 0];
+            const topCategoryPct = totalDespesas > 0 ? ((topCategory[1] / totalDespesas) * 100).toFixed(1) : 0;
+
+            const topCatEl = document.getElementById('an-top-categoria');
+            if (topCatEl) topCatEl.innerText = topCategory[0];
+            const topCatDet = document.getElementById('an-top-categoria-detalhe');
+            if (topCatDet) topCatDet.innerHTML = '<small style="color:var(--text-muted);">' + fmt(topCategory[1]) + ' (' + topCategoryPct + '% do período)</small>';
+
+            // 5. Divisão PIX vs Cartão
+            const pixEl = document.getElementById('an-total-pix');
+            if (pixEl) {
+                const pixPct = totalDespesas > 0 ? Math.round((totalPix / totalDespesas) * 100) : 0;
+                pixEl.innerHTML = fmt(totalPix) + ' <small style="font-weight:500; color:var(--text-muted);">(' + pixPct + '%)</small>';
+            }
+            const cardEl = document.getElementById('an-total-cartao');
+            if (cardEl) {
+                const cardPct = totalDespesas > 0 ? Math.round((totalCartao / totalDespesas) * 100) : 0;
+                cardEl.innerHTML = fmt(totalCartao) + ' <small style="font-weight:500; color:var(--text-muted);">(' + cardPct + '%)</small>';
+            }
+
+            // 6. Gráfico Donut de Categorias (Chart.js)
+            const catCountBadge = document.getElementById('an-cat-count-badge');
+            if (catCountBadge) catCountBadge.innerText = sortedCategories.length + ' categorias';
+
+            const donutCanvas = document.getElementById('anDonutChart');
+            const paletteColors = ['#4f8cff', '#3eb37c', '#f0b84a', '#ef6f6c', '#9d8cff', '#06b6d4', '#ec4899', '#7e8ba7', '#ff9800', '#10b981'];
+
+            if (donutCanvas && typeof Chart !== 'undefined') {
+                if (charts.analiseDonut) {
+                    charts.analiseDonut.destroy();
+                    charts.analiseDonut = null;
+                }
+
+                if (sortedCategories.length > 0) {
+                    const ctx = donutCanvas.getContext('2d');
+                    charts.analiseDonut = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: sortedCategories.map(c => c[0]),
+                            datasets: [{
+                                data: sortedCategories.map(c => c[1]),
+                                backgroundColor: sortedCategories.map((_, i) => paletteColors[i % paletteColors.length]),
+                                borderWidth: 2,
+                                borderColor: '#141b2e'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            const val = ctx.raw || 0;
+                                            const pct = totalDespesas > 0 ? ((val / totalDespesas) * 100).toFixed(1) : 0;
+                                            return ' ' + ctx.label + ': ' + fmt(val) + ' (' + pct + '%)';
+                                        }
+                                    }
+                                }
+                            },
+                            cutout: '70%'
+                        }
+                    });
+                }
+            }
+
+            // 7. Barras de progresso das categorias
+            const barsContainer = document.getElementById('anCategoryBarsList');
+            if (barsContainer) {
+                barsContainer.innerHTML = '';
+                if (sortedCategories.length === 0) {
+                    barsContainer.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">Nenhum gasto registrado neste período.</div>';
+                } else {
+                    sortedCategories.forEach(([catName, catVal], idx) => {
+                        const color = paletteColors[idx % paletteColors.length];
+                        const pct = totalDespesas > 0 ? ((catVal / totalDespesas) * 100).toFixed(1) : 0;
+                        const row = document.createElement('div');
+                        row.style.display = 'flex';
+                        row.style.flexDirection = 'column';
+                        row.style.gap = '4px';
+                        row.innerHTML = 
+                            '<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem;">' +
+                                '<div style="display:flex; align-items:center; gap:6px;">' +
+                                    '<span style="width:10px; height:10px; border-radius:50%; background:' + color + '; flex-shrink:0;"></span>' +
+                                    '<span style="font-weight:600; color:var(--text-main);">' + escapeHtml(catName) + '</span>' +
+                                '</div>' +
+                                '<div style="font-weight:700; color:var(--text-main);">' + fmt(catVal) + ' <small style="color:var(--text-muted); font-weight:500;">(' + pct + '%)</small></div>' +
+                            '</div>' +
+                            '<div style="width:100%; height:6px; background:var(--panel2); border-radius:99px; overflow:hidden;">' +
+                                '<div style="width:' + Math.min(100, pct) + '%; height:100%; background:' + color + '; border-radius:99px;"></div>' +
+                            '</div>';
+                        barsContainer.appendChild(row);
+                    });
+                }
+            }
+
+            // 8. Top 5 Maiores Despesas do Mês
+            const topExpensesContainer = document.getElementById('anTopExpensesList');
+            if (topExpensesContainer) {
+                topExpensesContainer.innerHTML = '';
+                const top5 = [...despesasPeriodo].sort((a, b) => b.value - a.value).slice(0, 5);
+
+                if (top5.length === 0) {
+                    topExpensesContainer.innerHTML = 
+                        '<div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.88rem;">' +
+                            'Nenhuma despesa encontrada para o período.' +
+                        '</div>';
+                } else {
+                    top5.forEach((item, index) => {
+                        const el = document.createElement('div');
+                        el.className = 'top-expense-item';
+                        const itemDate = item.date instanceof Date && !isNaN(item.date) ? item.date.toLocaleDateString('pt-BR') : (item.rawDate || '');
+                        const payBadge = item.pagamento === 'Cartão de Crédito' 
+                            ? (item.cartao ? '💳 ' + item.cartao : '💳 Cartão') 
+                            : (item.pagamento ? '⚡ ' + item.pagamento : '⚡ PIX');
+
+                        el.innerHTML = 
+                            '<div class="top-expense-rank">#' + (index + 1) + '</div>' +
+                            '<div class="top-expense-info">' +
+                                '<div class="top-expense-desc">' + escapeHtml(item.desc || 'Sem descrição') + '</div>' +
+                                '<div class="top-expense-sub">' +
+                                    '<span>📅 ' + itemDate + '</span>' +
+                                    '<span>•</span>' +
+                                    '<span style="color:var(--text); font-weight:600;">' + escapeHtml(item.category || 'Outros') + '</span>' +
+                                    '<span>•</span>' +
+                                    '<span style="font-size:0.75rem; background:var(--panel); border:1px solid var(--line); padding:1px 6px; border-radius:4px;">' + escapeHtml(payBadge) + '</span>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="top-expense-val">' + fmt(item.value) + '</div>';
+                        topExpensesContainer.appendChild(el);
+                    });
+                }
+            }
+
 
             function calcMedia(totalVal, count) {
                 return calculateAverageValue(totalVal, count, modoMedia, numMesesPeriodo, numDiasPeriodo);

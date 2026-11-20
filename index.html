@@ -190,10 +190,7 @@
     <!-- DASHBOARD PRINCIPAL -->
     <div id="appView" style="display: none;">
         <header>
-            <div class="brand">
-                Painel Financeiro
-                <small>Gestão patrimonial & controladoria pessoal</small>
-            </div>
+            <div class="brand">Painel Financeiro</div>
             
             <!-- Controle de Mês Compacto (‹ Mês Ano ›) -->
             <div class="month">
@@ -213,6 +210,7 @@
                 <button type="button" class="icon-btn" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">☰</button>
                 <div class="menu-list" id="headerMenuList">
                     <button type="button" onclick="switchTab('novo'); closeHeaderMenu();">➕ Novo lançamento</button>
+                    <button type="button" id="menuPrivacyBtn" onclick="togglePrivacy(); closeHeaderMenu();">👁️ <span id="menuPrivacyText">Ocultar valores</span></button>
                     <button type="button" onclick="manualSync(); closeHeaderMenu();" id="syncBtn">🔄 Sincronizar dados</button>
                     <button type="button" onclick="switchTab('gerenciar-listas'); closeHeaderMenu();">⚙️ Gerenciar Categorias</button>
                     <button type="button" onclick="switchTab('conta'); closeHeaderMenu();">🔒 Minha Conta & Tema</button>
@@ -4069,6 +4067,10 @@
             if (btn) {
                 btn.style.backgroundColor = isPrivacy ? '#dbeafe' : 'var(--card-bg)';
                 btn.title = isPrivacy ? 'Modo Privacidade (Ativo - valores ocultos)' : 'Modo Privacidade (Ocultar/Exibir Valores)';
+            }
+            const menuPrivacyText = document.getElementById('menuPrivacyText');
+            if (menuPrivacyText) {
+                menuPrivacyText.textContent = isPrivacy ? 'Exibir valores' : 'Ocultar valores';
             }
             updateDashboard(document.getElementById('monthSelector').value);
         }

@@ -2659,7 +2659,237 @@
             .acts { opacity: 1; }
         }
 
-    </style>
+    
+        /* ==========================================================
+           ETAPA 2: FORMULÁRIO COMPACTO E SEM ATRITO (NOVO LANÇAMENTO)
+           ========================================================== */
+        .nl-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+        }
+        .nl-form {
+            --accent: var(--red);
+            display: flex;
+            flex-direction: column;
+        }
+        .nl-form[data-tipo="Receita"], .nl-form[data-tipo="entrada"] { --accent: var(--green); }
+        .nl-form[data-tipo="Investimento"], .nl-form[data-tipo="aporte"] { --accent: var(--violet); }
+        .nl-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .nl-header h2 {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin: 0;
+            color: var(--text);
+        }
+        .nl-x {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            color: var(--muted);
+            border: 0;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: grid;
+            place-items: center;
+        }
+        .nl-x:hover {
+            background: var(--line);
+            color: var(--text);
+        }
+        .nl-seg {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 1fr;
+            gap: 4px;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: 11px;
+            margin-bottom: 12px;
+        }
+        .nl-seg button {
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: var(--muted);
+            border: 0;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s ease;
+        }
+        .nl-seg button:hover {
+            color: var(--text);
+        }
+        .nl-seg button.on {
+            background: var(--field);
+            color: var(--accent);
+            box-shadow: inset 0 0 0 1px var(--line);
+        }
+        .nl-g2 {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 12px;
+        }
+        .nl-field {
+            margin-top: 10px;
+            min-width: 0;
+        }
+        .nl-field > label, .nl-lrow label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .nl-lrow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nl-mini {
+            display: flex;
+            gap: 4px;
+        }
+        .nl-mini button {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--blue);
+            padding: 1px 7px;
+            border-radius: 6px;
+            border: 0;
+            background: none;
+            cursor: pointer;
+        }
+        .nl-mini button:hover {
+            background: var(--line);
+        }
+        .nl-money {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--field);
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 0 12px;
+            transition: border-color 0.15s ease;
+        }
+        .nl-money:focus-within {
+            border-color: var(--blue);
+        }
+        .nl-money span {
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .nl-amount {
+            background: none !important;
+            border: 0 !important;
+            padding: 8px 0 !important;
+            font-size: 22px !important;
+            font-weight: 800 !important;
+            color: var(--accent) !important;
+            letter-spacing: -0.02em;
+            width: 100%;
+        }
+        .nl-amount:focus {
+            outline: none !important;
+            border: 0 !important;
+        }
+        .nl-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .nl-chip {
+            padding: 6px 12px;
+            border-radius: 99px;
+            background: var(--field);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 12.5px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .nl-chip:hover {
+            border-color: var(--line);
+        }
+        .nl-chip.on {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue);
+        }
+        .nl-opts {
+            display: flex;
+            gap: 14px;
+            margin-top: 10px;
+        }
+        .nl-opts button {
+            color: var(--blue);
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 2px 0;
+            border: 0;
+            background: none;
+            cursor: pointer;
+        }
+        .nl-opts button:hover {
+            text-decoration: underline;
+        }
+        .nl-extra {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .nl-hint {
+            font-size: 12px;
+            color: var(--green);
+            min-height: 0;
+            margin-top: 4px;
+        }
+        .nl-hint:empty {
+            display: none;
+        }
+        .nl-mf {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+        }
+        .nl-kbd {
+            margin-right: auto;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        .nl-btn {
+            border-radius: 10px;
+            font-weight: 700;
+            padding: 10px 18px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .nl-btn.ghost {
+            background: var(--field);
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+        @media(max-width: 560px) {
+            .nl-kbd { display: none; }
+            .nl-mf .nl-btn { flex: 1; padding: 11px 8px; }
+            .nl-field { margin-top: 8px; }
+        }
+</style>
 </head>
 <body>
     <!-- CONTAINER DE NOTIFICAÇÕES TOAST -->
@@ -3575,89 +3805,91 @@
                 </div>
             </div>
 
-            <!-- ABA 6: FORMULÁRIO COMPLETO COM MODO BATCH E CAMPO DE TAGS -->
+            <!-- ABA 6: FORMULÁRIO COMPACTO E SEM ATRITO (ETAPA 2) -->
             <div id="tab-novo" class="tab-content">
-                <div class="chart-card">
-                    <h2 class="chart-title" id="formTitle" style="font-size: 1.3rem;">Cadastrar Nova Transação Individual</h2>
-
-                    <div class="quick-chips-container">
-                        <div class="quick-chips-title">Categorias Mais Frequentes (Clique para selecionar rápida):</div>
-                        <div class="quick-chips" id="topCategoriesChips"></div>
-                    </div>
-
-                    <form id="insertForm" onsubmit="addOrUpdateTransaction(event, false)">
+                <div class="chart-card nl-card" style="max-width: 620px; margin: 0 auto; padding: 20px 24px;">
+                    <form id="insertForm" class="nl-form" data-tipo="despesa" onsubmit="addOrUpdateTransaction(event, false)" novalidate>
                         <input type="hidden" id="edit_id">
-                        <div class="form-grid">
+                        <input type="hidden" id="i_custo" value="Variável">
 
-                            <div class="input-group">
-                                <label for="i_tipo">1. Tipo *</label>
-                                <select id="i_tipo" class="input-field" onchange="onTypeChange()" required>
-                                    <option value="Despesa">Despesa</option>
-                                    <option value="Receita">Receita</option>
-                                    <option value="Saque">💵 Saque / Transferência p/ Dinheiro Vivo</option>
-                                </select>
+                        <!-- Header do Formulário -->
+                        <div class="nl-header">
+                            <h2 id="formTitle">Novo lançamento</h2>
+                            <button type="button" class="nl-x" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()" title="Cancelar edição" aria-label="Cancelar edição">✕</button>
+                        </div>
+
+                        <!-- 1. Tipo Segmentado -->
+                        <div class="nl-seg" id="tipoSeg">
+                            <button type="button" data-v="Despesa" class="on" onclick="setFormTipo('Despesa')">Despesa</button>
+                            <button type="button" data-v="Receita" onclick="setFormTipo('Receita')">Entrada</button>
+                            <button type="button" data-v="Investimento" onclick="setFormTipo('Investimento')">Aporte</button>
+                        </div>
+                        <select id="i_tipo" class="input-field" style="display:none;" onchange="onTypeChange()" required>
+                            <option value="Despesa" selected>Despesa</option>
+                            <option value="Receita">Receita</option>
+                            <option value="Investimento">Investimento</option>
+                            <option value="Saque">Saque</option>
+                        </select>
+
+                        <!-- 2. Grid Valor e Data -->
+                        <div class="nl-g2">
+                            <div class="nl-field" id="fValor">
+                                <label id="i_valor_label" for="i_valor">Valor</label>
+                                <div class="nl-money">
+                                    <span>R$</span>
+                                    <input type="number" step="0.01" id="i_valor" class="input-field nl-amount" placeholder="0,00" autocomplete="off" required>
+                                </div>
                             </div>
-
-                            <div class="input-group">
-                                <label for="i_data">2. Data da Compra *</label>
+                            <div class="nl-field">
+                                <div class="nl-lrow">
+                                    <label for="i_data">Data</label>
+                                    <span class="nl-mini">
+                                        <button type="button" onclick="setFormQuickDate(0)">Hoje</button>
+                                        <button type="button" onclick="setFormQuickDate(-1)">Ontem</button>
+                                    </span>
+                                </div>
                                 <input type="date" id="i_data" class="input-field" onchange="updateDynamicFaturaDropdown()" required>
                             </div>
+                        </div>
 
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label for="i_descricao">3. Descrição *</label>
-                                <input type="text" id="i_descricao" class="input-field" placeholder="Ex: Mercado Atacadão, Novablast 5" required>
+                        <!-- 3. Descrição com Autocomplete -->
+                        <div class="nl-field" id="fDesc">
+                            <label for="i_descricao">Descrição</label>
+                            <input type="text" id="i_descricao" class="input-field" placeholder="Ex.: Mercado, Uber, Almoço…" autocomplete="off" oninput="handleDescHistoryAutocomplete(this.value)" required>
+                            <div class="nl-hint" id="nlHistoryHint"></div>
+                        </div>
+
+                        <!-- 4. Forma de Pagamento -->
+                        <div class="nl-field">
+                            <label>Forma de pagamento</label>
+                            <div class="nl-chips" id="payChipsContainer">
+                                <button type="button" class="nl-chip on" data-p="PIX" onclick="setFormPayment('PIX')">PIX</button>
+                                <button type="button" class="nl-chip" data-p="Cartão de Crédito" onclick="setFormPayment('Cartão de Crédito')">Cartão</button>
+                                <button type="button" class="nl-chip" data-p="Débito" onclick="setFormPayment('Débito')">Débito</button>
+                                <button type="button" class="nl-chip" data-p="Dinheiro" onclick="setFormPayment('Dinheiro')">Dinheiro</button>
                             </div>
+                            <select id="i_pagamento" class="input-field" style="display:none;" onchange="togglePaymentFields()" required>
+                                <option value="PIX" selected>PIX</option>
+                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                <option value="Débito">Débito</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                            </select>
+                        </div>
 
-                            <div class="input-group">
-                                <label id="i_valor_label" for="i_valor">4. Valor (R$) *</label>
-                                <input type="number" id="i_valor" step="0.01" class="input-field" placeholder="Ex: 150.50" required>
-                            </div>
+                        <!-- 5. Categoria -->
+                        <div class="nl-field">
+                            <label for="i_categoria">Categoria</label>
+                            <div class="nl-chips" id="topCategoriesChips" style="margin-bottom: 6px;"></div>
+                            <select id="i_categoria" class="input-field" onchange="handleFormCategoryChange(this.value); handleDynamicSelect(this, 'Categoria')">
+                                <option value="">-- Selecione a Categoria --</option>
+                            </select>
+                        </div>
 
-                            <div class="input-group">
-                                <label for="i_categoria">5. Categoria</label>
-                                <select id="i_categoria" class="input-field" onchange="onCategoryChange('i_categoria', 'i_subcategoria'); handleDynamicSelect(this, 'Categoria')">
-                                    <option value="">-- Selecione --</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group">
-                                <label for="i_subcategoria">6. Subcategoria</label>
-                                <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
-                                    <option value="">-- Selecione a Categoria Primeiro --</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group">
-                                <label for="i_tags">🏷️ TAGs (Opcional - Separe por vírgulas)</label>
-                                <input type="text" id="i_tags" class="input-field" placeholder="Ex: Viagem para Praia, Aniversário, Reforma do Quarto, Faculdade">
-                            </div>
-
-                            <div class="input-group">
-                                <label for="i_pagamento">7. Forma de Pagamento *</label>
-                                <select id="i_pagamento" class="input-field" onchange="togglePaymentFields()" required>
-                                    <option value="PIX" selected>PIX</option>
-                                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                                    <option value="Débito">Débito</option>
-                                    <option value="Dinheiro">Dinheiro Vivo (Espécie)</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group card-only-field" style="display: none;">
-                                <label for="i_cartao">Cartão Utilizado</label>
-                                <select id="i_cartao" class="input-field" onchange="handleDynamicSelect(this, 'Cartão')">
-                                    <option value="">-- Selecione --</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group card-only-field" style="display: none;">
-                                <label id="i_fatura_destino_label" for="i_fatura_destino">Destino da Fatura (Competência exata)</label>
-                                <select id="i_fatura_destino" class="input-field">
-                                    <!-- Preenchido dinamicamente via JS com Agosto/2026, Setembro/2026, etc. -->
-                                </select>
-                            </div>
-
-                            <div class="input-group card-only-field" style="display: none;">
-                                <label for="i_parcela_select">Parcela / Recorrência</label>
+                        <!-- 6. Seção Extra (Parcelas, Subcategoria, Tags) -->
+                        <div class="nl-extra">
+                            <!-- Parcelas (Apenas se Cartão) -->
+                            <div class="nl-field card-only-field" id="parcWrap" style="display: none;">
+                                <label for="i_parcela_select">Parcelas</label>
                                 <select id="i_parcela_select" class="input-field" onchange="handleParcelaSelectChange(this, 'i_parcela_custom')">
                                     <option value="À vista">À vista / Sem parcela</option>
                                     <option value="1/2">2x (1/2)</option>
@@ -3671,28 +3903,46 @@
                                     <option value="1/10">10x (1/10)</option>
                                     <option value="1/11">11x (1/11)</option>
                                     <option value="1/12">12x (1/12)</option>
-                                    <option value="1/18">18x (1/18)</option>
-                                    <option value="1/24">24x (1/24)</option>
-                                    <option value="RECORRENTE">🔄 Recorrente / Assinatura (Mensal)</option>
-                                    <option value="CUSTOM">🔢 Outro / Digitar Parcela (Ex: 3/8, 1/36)...</option>
+                                    <option value="RECORRENTE">🔄 Recorrente / Assinatura</option>
+                                    <option value="CUSTOM">🔢 Outro...</option>
                                 </select>
                                 <input type="text" id="i_parcela_custom" class="input-field" placeholder="Ex: 8/11" style="display: none; margin-top: 0.4rem;">
+                                
+                                <div style="display:flex; gap:8px; margin-top:6px;">
+                                    <select id="i_cartao" class="input-field" style="flex:1;" onchange="handleDynamicSelect(this, 'Cartão')">
+                                        <option value="">-- Cartão --</option>
+                                    </select>
+                                    <select id="i_fatura_destino" class="input-field" style="flex:1;"></select>
+                                </div>
+                                <span id="i_fatura_destino_label" style="display:none;"></span>
                             </div>
 
-                            <div class="input-group">
-                                <label for="i_custo">Custo (Opcional)</label>
-                                <select id="i_custo" class="input-field">
-                                    <option value="">-- Selecione --</option>
-                                    <option value="Fixo">Fixo</option>
-                                    <option value="Variável">Variável</option>
+                            <!-- Subcategoria (Oculta por padrão) -->
+                            <div class="nl-field" id="subWrap" style="display: none;">
+                                <label for="i_subcategoria">Subcategoria</label>
+                                <select id="i_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
+                                    <option value="">-- Selecione a Categoria Primeiro --</option>
                                 </select>
+                            </div>
+
+                            <!-- Tags (Oculta por padrão) -->
+                            <div class="nl-field" id="tagWrap" style="display: none;">
+                                <label for="i_tags">Tags</label>
+                                <input type="text" id="i_tags" class="input-field" placeholder="Viagem, Aniversário, Faculdade" autocomplete="off">
                             </div>
                         </div>
 
-                        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <button type="submit" class="btn-primary" id="btnSalvar" style="flex:1;">Salvar e Ir pro Resumo</button>
-                            <button type="button" class="btn-success" id="btnSalvarOutro" onclick="addOrUpdateTransaction(event, true)" style="flex:1;">🟢 Salvar e Lançar Outro</button>
-                            <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display: none;" onclick="cancelEdit()">Cancelar Edição</button>
+                        <!-- 7. Links Opcionais (+ Subcategoria, + Tags) -->
+                        <div class="nl-opts" id="nlOpts">
+                            <button type="button" id="addSubBtn" style="display: none;" onclick="revealSubcategoryField()">+ Subcategoria</button>
+                            <button type="button" id="addTagBtn" onclick="revealTagsField()">+ Tags</button>
+                        </div>
+
+                        <!-- 8. Rodapé com Ações -->
+                        <div class="nl-mf">
+                            <span class="nl-kbd">Enter salva · Ctrl+Enter salva e lança outro</span>
+                            <button type="button" class="btn-secondary nl-btn ghost" id="btnSalvarOutro" onclick="addOrUpdateTransaction(event, true)">Salvar e lançar outro</button>
+                            <button type="submit" class="btn-primary nl-btn" id="btnSalvar">Salvar</button>
                         </div>
                     </form>
                 </div>
@@ -7479,7 +7729,145 @@
             }
         }
 
-        async function addOrUpdateTransaction(e, isBatch = false) {
+        
+        /* ==========================================================
+           ETAPA 2: CONTROLADORES DO FORMULÁRIO SEM ATRITO
+           ========================================================== */
+        function setFormTipo(tipo) {
+            const form = document.getElementById('insertForm');
+            if (form) form.dataset.tipo = tipo.toLowerCase();
+            const iTipo = document.getElementById('i_tipo');
+            if (iTipo) {
+                iTipo.value = tipo;
+                onTypeChange();
+            }
+            document.querySelectorAll('#tipoSeg button').forEach(b => {
+                b.classList.toggle('on', b.dataset.v === tipo);
+            });
+        }
+
+        function setFormPayment(meio) {
+            const iPag = document.getElementById('i_pagamento');
+            if (iPag) {
+                iPag.value = meio;
+                togglePaymentFields();
+            }
+            const isCard = meio === 'Cartão de Crédito';
+            const parcWrap = document.getElementById('parcWrap');
+            if (parcWrap) parcWrap.style.display = isCard ? 'block' : 'none';
+
+            document.querySelectorAll('#payChipsContainer button').forEach(b => {
+                b.classList.toggle('on', b.dataset.p === meio);
+            });
+        }
+
+        function setFormQuickDate(offsetDays) {
+            const d = new Date();
+            d.setDate(d.getDate() + offsetDays);
+            const dtInput = document.getElementById('i_data');
+            if (dtInput) {
+                dtInput.value = formatLocalDateInput(d);
+                updateDynamicFaturaDropdown();
+            }
+        }
+
+        function revealSubcategoryField() {
+            const addSubBtn = document.getElementById('addSubBtn');
+            const subWrap = document.getElementById('subWrap');
+            const subInput = document.getElementById('i_subcategoria');
+            if (addSubBtn) addSubBtn.style.display = 'none';
+            if (subWrap) subWrap.style.display = 'block';
+            if (subInput) subInput.focus();
+        }
+
+        function revealTagsField() {
+            const addTagBtn = document.getElementById('addTagBtn');
+            const tagWrap = document.getElementById('tagWrap');
+            const tagInput = document.getElementById('i_tags');
+            if (addTagBtn) addTagBtn.style.display = 'none';
+            if (tagWrap) tagWrap.style.display = 'block';
+            if (tagInput) tagInput.focus();
+        }
+
+        function handleFormCategoryChange(catName) {
+            onCategoryChange('i_categoria', 'i_subcategoria');
+            const subSelect = document.getElementById('i_subcategoria');
+            if (subSelect) subSelect.value = '';
+
+            // Ao trocar de categoria, esconda a subcategoria de novo
+            const subWrap = document.getElementById('subWrap');
+            if (subWrap) subWrap.style.display = 'none';
+
+            // Verifica se a categoria escolhida tem subcategorias cadastradas
+            const catObj = (globalCategorias || []).find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(catName));
+            const hasSubs = catObj && catObj.subcategorias && catObj.subcategorias.length > 0;
+            const addSubBtn = document.getElementById('addSubBtn');
+            if (addSubBtn) {
+                addSubBtn.style.display = hasSubs ? 'inline-block' : 'none';
+            }
+        }
+
+        function resetSubAndTagsOnBatch() {
+            const subWrap = document.getElementById('subWrap');
+            const tagWrap = document.getElementById('tagWrap');
+            const addSubBtn = document.getElementById('addSubBtn');
+            const addTagBtn = document.getElementById('addTagBtn');
+            const hint = document.getElementById('nlHistoryHint');
+
+            if (subWrap) subWrap.style.display = 'none';
+            if (tagWrap) tagWrap.style.display = 'none';
+            if (addTagBtn) addTagBtn.style.display = 'inline-block';
+            if (hint) hint.textContent = '';
+
+            const currentCat = document.getElementById('i_categoria')?.value;
+            const catObj = (globalCategorias || []).find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(currentCat));
+            const hasSubs = catObj && catObj.subcategorias && catObj.subcategorias.length > 0;
+            if (addSubBtn) addSubBtn.style.display = hasSubs ? 'inline-block' : 'none';
+        }
+
+        function handleDescHistoryAutocomplete(val) {
+            const hint = document.getElementById('nlHistoryHint');
+            if (!val || val.trim().length < 3) {
+                if (hint) hint.textContent = '';
+                return;
+            }
+            const clean = val.trim().toLowerCase();
+            const match = (globalData || []).find(d => (d.desc || '').toLowerCase().startsWith(clean))
+                || (globalData || []).find(d => (d.desc || '').toLowerCase().includes(clean));
+
+            if (!match) {
+                if (hint) hint.textContent = '';
+                return;
+            }
+
+            // Se o histórico trouxer subcategoria, mostra o campo já preenchido
+            if (match.category) {
+                const catSelect = document.getElementById('i_categoria');
+                if (catSelect && (!catSelect.value || catSelect.value === '')) {
+                    catSelect.value = match.category;
+                    handleFormCategoryChange(match.category);
+                }
+            }
+
+            if (match.subCat && match.subCat.trim() !== '') {
+                const subWrap = document.getElementById('subWrap');
+                const addSubBtn = document.getElementById('addSubBtn');
+                const subSelect = document.getElementById('i_subcategoria');
+                if (subWrap) subWrap.style.display = 'block';
+                if (addSubBtn) addSubBtn.style.display = 'none';
+                if (subSelect) subSelect.value = match.subCat;
+            }
+
+            if (match.pagamento) {
+                setFormPayment(match.pagamento);
+            }
+
+            if (hint) {
+                hint.textContent = 'Preenchido pelo histórico: ' + match.category + (match.subCat ? ' (' + match.subCat + ')' : '') + ' · ' + (match.pagamento || 'PIX');
+            }
+        }
+
+async function addOrUpdateTransaction(e, isBatch = false) {
             if (e) e.preventDefault();
             if (isSavingTransaction) return;
 
@@ -7803,6 +8191,27 @@
             }
 
             document.getElementById('formTitle').innerText = "Editar Transação";
+            if (item.subCat && item.subCat.trim() !== '') {
+                const subWrap = document.getElementById('subWrap');
+                const addSubBtn = document.getElementById('addSubBtn');
+                if (subWrap) subWrap.style.display = 'block';
+                if (addSubBtn) addSubBtn.style.display = 'none';
+            } else {
+                const subWrap = document.getElementById('subWrap');
+                if (subWrap) subWrap.style.display = 'none';
+            }
+            const rawTags = extractTagsFromDesc(item.desc || '');
+            if (rawTags.length > 0) {
+                const tagWrap = document.getElementById('tagWrap');
+                const addTagBtn = document.getElementById('addTagBtn');
+                if (tagWrap) tagWrap.style.display = 'block';
+                if (addTagBtn) addTagBtn.style.display = 'none';
+            } else {
+                const tagWrap = document.getElementById('tagWrap');
+                if (tagWrap) tagWrap.style.display = 'none';
+            }
+            setFormTipo(item.rawTipo || (item.type === 'RECEITA' ? 'Receita' : item.type === 'INVESTIMENTO' ? 'Investimento' : 'Despesa'));
+            setFormPayment(item.pagamento || (item.cartao ? 'Cartão de Crédito' : 'PIX'));
             document.getElementById('btnSalvar').innerText = "Atualizar Registro";
             document.getElementById('btnCancelarEdicao').style.display = "inline-block";
             document.getElementById('tabNovoBtn').innerText = "✏️ Editando...";
@@ -7818,6 +8227,9 @@
             document.getElementById('btnCancelarEdicao').style.display = "none";
             document.getElementById('tabNovoBtn').innerText = "➕ Novo Registro";
             document.getElementById('i_pagamento').value = 'PIX';
+            resetSubAndTagsOnBatch();
+            setFormPayment('PIX');
+            setFormTipo('Despesa');
             document.getElementById('i_parcela_select').value = 'À vista';
             document.getElementById('i_parcela_custom').style.display = 'none';
             togglePaymentFields();

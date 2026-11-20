@@ -4000,16 +4000,12 @@
 
                         <!-- 1. Tipo Segmentado -->
                         <div class="nl-seg" id="tipoSeg">
-                            <button type="button" data-v="Despesa" class="on" onclick="setFormTipo('Despesa')">Despesa</button>
-                            <button type="button" data-v="Receita" onclick="setFormTipo('Receita')">Entrada</button>
-                            <button type="button" data-v="Investimento" onclick="setFormTipo('Investimento')">Aporte</button>
+                            <button type="button" data-v="PIX" class="on" onclick="setFormMode('PIX')">PIX</button>
+                            <button type="button" data-v="Cartão" onclick="setFormMode('Cartão')">Cartão</button>
+                            <button type="button" data-v="Entrada" onclick="setFormMode('Entrada')">Entrada</button>
                         </div>
-                        <select id="i_tipo" class="input-field" style="display:none;" onchange="onTypeChange()" required>
-                            <option value="Despesa" selected>Despesa</option>
-                            <option value="Receita">Receita</option>
-                            <option value="Investimento">Investimento</option>
-                            <option value="Saque">Saque</option>
-                        </select>
+                        <input type="hidden" id="i_tipo" value="Despesa">
+                        <input type="hidden" id="i_pagamento" value="PIX">
 
                         <!-- 2. Grid Valor e Data -->
                         <div class="nl-g2">
@@ -4037,23 +4033,6 @@
                             <label for="i_descricao">Descrição</label>
                             <input type="text" id="i_descricao" class="input-field" placeholder="Ex.: Mercado, Uber, Almoço…" autocomplete="off" oninput="handleDescHistoryAutocomplete(this.value)" required>
                             <div class="nl-hint" id="nlHistoryHint"></div>
-                        </div>
-
-                        <!-- 4. Forma de Pagamento -->
-                        <div class="nl-field">
-                            <label>Forma de pagamento</label>
-                            <div class="nl-chips" id="payChipsContainer">
-                                <button type="button" class="nl-chip on" data-p="PIX" onclick="setFormPayment('PIX')">PIX</button>
-                                <button type="button" class="nl-chip" data-p="Cartão de Crédito" onclick="setFormPayment('Cartão de Crédito')">Cartão</button>
-                                <button type="button" class="nl-chip" data-p="Débito" onclick="setFormPayment('Débito')">Débito</button>
-                                <button type="button" class="nl-chip" data-p="Dinheiro" onclick="setFormPayment('Dinheiro')">Dinheiro</button>
-                            </div>
-                            <select id="i_pagamento" class="input-field" style="display:none;" onchange="togglePaymentFields()" required>
-                                <option value="PIX" selected>PIX</option>
-                                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                                <option value="Débito">Débito</option>
-                                <option value="Dinheiro">Dinheiro</option>
-                            </select>
                         </div>
 
                         <!-- 5. Categoria -->
@@ -4114,7 +4093,7 @@
 
                         <!-- 7. Links Opcionais (+ Subcategoria, + Tags) -->
                         <div class="nl-opts" id="nlOpts">
-                            <button type="button" id="addSubBtn" style="display: none;" onclick="revealSubcategoryField()">+ Subcategoria</button>
+                            <button type="button" id="addSubBtn" onclick="revealSubcategoryField()">+ Subcategoria</button>
                             <button type="button" id="addTagBtn" onclick="revealTagsField()">+ Tags</button>
                         </div>
 
@@ -7913,32 +7892,74 @@
         /* ==========================================================
            ETAPA 2: CONTROLADORES DO FORMULÁRIO SEM ATRITO
            ========================================================== */
-        function setFormTipo(tipo) {
+        function setFormMode(mode) {
             const form = document.getElementById('insertForm');
-            if (form) form.dataset.tipo = tipo.toLowerCase();
             const iTipo = document.getElementById('i_tipo');
-            if (iTipo) {
-                iTipo.value = tipo;
-                onTypeChange();
+            const iPag = document.getElementById('i_pagamento');
+            const parcWrap = document.getElementById('parcWrap');
+            const valLabel = document.getElementById('i_valor_label');
+            const descInput = document.getElementById('i_descricao');
+
+            let normalizedMode = mode;
+            if (mode === 'Receita' || mode === 'Entrada') normalizedMode = 'Entrada';
+            else if (mode === 'Cartão de Crédito' || mode === 'Cartão') normalizedMode = 'Cartão';
+            else normalizedMode = 'PIX';
+
+            if (normalizedMode === 'Entrada') {
+                if (form) form.dataset.tipo = 'entrada';
+                if (iTipo) iTipo.value = 'Receita';
+                if (iPag) iPag.value = 'PIX';
+                if (parcWrap) parcWrap.style.display = 'none';
+                if (valLabel) valLabel.textContent = 'Valor da Entrada';
+                if (descInput) descInput.placeholder = 'Ex.: Salário, Rendimentos, Freelance…';
+            } else if (normalizedMode === 'Cartão') {
+                if (form) form.dataset.tipo = 'despesa';
+                if (iTipo) iTipo.value = 'Despesa';
+                if (iPag) iPag.value = 'Cartão de Crédito';
+                if (parcWrap) parcWrap.style.display = 'block';
+                if (valLabel) valLabel.textContent = 'Valor';
+                if (descInput) descInput.placeholder = 'Ex.: Mercado, Uber, Almoço…';
+            } else { // PIX
+                if (form) form.dataset.tipo = 'despesa';
+                if (iTipo) iTipo.value = 'Despesa';
+                if (iPag) iPag.value = 'PIX';
+                if (parcWrap) parcWrap.style.display = 'none';
+                if (valLabel) valLabel.textContent = 'Valor';
+                if (descInput) descInput.placeholder = 'Ex.: Mercado, Uber, Almoço…';
             }
+
             document.querySelectorAll('#tipoSeg button').forEach(b => {
-                b.classList.toggle('on', b.dataset.v === tipo);
+                b.classList.toggle('on', b.dataset.v === normalizedMode);
             });
+
+            onTypeChange();
+            togglePaymentFields();
+        }
+
+        function setFormTipo(tipo) {
+            if (tipo === 'Receita') {
+                setFormMode('Entrada');
+            } else {
+                const currentPag = document.getElementById('i_pagamento')?.value;
+                if (currentPag === 'Cartão de Crédito') {
+                    setFormMode('Cartão');
+                } else {
+                    setFormMode('PIX');
+                }
+            }
         }
 
         function setFormPayment(meio) {
-            const iPag = document.getElementById('i_pagamento');
-            if (iPag) {
-                iPag.value = meio;
-                togglePaymentFields();
+            if (meio === 'Cartão de Crédito' || meio === 'Cartão') {
+                setFormMode('Cartão');
+            } else {
+                const currentTipo = document.getElementById('i_tipo')?.value;
+                if (currentTipo === 'Receita') {
+                    setFormMode('Entrada');
+                } else {
+                    setFormMode('PIX');
+                }
             }
-            const isCard = meio === 'Cartão de Crédito';
-            const parcWrap = document.getElementById('parcWrap');
-            if (parcWrap) parcWrap.style.display = isCard ? 'block' : 'none';
-
-            document.querySelectorAll('#payChipsContainer button').forEach(b => {
-                b.classList.toggle('on', b.dataset.p === meio);
-            });
         }
 
         function setFormQuickDate(offsetDays) {
@@ -7974,17 +7995,17 @@
             const subSelect = document.getElementById('i_subcategoria');
             if (subSelect) subSelect.value = '';
 
-            // Ao trocar de categoria, esconda a subcategoria de novo
+            // Se subcategoria estiver oculta, garante que + Subcategoria continue visível
             const subWrap = document.getElementById('subWrap');
-            if (subWrap) subWrap.style.display = 'none';
-
-            // Verifica se a categoria escolhida tem subcategorias cadastradas
-            const catObj = (globalCategorias || []).find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(catName));
-            const hasSubs = catObj && catObj.subcategorias && catObj.subcategorias.length > 0;
             const addSubBtn = document.getElementById('addSubBtn');
-            if (addSubBtn) {
-                addSubBtn.style.display = hasSubs ? 'inline-block' : 'none';
+            if (subWrap && subWrap.style.display === 'none' && addSubBtn) {
+                addSubBtn.style.display = 'inline-block';
             }
+
+            // Destaca o chip clicado correspondente
+            document.querySelectorAll('#topCategoriesChips button').forEach(b => {
+                b.classList.toggle('active', b.innerText === catName);
+            });
         }
 
         function resetSubAndTagsOnBatch() {
@@ -7996,13 +8017,9 @@
 
             if (subWrap) subWrap.style.display = 'none';
             if (tagWrap) tagWrap.style.display = 'none';
+            if (addSubBtn) addSubBtn.style.display = 'inline-block';
             if (addTagBtn) addTagBtn.style.display = 'inline-block';
             if (hint) hint.textContent = '';
-
-            const currentCat = document.getElementById('i_categoria')?.value;
-            const catObj = (globalCategorias || []).find(c => normalizeCatalogName(c.nome) === normalizeCatalogName(currentCat));
-            const hasSubs = catObj && catObj.subcategorias && catObj.subcategorias.length > 0;
-            if (addSubBtn) addSubBtn.style.display = hasSubs ? 'inline-block' : 'none';
         }
 
         function handleDescHistoryAutocomplete(val) {
@@ -8020,7 +8037,6 @@
                 return;
             }
 
-            // Se o histórico trouxer subcategoria, mostra o campo já preenchido
             if (match.category) {
                 const catSelect = document.getElementById('i_categoria');
                 if (catSelect && (!catSelect.value || catSelect.value === '')) {
@@ -8215,12 +8231,12 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     btnSalvar.disabled = false;
                     if (btnSalvar.innerText === 'Salvando...') {
                         const currentEditId = document.getElementById('edit_id')?.value;
-                        btnSalvar.innerText = currentEditId ? 'Atualizar Registro' : 'Salvar e Ir pro Resumo';
+                        btnSalvar.innerText = currentEditId ? 'Atualizar Registro' : 'Salvar';
                     }
                 }
                 if (btnSalvarOutro) {
                     btnSalvarOutro.disabled = false;
-                    btnSalvarOutro.innerText = '🟢 Salvar e Lançar Outro';
+                    btnSalvarOutro.innerText = 'Salvar e lançar outro';
                 }
                 if (btnCancelar) {
                     btnCancelar.disabled = false;

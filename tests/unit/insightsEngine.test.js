@@ -269,7 +269,7 @@ describe('insightsEngine — Motor Puro de Insights Financeiros Automáticos', (
             'Lazer': 300
         };
 
-        const insights = generateSmartInsights(txs, '2026-10', { categoryBudgets: budgets });
+        const insights = generateSmartInsights(txs, '2026-10', { categoryBudgets: budgets, includeOkBudgets: true });
 
         const foodBudgetInsight = insights.find(i => i.id === 'insight-budget-alert-Alimentação');
         assert.ok(foodBudgetInsight, 'Deveria alertar teto crítico de Alimentação');
@@ -308,6 +308,24 @@ describe('insightsEngine — Motor Puro de Insights Financeiros Automáticos', (
         assert.ok(recurringInsight.message.includes('90,80')); // 55.90 + 34.90 = 90.80
         assert.ok(Array.isArray(recurringInsight.recurringItems));
         assert.equal(recurringInsight.recurringItems.length, 2);
+    });
+
+    it('13. Não deve incluir compras parceladas no detector de assinaturas recorrentes', () => {
+        const txs = [
+            // Compra de tênis parcelada em 3x (mesmo valor em 3 meses com parcela 1/3, 2/3, 3/3)
+            { id: 'p1', type: 'DESPESA', rawDate: '2026-08-10', descricao: 'Tênis Nike', valor: 112.00, parcela: '1/3', categoria: 'Vestuário' },
+            { id: 'p2', type: 'DESPESA', rawDate: '2026-09-10', descricao: 'Tênis Nike', valor: 112.00, parcela: '2/3', categoria: 'Vestuário' },
+            { id: 'p3', type: 'DESPESA', rawDate: '2026-10-10', descricao: 'Tênis Nike', valor: 112.00, parcela: '3/3', categoria: 'Vestuário' },
+            // Assinatura real
+            { id: 's1', type: 'DESPESA', rawDate: '2026-10-10', descricao: 'Academia SmartFit', valor: 129.90, parcela: 'RECORRENTE', categoria: 'Saúde' }
+        ];
+
+        const insights = generateSmartInsights(txs, '2026-10');
+        const recurringInsight = insights.find(i => i.id === 'insight-recurring-subscriptions');
+
+        assert.ok(recurringInsight);
+        assert.equal(recurringInsight.recurringItems.length, 1, 'Deve conter apenas a assinatura real, ignorando a compra parcelada');
+        assert.equal(recurringInsight.recurringItems[0].name, 'Academia SmartFit');
     });
 
 });

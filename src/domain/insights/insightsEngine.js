@@ -217,7 +217,8 @@ export function generateSmartInsights(transactions, selectedYm, options = {}) {
                         type: 'warning',
                         isSpike: true
                     });
-                } else if (diffPct <= -20 && valAtual < media3m) {
+                } else if (diffPct <= -20 && valAtual < media3m && monthsCount >= 2 && media3m >= 50) {
+                    // Para redução: exige presença em pelo menos 2 meses passados e média relevante
                     categoryInsights.push({
                         cat,
                         diffPct,
@@ -435,22 +436,25 @@ export function generateSmartInsights(transactions, selectedYm, options = {}) {
                     }
                 });
             } else if (pctConsumido > 0) {
-                insights.push({
-                    id: `insight-budget-ok-${cat}`,
-                    type: 'info',
-                    icon: '🟢',
-                    title: `Teto de ${cat} sob controle (${pctArredondado}%)`,
-                    message: `Consumo de ${formatCurrency(gastoAtual, isPrivacy)} de um teto de ${formatCurrency(limit, isPrivacy)} para o mês.`,
-                    badge: 'Teto sob Controle',
-                    priority: 5,
-                    budgetProgress: {
-                        category: cat,
-                        current: gastoAtual,
-                        limit,
-                        pct: pctArredondado,
-                        status: 'ok'
-                    }
-                });
+                // Teto sob controle (< 75%): gera apenas se requisitado explicitamente para evitar poluição visual de tetos irrelevantes (ex: 11%)
+                if (options.includeOkBudgets) {
+                    insights.push({
+                        id: `insight-budget-ok-${cat}`,
+                        type: 'info',
+                        icon: '🟢',
+                        title: `Teto de ${cat} sob controle (${pctArredondado}%)`,
+                        message: `Consumo de ${formatCurrency(gastoAtual, isPrivacy)} de um teto de ${formatCurrency(limit, isPrivacy)} para o mês.`,
+                        badge: 'Teto sob Controle',
+                        priority: 5,
+                        budgetProgress: {
+                            category: cat,
+                            current: gastoAtual,
+                            limit,
+                            pct: pctArredondado,
+                            status: 'ok'
+                        }
+                    });
+                }
             }
         });
     }
@@ -462,8 +466,18 @@ export function generateSmartInsights(transactions, selectedYm, options = {}) {
     const recurringMap = new Map();
 
     allExpenses.forEach(t => {
+        // Ignora compras parceladas (com barra na parcela, tipo parcelado, flag de parcelamento)
+        const parcelaStr = String(t.parcela || t.installments || '').trim();
+        if (parcelaStr && parcelaStr.includes('/')) return;
+        const tipoNormalizado = String(t.type || t.tipo || '').toLowerCase();
+        if (tipoNormalizado.includes('parcelad')) return;
+        if (t.isParcelamento || t.parcelamentoId) return;
+
         const rawDesc = (t.desc || t.descricao || '').replace(/\[.*?\]/g, '').trim();
         if (!rawDesc || rawDesc.length < 3) return;
+
+        // Se a descrição contém indicação de parcela (ex: "Tênis Nike 1/3" ou "(02/10)"), ignora
+        if (/\b\d{1,2}\s*\/\s*\d{1,2}\b/.test(rawDesc)) return;
 
         const normDesc = rawDesc.toLowerCase().replace(/\s+/g, ' ');
         const ym = getTxYm(t);
@@ -538,6 +552,8 @@ export function generateSmartInsights(transactions, selectedYm, options = {}) {
         });
     }
 
-    // Ordena rigorosamente por prioridade (1 é mais importante que 10)
-    return insights.sort((a, b) => a.priority - b.priority);
+    // Ordena rigorosamente por prioridade e limita aos 4 mais objetivos
+    const sorted = insights.sort((a, b) => a.priority - b.priority);
+    const maxInsights = Number.isInteger(options.maxInsights) ? options.maxInsights : 4;
+    return maxInsights > 0 ? sorted.slice(0, maxInsights) : sorted;
 }

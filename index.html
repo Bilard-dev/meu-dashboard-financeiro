@@ -271,22 +271,6 @@
                     </div>
                 </section>
 
-                <!-- 🧠 ASSISTENTE FINANCEIRO DE INSIGHTS AUTOMÁTICOS -->
-                <div id="smartInsightsSection" class="smart-insights-section">
-                    <div class="smart-insights-header">
-                        <div class="smart-insights-title">
-                            <span class="smart-insights-header-icon">🧠</span>
-                            <h3>Assistente de Insights</h3>
-                            <span class="smart-insights-pill">Inteligência Financeira</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span id="smartInsightsCount" class="smart-insights-count"></span>
-                            <button type="button" class="smart-insights-config-btn" onclick="openBudgetModal()" title="Configurar Tetos de Gastos">🎯 Definir Tetos</button>
-                        </div>
-                    </div>
-                    <div id="smartInsightsContainer" class="smart-insights-grid"></div>
-                </div>
-
                 <div id="alertsContainer"></div>
 
                 <!-- 2. PRÓXIMOS MESES (FAIXA COMPACTA SEM DINHEIRO VIVO) -->
@@ -399,6 +383,22 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- 🧠 ASSISTENTE FINANCEIRO DE INSIGHTS AUTOMÁTICOS (ANÁLISE OBJETIVA) -->
+                <div id="smartInsightsSection" class="smart-insights-section" style="margin-bottom: 1.25rem;">
+                    <div class="smart-insights-header">
+                        <div class="smart-insights-title">
+                            <span class="smart-insights-header-icon">🧠</span>
+                            <h3>Assistente de Insights</h3>
+                            <span class="smart-insights-pill">Inteligência Financeira</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="smartInsightsCount" class="smart-insights-count"></span>
+                            <button type="button" class="smart-insights-config-btn" onclick="openBudgetModal()" title="Configurar Tetos de Gastos">🎯 Definir Tetos</button>
+                        </div>
+                    </div>
+                    <div id="smartInsightsContainer" class="smart-insights-grid"></div>
                 </div>
 
                 <!-- GRID 2 COLUNAS: GRÁFICO DE PIZZA/ROSCA + TOP 5 MAIORES DESPESAS -->
@@ -6551,6 +6551,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 `;
                 tbody.appendChild(tr);
             });
+
+            const anMesVal = document.getElementById('an_mes')?.value || 'all';
+            renderSmartInsights(anMesVal);
         }
 
         function getFinancialExpensesForMonth(selectedYm) {
@@ -7014,10 +7017,11 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             const countEl = document.getElementById('smartInsightsCount');
             if (!container) return;
 
+            const targetYm = selectedYm || document.getElementById('an_mes')?.value || document.getElementById('monthSelector')?.value || 'all';
             const isPrivacy = typeof getPrivacyMode === 'function' ? getPrivacyMode() : false;
             const categoryBudgets = getCategoryBudgets();
             const insights = (typeof generateSmartInsights === 'function' && Array.isArray(globalData))
-                ? generateSmartInsights(globalData, selectedYm, { isPrivacy, categoryBudgets })
+                ? generateSmartInsights(globalData, targetYm, { isPrivacy, categoryBudgets })
                 : [];
 
             if (countEl) {

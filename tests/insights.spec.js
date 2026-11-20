@@ -5,10 +5,13 @@ const { mockUser } = require('./fixtures/mockData');
 
 test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
 
-    test('1. Container do Assistente de Insights deve estar visível no Resumo Geral', async ({ page }) => {
+    test('1. Container do Assistente de Insights deve estar visível na Análise de Gastos', async ({ page }) => {
         await setupAuthenticatedApp(page, {
             transactions: []
         });
+
+        // Navega para a aba de Análise de Gastos onde os insights residem
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
 
         const section = page.locator('#smartInsightsSection');
         await expect(section).toBeVisible();
@@ -78,6 +81,9 @@ test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
             ]
         });
 
+        // Navega para a aba de Análise de Gastos
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
         const spikeCard = page.locator('#smartInsightsContainer [data-id^="insight-cat-spike-Alimentação"]');
         await expect(spikeCard).toBeVisible();
 
@@ -120,6 +126,9 @@ test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
                 }
             ]
         });
+
+        // Navega para a aba de Análise de Gastos
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
 
         const savingsCard = page.locator('#smartInsightsContainer [data-id="insight-month-savings"]');
         await expect(savingsCard).toBeVisible();
@@ -166,6 +175,9 @@ test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
             ]
         });
 
+        // Navega para a aba de Análise de Gastos
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
         // Antes do modo privacidade
         const savingsCard = page.locator('#smartInsightsContainer [data-id="insight-month-savings"]');
         await expect(savingsCard).toContainText('1.000,00');
@@ -199,6 +211,9 @@ test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
             ]
         });
 
+        // Navega para a aba de Análise de Gastos
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
+
         // O card de burn rate deve ser gerado para o mês corrente
         const burnCard = page.locator('#smartInsightsContainer [data-id="insight-burn-rate"]');
         await expect(burnCard).toBeVisible();
@@ -229,6 +244,9 @@ test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
                 }
             ]
         });
+
+        // Navega para a aba de Análise de Gastos
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
 
         const budgetCard = page.locator('#smartInsightsContainer [data-id^="insight-budget-"]');
         await expect(budgetCard.first()).toBeVisible();
@@ -262,6 +280,9 @@ test.describe('Assistente Financeiro de Insights Automáticos 🧠', () => {
                 { id: 'rec-4', user_id: mockUser.id, tipo: 'Despesa', data: `${ymCurrent}-05`, descricao: 'Spotify', valor: 34.90, parcela: 'RECORRENTE', categoria: 'Lazer' }
             ]
         });
+
+        // Navega para a aba de Análise de Gastos
+        await page.getByRole('button', { name: /Análise de Gastos/i }).click();
 
         const recCard = page.locator('#smartInsightsContainer [data-id="insight-recurring-subscriptions"]');
         await expect(recCard).toBeVisible();

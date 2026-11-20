@@ -570,76 +570,177 @@
                 
             </div>
 
-            <!-- ABA 2: PARCELAS E CONTROLE DE FATURAS REAIS POR MÊS -->
+            <!-- ABA 2: GESTÃO COMPLETA DE FATURAS & PARCELAS -->
             <div id="tab-parcelas" class="tab-content">
-                <!-- BARRA DE FILTROS DAS FATURAS & PARCELAS -->
-                <div class="filter-bar">
-                    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; justify-content:space-between;">
-                        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center; flex:1 1 100%; min-width:0;">
-                            <div class="filter-group">
-                                <label for="faturaMonthSelector" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Mês da Fatura:</label>
-                                <select id="faturaMonthSelector" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()"></select>
+                <!-- HERO HEADER DA ABA DE FATURAS -->
+                <div class="fatura-hero-card">
+                    <div class="fatura-hero-main">
+                        <div class="fatura-hero-title-group">
+                            <div class="fatura-hero-icon">💳</div>
+                            <div>
+                                <h2 class="fatura-hero-title">Faturas & Cartões de Crédito</h2>
+                                <p class="fatura-hero-subtitle">Controle de faturas, compras parceladas, assinaturas fixas e cronograma de quitação.</p>
                             </div>
-                            <div class="filter-group">
-                                <label for="parcelasCartaoFilter" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Cartão:</label>
-                                <select id="parcelasCartaoFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
-                                    <option value="all">Todos os Cartões</option>
-                                </select>
+                        </div>
+
+                        <!-- SELETOR DINÂMICO DE FATURA COM NAVEGAÇÃO RÁPIDA -->
+                        <div class="fatura-month-stepper">
+                            <button type="button" class="fatura-step-btn" id="faturaPrevBtn" onclick="changeFaturaMonthOffset(-1)" aria-label="Fatura anterior">‹</button>
+                            <div class="fatura-select-wrap">
+                                <span class="fatura-select-calendar-icon">📅</span>
+                                <select id="faturaMonthSelector" class="fatura-month-select" onchange="renderParcelasTab()"></select>
                             </div>
-                            <div class="filter-group">
-                                <label for="parcelasTypeFilter" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Tipo de Compra:</label>
-                                <select id="parcelasTypeFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
+                            <button type="button" class="fatura-step-btn" id="faturaNextBtn" onclick="changeFaturaMonthOffset(1)" aria-label="Próxima fatura">›</button>
+                        </div>
+                    </div>
+
+                    <!-- BARRA DE CHIPS & FILTROS MODERNOS -->
+                    <div class="fatura-filter-toolbar">
+                        <!-- CHIPS RÁPIDOS DE TIPO DE COMPRA -->
+                        <div class="fatura-chips-group" id="parcelasTypeChipsGroup">
+                            <button type="button" class="fatura-chip active" data-type="all" onclick="setParcelasTypeFilter('all')">Todas as Compras</button>
+                            <button type="button" class="fatura-chip" data-type="parcelado" onclick="setParcelasTypeFilter('parcelado')">💳 Parceladas</button>
+                            <button type="button" class="fatura-chip" data-type="recorrente" onclick="setParcelasTypeFilter('recorrente')">🔁 Assinaturas Fixas</button>
+                            <button type="button" class="fatura-chip" data-type="avista" onclick="setParcelasTypeFilter('avista')">⚡ À Vista</button>
+                        </div>
+
+                        <!-- FILTROS SECUNDÁRIOS: TIPO, CARTÃO, CATEGORIA E BUSCA -->
+                        <div class="fatura-secondary-filters">
+                            <div class="fatura-filter-select-box">
+                                <span class="fatura-filter-label">Tipo:</span>
+                                <select id="parcelasTypeFilter" class="fatura-dropdown" onchange="updateParcelasTypeChips(); renderParcelasTab();">
                                     <option value="all">Todas as Compras</option>
                                     <option value="parcelado">Parceladas (Ex: 1/3, 2/10)</option>
                                     <option value="recorrente">Recorrentes / Assinaturas</option>
                                     <option value="avista">À Vista no Cartão</option>
                                 </select>
                             </div>
-                            <div class="filter-group">
-                                <label for="parcelasCategoryFilter" style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Categoria:</label>
-                                <select id="parcelasCategoryFilter" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.45rem 0.75rem; border-radius:var(--radius-md); font-size:0.85rem;" onchange="renderParcelasTab()">
+
+                            <div class="fatura-filter-select-box">
+                                <span class="fatura-filter-label">Cartão:</span>
+                                <select id="parcelasCartaoFilter" class="fatura-dropdown" onchange="renderParcelasTab()">
+                                    <option value="all">Todos os Cartões</option>
+                                </select>
+                            </div>
+
+                            <div class="fatura-filter-select-box">
+                                <span class="fatura-filter-label">Categoria:</span>
+                                <select id="parcelasCategoryFilter" class="fatura-dropdown" onchange="renderParcelasTab()">
                                     <option value="all">Todas as Categorias</option>
                                 </select>
                             </div>
-                        </div>
-                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; flex: 1 1 200px; justify-content: flex-end; min-width: 0;">
-                            <input type="text" id="parcelasSearchInput" aria-label="Buscar parcelas por descrição" class="input-field" placeholder="🔍 Buscar por descrição..." style="padding:0.45rem 0.75rem; font-size:0.85rem; flex:1; min-width:120px; max-width:240px; margin:0;" oninput="renderParcelasTab()">
-                            <button type="button" class="reset-btn" onclick="resetParcelasFilters()" aria-label="Limpar Filtros" title="Limpar Filtros" style="padding:0.45rem 0.75rem; font-size:0.85rem; white-space:nowrap;">Limpar</button>
+
+                            <div class="fatura-search-box">
+                                <input type="text" id="parcelasSearchInput" aria-label="Buscar parcelas por descrição" class="fatura-search-input" placeholder="🔍 Buscar compra..." oninput="renderParcelasTab()">
+                                <button type="button" class="fatura-clear-btn" onclick="resetParcelasFilters()" aria-label="Limpar Filtros" title="Limpar Filtros">Limpar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="kpi-container">
-                    <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-selecionada">Fatura Realizada</div><div class="kpi-value" id="kpi-fatura-atual" style="color: var(--danger);">R$ 0,00</div></div></div>
-                    <div class="kpi-card" style="border-left: 4px solid var(--primary);"><div><div class="kpi-title" id="kpi-title-fatura-projetada">Fatura Projetada (com Previstas)</div><div class="kpi-value" id="kpi-fatura-projetada" style="color: var(--primary);">R$ 0,00</div></div><div class="kpi-details" id="kpi-fatura-projetada-detalhe"><small style="color:var(--text-muted);">Inclui assinaturas não confirmadas</small></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title" id="kpi-title-fatura-proxima">Fatura Mês Seguinte</div><div class="kpi-value" id="kpi-fatura-proxima" style="color: var(--warning);">R$ 0,00</div></div></div>
-                    <div class="kpi-card"><div><div class="kpi-title">🔮 Total Pendente Futuro</div><div class="kpi-value" id="kpi-parcela-total-restante" style="color: var(--text-main);">R$ 0,00</div></div></div>
+                <!-- 4 CARDS EXECUTIVOS DE KPI -->
+                <div class="fatura-kpis-grid">
+                    <!-- CARD 1: FATURA DO MÊS (HERO) -->
+                    <div class="fatura-kpi-card hero-fatura">
+                        <div class="fatura-kpi-top">
+                            <span class="fatura-kpi-label" id="kpi-title-fatura-selecionada">Fatura Realizada</span>
+                            <span class="fatura-status-badge" id="faturaStatusBadge">Fatura Aberta</span>
+                        </div>
+                        <div class="fatura-kpi-value money" id="kpi-fatura-atual">R$ 0,00</div>
+                        <div class="fatura-kpi-sub" id="faturaAtualBreakdown">0 compras no cartão</div>
+                    </div>
+
+                    <!-- CARD 2: FATURA PROJETADA COM PREVISTAS -->
+                    <div class="fatura-kpi-card projected-fatura">
+                        <div class="fatura-kpi-top">
+                            <span class="fatura-kpi-label" id="kpi-title-fatura-projetada">Fatura Projetada (com Previstas)</span>
+                            <span class="fatura-mini-pill">Previsão</span>
+                        </div>
+                        <div class="fatura-kpi-value money" id="kpi-fatura-projetada">R$ 0,00</div>
+                        <div class="fatura-kpi-sub" id="kpi-fatura-projetada-detalhe">
+                            <small>Inclui assinaturas não confirmadas</small>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: PRÓXIMA FATURA -->
+                    <div class="fatura-kpi-card next-fatura">
+                        <div class="fatura-kpi-top">
+                            <span class="fatura-kpi-label" id="kpi-title-fatura-proxima">Fatura Mês Seguinte</span>
+                            <span class="fatura-trend-pill" id="faturaNextTrendPill">Próximo Mês</span>
+                        </div>
+                        <div class="fatura-kpi-value money" id="kpi-fatura-proxima">R$ 0,00</div>
+                        <div class="fatura-kpi-sub" id="faturaNextMonthSub">Parcelas já contratadas</div>
+                    </div>
+
+                    <!-- CARD 4: TOTAL PENDENTE FUTURO -->
+                    <div class="fatura-kpi-card future-fatura">
+                        <div class="fatura-kpi-top">
+                            <span class="fatura-kpi-label">🔮 Total Pendente Futuro</span>
+                            <span class="fatura-mini-pill debt">Saldo Devedor</span>
+                        </div>
+                        <div class="fatura-kpi-value money" id="kpi-parcela-total-restante">R$ 0,00</div>
+                        <div class="fatura-kpi-sub" id="faturaTotalPendenteSub">Compromissos futuros em parcelas</div>
+                    </div>
                 </div>
 
-                <div class="chart-card">
-                    <div class="chart-title">Gastos Por Cartão</div>
-                    <div id="cartoesSummaryContainer" class="kpi-container" style="margin-bottom: 0;"></div>
+                <!-- SEÇÃO 1: GASTOS POR CARTÃO (CARDS VISUAIS DE CARTÃO DE CRÉDITO) -->
+                <div class="fatura-section-card">
+                    <div class="fatura-section-header">
+                        <div class="fatura-section-title-wrap">
+                            <span class="fatura-section-icon">💳</span>
+                            <h3 class="chart-title" style="margin:0;">Gastos Por Cartão</h3>
+                            <span class="fatura-section-hint">Toque em um cartão para filtrar suas compras</span>
+                        </div>
+                        <div id="cartoesFilterIndicator" style="display:none;" class="fatura-filter-active-pill">
+                            <span id="cartoesFilterActiveText">Filtrando por Cartão</span>
+                            <button type="button" onclick="filterByCard('all')" class="fatura-clear-card-filter-btn" title="Remover filtro">✕</button>
+                        </div>
+                    </div>
+                    <div id="cartoesSummaryContainer" class="fatura-cards-grid"></div>
                 </div>
 
-                <div class="chart-card">
-                    <div class="chart-title">Compras Parceladas e Assinaturas Pertencentes a Este Mês</div>
+                <!-- SEÇÃO 2: TABELA DE COMPRAS E ASSINATURAS DO MÊS -->
+                <div class="fatura-section-card">
+                    <div class="fatura-section-header">
+                        <div class="fatura-section-title-wrap">
+                            <span class="fatura-section-icon">📑</span>
+                            <h3 class="chart-title" style="margin:0;">Compras e Assinaturas da Fatura</h3>
+                            <span class="fatura-section-count" id="parcelasTableCount">0 lançamentos</span>
+                        </div>
+                        <div class="fatura-table-actions">
+                            <button type="button" class="fatura-action-new-btn" onclick="switchTab('novo')">➕ Nova Compra</button>
+                        </div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="data-table">
+                        <table class="data-table fatura-modern-table">
                             <thead>
                                 <tr>
-                                    <th>Data Compra</th>
-                                    <th>Descrição</th>
-                                    <th>Cartão</th>
-                                    <th>Fatura Competência</th>
-                                    <th>Parcela no Mês</th>
-                                    <th>Valor Mensal</th>
-                                    <th>Restante Após Este Mês</th>
-                                    <th style="text-align:center;">Ações</th>
+                                    <th style="width: 105px;">Data Compra</th>
+                                    <th>Descrição & Categoria</th>
+                                    <th style="width: 130px;">Cartão</th>
+                                    <th style="width: 160px;">Fatura Competência</th>
+                                    <th style="width: 140px;">Parcela / Tipo</th>
+                                    <th style="width: 120px; text-align: right;">Valor Mensal</th>
+                                    <th style="width: 150px; text-align: right;">Restante Após Este Mês</th>
+                                    <th style="text-align:center; width: 90px;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="parcelasTableBody"></tbody>
                         </table>
                     </div>
+                    <div class="fatura-table-footer" id="parcelasTableFooter"></div>
+                </div>
+
+                <!-- SEÇÃO 3: CRONOGRAMA & QUITAÇÃO DE PARCELAMENTOS -->
+                <div class="fatura-section-card" id="faturaTimelineSection">
+                    <div class="fatura-section-header">
+                        <div class="fatura-section-title-wrap">
+                            <span class="fatura-section-icon">🗓️</span>
+                            <h3 class="chart-title" style="margin:0;">Cronograma de Quitação de Parcelamentos</h3>
+                            <span class="fatura-section-hint">Previsão de término das compras e liberação de renda mensal</span>
+                        </div>
+                    </div>
+                    <div id="faturaTimelineContainer" class="fatura-timeline-grid"></div>
                 </div>
             </div>
 
@@ -1140,11 +1241,14 @@
                             <button type="button" data-v="Dinheiro" onclick="setFormMode('Dinheiro')">Dinheiro</button>
                             <button type="button" data-v="Entrada" onclick="setFormMode('Entrada')">Entrada</button>
                         </div>
-                        <select id="i_tipo" style="display:none;">
-                            <option value="Despesa" selected>Despesa</option>
-                            <option value="Receita">Receita</option>
-                            <option value="Saque">Saque</option>
-                        </select>
+                        <div class="nl-field" id="wrapTipo" style="margin-bottom: 0.65rem;">
+                            <label for="i_tipo" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px;">Tipo de Transação</label>
+                            <select id="i_tipo" class="input-field" style="width: 100%; height: 38px;" onchange="onTypeChange()">
+                                <option value="Despesa" selected>Despesa</option>
+                                <option value="Receita">Receita</option>
+                                <option value="Saque">Saque</option>
+                            </select>
+                        </div>
                         <div class="nl-field" id="wrapPagamento" style="margin-bottom: 0.65rem;">
                             <label for="i_pagamento" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px;">Forma de Pagamento</label>
                             <select id="i_pagamento" class="input-field" style="width: 100%; height: 38px;" onchange="handlePaymentSelectChange(this.value)">
@@ -2182,6 +2286,10 @@
         } from './src/services/creditSettlementService.js';
 
         import {
+            fetchOccurrences
+        } from './src/services/schedulesService.js';
+
+        import {
             isInstallmentSettled,
             createSettlementMap,
             validateSettlementPayload,
@@ -2269,6 +2377,7 @@
         window.createSettlementMap = createSettlementMap;
         window.validateSettlementPayload = validateSettlementPayload;
         window.creditSettlementAvailable = true;
+        window.schedulesFetchOccurrences = fetchOccurrences;
 
 
         // Fase 4.7-A — Médias Financeiras & Análise Comparativa
@@ -2819,14 +2928,22 @@
             document.getElementById('dashboard').style.display = 'none';
 
             try {
-                                const txsRes = await transactionsFetch();
+                const [txsRes, settlementsRes, occsRes] = await Promise.all([
+                    transactionsFetch(),
+                    (window.fetchCreditSettlements && currentUser) ? window.fetchCreditSettlements(currentUser.id) : Promise.resolve({ data: [], error: null }),
+                    (window.schedulesFetchOccurrences && currentUser) ? window.schedulesFetchOccurrences() : Promise.resolve({ data: [], error: null })
+                ]);
                 if (txsRes.error) throw txsRes.error;
 
                 rawSupabaseData = txsRes.data || [];
-                globalCreditSettlements = [];
-                window.creditSettlementAvailable = true;
+                if (settlementsRes?.error?.isTableMissing) {
+                    window.creditSettlementAvailable = false;
+                } else {
+                    window.creditSettlementAvailable = true;
+                }
+                globalCreditSettlements = settlementsRes?.data || [];
                 globalSchedules = [];
-                globalScheduleOccurrences = [];
+                globalScheduleOccurrences = occsRes?.data || [];
                 filterDataByActiveProfile();
 
                 document.getElementById('loading').style.display = 'none';
@@ -6915,11 +7032,100 @@ async function addOrUpdateTransaction(e, isBatch = false) {
         }
 
         /* ==========================================================
-           LÓGICA DE FATURAS COM SISTEMA DE SEMENTES E BOTÃO DE EXCLUSÃO
+           LÓGICA DE FATURAS 2.0 (MODERNIZADA & EXECUTIVA)
            ========================================================== */
+        function getCardTheme(cardName) {
+            const norm = (cardName || '').toLowerCase();
+            if (norm.includes('nubank')) {
+                return {
+                    gradient: 'linear-gradient(135deg, #2b1055 0%, #4a067a 100%)',
+                    border: '#820ad1',
+                    accent: '#c084fc',
+                    icon: '💜'
+                };
+            }
+            if (norm.includes('ml') || norm.includes('mercado') || norm.includes('livre')) {
+                return {
+                    gradient: 'linear-gradient(135deg, #0a2540 0%, #174276 100%)',
+                    border: '#009ee3',
+                    accent: '#ffe600',
+                    icon: '💛'
+                };
+            }
+            if (norm.includes('inter')) {
+                return {
+                    gradient: 'linear-gradient(135deg, #3d1b02 0%, #7c3202 100%)',
+                    border: '#f97316',
+                    accent: '#fb923c',
+                    icon: '🧡'
+                };
+            }
+            if (norm.includes('xp')) {
+                return {
+                    gradient: 'linear-gradient(135deg, #111827 0%, #1f2937 100%)',
+                    border: '#eab308',
+                    accent: '#facc15',
+                    icon: '✨'
+                };
+            }
+            if (norm.includes('pix')) {
+                return {
+                    gradient: 'linear-gradient(135deg, #063c35 0%, #0d5f53 100%)',
+                    border: '#10b981',
+                    accent: '#34d399',
+                    icon: '⚡'
+                };
+            }
+            return {
+                gradient: 'linear-gradient(135deg, #141b2e 0%, #1d2740 100%)',
+                border: '#4f8cff',
+                accent: '#4f8cff',
+                icon: '💳'
+            };
+        }
+
+        function changeFaturaMonthOffset(delta) {
+            const select = document.getElementById('faturaMonthSelector');
+            if (!select || !select.options || select.options.length === 0) return;
+            const currentIndex = select.selectedIndex;
+            const nextIndex = currentIndex + delta;
+            if (nextIndex >= 0 && nextIndex < select.options.length) {
+                select.selectedIndex = nextIndex;
+                renderParcelasTab();
+            }
+        }
+
+        function setParcelasTypeFilter(type) {
+            const select = document.getElementById('parcelasTypeFilter');
+            if (select) {
+                select.value = type;
+                updateParcelasTypeChips();
+                renderParcelasTab();
+            }
+        }
+
+        function updateParcelasTypeChips() {
+            const currentVal = document.getElementById('parcelasTypeFilter')?.value || 'all';
+            document.querySelectorAll('#parcelasTypeChipsGroup .fatura-chip').forEach(chip => {
+                chip.classList.toggle('active', chip.dataset.type === currentVal);
+            });
+        }
+
+        function filterByCard(cardName) {
+            const select = document.getElementById('parcelasCartaoFilter');
+            if (!select) return;
+            if (select.value === cardName || cardName === 'all') {
+                select.value = 'all';
+            } else {
+                select.value = cardName;
+            }
+            renderParcelasTab();
+        }
+
         function renderParcelasTab() {
             setupFaturaMonthSelector();
             setupParcelasFilterDropdowns();
+            updateParcelasTypeChips();
 
             const monthSelector = document.getElementById('faturaMonthSelector');
             if (!monthSelector || !monthSelector.value) return;
@@ -6954,100 +7160,300 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 { cartao: cartaoFilter, type: typeFilter, category: catFilter, search: searchTerm }
             );
 
-            document.getElementById('kpi-title-fatura-selecionada').innerText = `Fatura (${monthNamesBR[targetMonth]}/${targetYear})`;
-            document.getElementById('kpi-title-fatura-proxima').innerText = `Fatura (${monthNamesBR[nextMonth]}/${nextYear})`;
+            // 1. TÍTULOS E VALORES DOS KPIS
+            const selectedMonthName = (monthNamesBR && monthNamesBR[targetMonth]) || '';
+            const nextMonthName = (monthNamesBR && monthNamesBR[nextMonth]) || '';
 
-            document.getElementById('kpi-fatura-atual').innerText = fmt(totalFaturaSelecionada);
-            if (document.getElementById('kpi-fatura-projetada')) {
-                document.getElementById('kpi-fatura-projetada').innerText = fmt(totalFaturaProjetada);
-            }
-            if (document.getElementById('kpi-fatura-projetada-detalhe')) {
-                document.getElementById('kpi-fatura-projetada-detalhe').innerHTML = `<small style="color:var(--text-muted);">Assinaturas previstas: ${fmt(totalPrevistoAssinaturas)}</small>`;
-            }
-            document.getElementById('kpi-fatura-proxima').innerText = fmt(totalFaturaSeguinte);
-            document.getElementById('kpi-parcela-total-restante').innerText = fmt(totalRestanteFuturo);
+            const titleSelEl = document.getElementById('kpi-title-fatura-selecionada');
+            if (titleSelEl) titleSelEl.innerText = `Fatura (${selectedMonthName}/${targetYear})`;
 
+            const titleProxEl = document.getElementById('kpi-title-fatura-proxima');
+            if (titleProxEl) titleProxEl.innerText = `Fatura (${nextMonthName}/${nextYear})`;
+
+            const kpiFaturaAtualEl = document.getElementById('kpi-fatura-atual');
+            if (kpiFaturaAtualEl) kpiFaturaAtualEl.innerText = fmt(totalFaturaSelecionada);
+
+            const kpiFaturaProjEl = document.getElementById('kpi-fatura-projetada');
+            if (kpiFaturaProjEl) kpiFaturaProjEl.innerText = fmt(totalFaturaProjetada);
+
+            const kpiProjDetalheEl = document.getElementById('kpi-fatura-projetada-detalhe');
+            if (kpiProjDetalheEl) {
+                kpiProjDetalheEl.innerHTML = `<small style="color:var(--muted);">Assinaturas previstas: ${fmt(totalPrevistoAssinaturas)}</small>`;
+            }
+
+            const kpiFaturaProxEl = document.getElementById('kpi-fatura-proxima');
+            if (kpiFaturaProxEl) kpiFaturaProxEl.innerText = fmt(totalFaturaSeguinte);
+
+            const kpiRestanteEl = document.getElementById('kpi-parcela-total-restante');
+            if (kpiRestanteEl) kpiRestanteEl.innerText = fmt(totalRestanteFuturo);
+
+            // 2. METADADOS VISUAIS DOS KPIS
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            const statusBadgeEl = document.getElementById('faturaStatusBadge');
+            if (statusBadgeEl) {
+                if (totalFaturaSelecionada === 0 && totalLiquidadoNaCompetencia > 0) {
+                    statusBadgeEl.innerText = '🟢 Liquidada / Paga';
+                    statusBadgeEl.className = 'fatura-status-badge settled';
+                } else if (targetYear < currentYear || (targetYear === currentYear && targetMonth < currentMonth)) {
+                    statusBadgeEl.innerText = '🟡 Fatura Fechada';
+                    statusBadgeEl.className = 'fatura-status-badge closed';
+                } else {
+                    statusBadgeEl.innerText = '🔵 Fatura Aberta';
+                    statusBadgeEl.className = 'fatura-status-badge';
+                }
+            }
+
+            const totalAvista = itemsNoMes.filter(i => !i.isParcelado && !i.isRecorrente).reduce((a, b) => a + b.value, 0);
+            const totalParcelado = itemsNoMes.filter(i => i.isParcelado).reduce((a, b) => a + b.value, 0);
+
+            const faturaBreakdownEl = document.getElementById('faturaAtualBreakdown');
+            if (faturaBreakdownEl) {
+                faturaBreakdownEl.innerText = `${itemsNoMes.length} compra${itemsNoMes.length === 1 ? '' : 's'} • ${fmt(totalAvista)} à vista • ${fmt(totalParcelado)} parcelado`;
+            }
+
+            const nextTrendPill = document.getElementById('faturaNextTrendPill');
+            if (nextTrendPill) {
+                if (totalFaturaSelecionada > 0 && totalFaturaSeguinte > 0) {
+                    const diffSeg = ((totalFaturaSeguinte - totalFaturaSelecionada) / totalFaturaSelecionada) * 100;
+                    if (diffSeg < 0) {
+                        nextTrendPill.innerText = `${Math.abs(diffSeg).toFixed(0)}% mais leve`;
+                        nextTrendPill.style.color = 'var(--green)';
+                        nextTrendPill.style.background = 'rgba(76, 195, 138, 0.15)';
+                    } else if (diffSeg > 0) {
+                        nextTrendPill.innerText = `+${diffSeg.toFixed(0)}% vs atual`;
+                        nextTrendPill.style.color = 'var(--amber)';
+                        nextTrendPill.style.background = 'rgba(240, 184, 74, 0.15)';
+                    } else {
+                        nextTrendPill.innerText = 'Mesmo valor';
+                    }
+                } else {
+                    nextTrendPill.innerText = 'Próximo Mês';
+                    nextTrendPill.style.color = 'var(--amber)';
+                    nextTrendPill.style.background = 'rgba(240, 184, 74, 0.15)';
+                }
+            }
+
+            const totalPendenteSub = document.getElementById('faturaTotalPendenteSub');
+            if (totalPendenteSub) {
+                const numParcelados = itemsNoMes.filter(i => i.isParcelado).length;
+                totalPendenteSub.innerText = `${numParcelados} parcelamento${numParcelados === 1 ? '' : 's'} ativo${numParcelados === 1 ? '' : 's'}`;
+            }
+
+            // Indicador de Filtro Ativo por Cartão
+            const filterIndicatorEl = document.getElementById('cartoesFilterIndicator');
+            const filterActiveTextEl = document.getElementById('cartoesFilterActiveText');
+            if (filterIndicatorEl && filterActiveTextEl) {
+                if (cartaoFilter !== 'all') {
+                    filterIndicatorEl.style.display = 'inline-flex';
+                    filterActiveTextEl.innerText = `Filtrando por: ${cartaoFilter}`;
+                } else {
+                    filterIndicatorEl.style.display = 'none';
+                }
+            }
+
+            // 3. SEÇÃO GASTOS POR CARTÃO (CARDS MODERNOS DE CARTÃO DE CRÉDITO)
             const cartoesContainer = document.getElementById('cartoesSummaryContainer');
-            cartoesContainer.innerHTML = '';
+            if (cartoesContainer) {
+                cartoesContainer.innerHTML = '';
 
-            if (Object.keys(cartoesMap).length === 0) {
-                cartoesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem;">Nenhum gasto registrado nesta fatura.</div>';
-            } else {
-                Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
-                    const val = cartoesMap[nome];
-                    const pct = totalFaturaSelecionada > 0 ? ((val / totalFaturaSelecionada) * 100).toFixed(1) : 0;
+                if (Object.keys(cartoesMap).length === 0) {
+                    cartoesContainer.innerHTML = '<div style="color:var(--muted); font-size:0.85rem; padding:1rem; grid-column:1/-1;">Nenhum gasto registrado nesta fatura.</div>';
+                } else {
+                    Object.keys(cartoesMap).sort((a,b) => cartoesMap[b] - cartoesMap[a]).forEach(nome => {
+                        const val = cartoesMap[nome];
+                        const pct = totalFaturaSelecionada > 0 ? ((val / totalFaturaSelecionada) * 100).toFixed(1) : 0;
+                        const theme = getCardTheme(nome);
+                        const cardCount = itemsNoMes.filter(i => (i.cartao || '').toLowerCase() === nome.toLowerCase()).length;
+                        const isSelected = cartaoFilter === nome;
 
-                    const card = document.createElement('div');
-                    card.className = 'kpi-card';
-                    card.innerHTML = `
-                        <div>
-                            <div class="kpi-title">${escapeHtml(nome)}</div>
-                            <div class="kpi-value" style="font-size:1.25rem; color:var(--danger);">${fmt(val)}</div>
-                        </div>
-                        <div class="kpi-details">
-                            <div class="kpi-detail-item">
-                                <span class="kpi-detail-label">Participação</span>
-                                <span class="kpi-detail-val">${pct}%</span>
+                        const card = document.createElement('div');
+                        card.className = `fatura-cc-card ${isSelected ? 'selected' : ''}`;
+                        card.style.background = theme.gradient;
+                        card.style.borderColor = isSelected ? 'var(--blue)' : 'rgba(255, 255, 255, 0.1)';
+                        card.onclick = () => filterByCard(nome);
+
+                        card.innerHTML = `
+                            <div class="fatura-cc-top">
+                                <div class="fatura-cc-name-wrap">
+                                    <span class="fatura-cc-chip-icon">${theme.icon}</span>
+                                    <span class="fatura-cc-name">${escapeHtml(nome)}</span>
+                                </div>
+                                <span class="fatura-cc-count">${cardCount} lançamento${cardCount === 1 ? '' : 's'}</span>
                             </div>
-                        </div>
-                    `;
-                    cartoesContainer.appendChild(card);
-                });
+                            <div class="fatura-cc-value money">${fmt(val)}</div>
+                            <div class="fatura-cc-progress-bg">
+                                <div class="fatura-cc-progress-fill" style="width: ${Math.min(100, Math.max(0, pct))}%; background: ${theme.accent};"></div>
+                            </div>
+                            <div class="fatura-cc-footer">
+                                <span>Participação</span>
+                                <span class="fatura-cc-pct">${pct}%</span>
+                            </div>
+                        `;
+                        cartoesContainer.appendChild(card);
+                    });
+                }
             }
 
+            // 4. TABELA DE COMPRAS DA FATURA
             const filteredItemsNoMes = [...itemsNoMes];
             filteredItemsNoMes.sort((a, b) => b.date - a.date);
+
+            const countEl = document.getElementById('parcelasTableCount');
+            if (countEl) countEl.innerText = `${filteredItemsNoMes.length} lançamento${filteredItemsNoMes.length === 1 ? '' : 's'}`;
 
             const tbody = document.getElementById('parcelasTableBody');
             tbody.innerHTML = '';
 
             if (filteredItemsNoMes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para a fatura de ${monthNamesBR[targetMonth]}/${targetYear}.</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:2rem;">Nenhum lançamento encontrado para a fatura de ${selectedMonthName}/${targetYear}.</td></tr>`;
+            } else {
+                filteredItemsNoMes.forEach(item => {
+                    const tr = document.createElement('tr');
+                    const isLiquidado = Boolean(item.isLiquidado);
+
+                    let statusBadge = '';
+                    let valorHtml = '';
+                    let actionBtns = '';
+
+                    if (item.isPrevisto) {
+                        statusBadge = `<span class="tag-status" style="background:rgba(240, 184, 74, 0.15); color:var(--amber); border:1px solid rgba(240, 184, 74, 0.3);">🔮 Prevista</span>`;
+                        valorHtml = `<span style="color:var(--amber); font-style:italic;">${fmt(item.value)}</span>`;
+                        const safeDescEsc = escapeHtml(item.desc || '').replace(/'/g, "\\'");
+                        const ocorrenciaIdParam = item.ocorrencia_id ? `'${item.ocorrencia_id}'` : "''";
+                        actionBtns = `
+                            <button class="action-btn" title="Confirmar Cobrança Real" onclick="openConfirmarOcorrenciaModal(${ocorrenciaIdParam}, '${safeDescEsc}', 'assinatura_cartao', '${item.date.toISOString().split('T')[0]}', ${item.value})" style="padding:2px 8px; font-size:0.75rem; background:var(--green); color:white; border-radius:6px; border:none; cursor:pointer;">Confirmar</button>
+                            <button class="action-icon-btn" title="Cancelar esta Ocorrência" onclick="cancelScheduleOccurrenceDirect(${ocorrenciaIdParam})">❌</button>
+                        `;
+                        tr.style.background = 'rgba(240, 184, 74, 0.04)';
+                    } else {
+                        statusBadge = `<span class="tag-status tag-open">📅 Fatura ${selectedMonthName}/${targetYear}</span>`;
+                        valorHtml = `<span class="money">${fmt(item.value)}</span>`;
+                        actionBtns = `
+                            <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                            <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                        `;
+                    }
+
+                    // Formatação da Parcela / Tipo
+                    let parcelaCellHtml = '';
+                    let restanteHtml = '';
+
+                    if (item.isRecorrente) {
+                        parcelaCellHtml = `<span class="fatura-badge-rec">🔁 ${escapeHtml(item.parcelaExibida || 'Recorrente')}</span>`;
+                        restanteHtml = `<span style="color:var(--muted);">♾️ Contínuo (0,00)</span>`;
+                    } else if (item.isParcelado && item.total > 1) {
+                        const progressPct = item.initAtual && item.total ? Math.min(100, Math.round((item.initAtual / item.total) * 100)) : 0;
+                        const faltam = Math.max(0, item.total - (item.initAtual || 1));
+                        parcelaCellHtml = `
+                            <div>
+                                <span class="fatura-badge-parc">${escapeHtml(item.parcelaExibida || `${item.initAtual}/${item.total}`)}</span>
+                                <div class="fatura-mini-progress"><i style="width:${progressPct}%;"></i></div>
+                            </div>
+                        `;
+                        restanteHtml = `
+                            <div style="text-align: right;">
+                                <span style="font-weight:700; color:var(--text);" class="money">${fmt(item.restanteAposEsteMes)}</span>
+                                <div style="font-size:11px; color:var(--muted);">${faltam > 0 ? `restam ${faltam}` : 'última'}</div>
+                            </div>
+                        `;
+                    } else {
+                        // À vista
+                        parcelaCellHtml = `<span class="fatura-badge-avista">⚡ ${escapeHtml(item.parcelaExibida || 'À vista')}</span>`;
+                        restanteHtml = `
+                            <div style="text-align: right;">
+                                <span style="font-size:11.5px; color:var(--muted);">Quitado</span>
+                                <span style="font-size:11px; color:transparent; position:absolute; width:1px; height:1px; overflow:hidden;">0,00</span>
+                            </div>
+                        `;
+                    }
+
+                    const cardTheme = getCardTheme(item.cartao);
+
+                    tr.innerHTML = `
+                        <td class="cell-date" style="font-size:12px; font-weight:600; color:var(--muted);">${item.date.toLocaleDateString('pt-BR')}</td>
+                        <td class="cell-desc">
+                            <div class="fatura-cell-desc">
+                                <span class="fatura-desc-text">${escapeHtml(item.desc)}</span>
+                                <span class="fatura-cat-pill">${escapeHtml(item.category || 'Geral')}</span>
+                            </div>
+                        </td>
+                        <td class="cell-cartao">
+                            <span class="fatura-card-pill" style="border-left: 3px solid ${cardTheme.border};">${escapeHtml(item.cartao || 'Cartão')}</span>
+                        </td>
+                        <td class="cell-status">${statusBadge}</td>
+                        <td class="cell-parcela">${parcelaCellHtml}</td>
+                        <td class="cell-val" style="font-weight:700; color:var(--red); text-align:right;">${valorHtml}</td>
+                        <td class="cell-restante">${restanteHtml}</td>
+                        <td class="cell-actions" style="text-align: center; white-space: nowrap;">${actionBtns}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
 
-            filteredItemsNoMes.forEach(item => {
-                const tr = document.createElement('tr');
-                const isLiquidado = Boolean(item.isLiquidado);
-                const restanteTexto = item.isRecorrente ? '♾️ Contínuo' : fmt(item.restanteAposEsteMes);
+            const footerEl = document.getElementById('parcelasTableFooter');
+            if (footerEl) {
+                footerEl.innerHTML = `Mostrando <b>${filteredItemsNoMes.length}</b> lançamentos • Total da fatura: <b class="money" style="color:var(--red); font-size:13.5px;">${fmt(totalFaturaSelecionada)}</b>`;
+            }
 
-                let statusBadge = '';
-                let valorHtml = '';
-                let actionBtns = '';
+            // 5. CRONOGRAMA DE QUITAÇÃO DE PARCELAMENTOS
+            const timelineContainer = document.getElementById('faturaTimelineContainer');
+            const timelineSection = document.getElementById('faturaTimelineSection');
+            if (timelineContainer && timelineSection) {
+                const activeParcelados = itemsNoMes.filter(i => i.isParcelado && i.total > 1 && i.restanteAposEsteMes > 0);
 
-                if (item.isPrevisto) {
-                    statusBadge = `<span class="tag-status" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">🔮 Prevista (Não cobrada)</span>`;
-                    valorHtml = `<span style="color:#d97706; font-style:italic;">${fmt(item.value)}</span>`;
-                    const safeDescEsc = escapeHtml(item.desc || '').replace(/'/g, "\\'");
-                    const ocorrenciaIdParam = item.ocorrencia_id ? `'${item.ocorrencia_id}'` : "''";
-                    actionBtns = `
-                        <button class="action-btn" title="Confirmar Cobrança Real" onclick="openConfirmarOcorrenciaModal(${ocorrenciaIdParam}, '${safeDescEsc}', 'assinatura_cartao', '${item.date.toISOString().split('T')[0]}', ${item.value})" style="padding:2px 8px; font-size:0.75rem; background:var(--success-btn); color:white;">Confirmar</button>
-                        <button class="action-icon-btn" title="Cancelar esta Ocorrência" onclick="cancelScheduleOccurrenceDirect(${ocorrenciaIdParam})">❌</button>
+                if (activeParcelados.length === 0) {
+                    timelineContainer.innerHTML = `
+                        <div style="grid-column: 1/-1; padding: 14px; background: var(--field); border-radius: 10px; color: var(--muted); font-size: 13px; text-align: center;">
+                            ✨ Nenhum parcelamento pendente de encerramento nesta fatura. Suas parcelas futuras estão zeradas para este filtro!
+                        </div>
                     `;
-                    tr.style.background = 'rgba(245, 158, 11, 0.05)';
                 } else {
-                    statusBadge = `<span class="tag-status tag-open">📅 Fatura ${monthNamesBR[targetMonth]}/${targetYear}</span>`;
-                    valorHtml = `${fmt(item.value)}`;
-                    actionBtns = `
-                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
-                    `;
+                    timelineContainer.innerHTML = '';
+                    // Agrupa compras únicas
+                    const uniqueActive = [];
+                    const seen = new Set();
+                    activeParcelados.forEach(i => {
+                        const key = i.grupo_parcela_id || i.desc;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            uniqueActive.push(i);
+                        }
+                    });
+
+                    // Ordena pelas que encerram mais rápido
+                    uniqueActive.sort((a, b) => {
+                        const faltamA = a.total - (a.initAtual || 1);
+                        const faltamB = b.total - (b.initAtual || 1);
+                        return faltamA - faltamB;
+                    });
+
+                    uniqueActive.slice(0, 6).forEach(i => {
+                        const faltam = Math.max(0, i.total - (i.initAtual || 1));
+                        const finishMonthIdx = targetMonth + faltam;
+                        const finishDate = new Date(targetYear, finishMonthIdx, 1);
+                        const finishMonthName = (monthNamesBR && monthNamesBR[finishDate.getMonth()]) || '';
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'fatura-timeline-item';
+                        itemDiv.innerHTML = `
+                            <div class="fatura-timeline-info">
+                                <h4>${escapeHtml(i.desc)}</h4>
+                                <p>Cartão ${escapeHtml(i.cartao || 'Crédito')} • Parcela atual: ${escapeHtml(i.parcelaExibida)}</p>
+                                <p style="color: var(--blue); font-weight: 600;">📅 Encerra em ${finishMonthName}/${finishDate.getFullYear()} (${faltam} parcela${faltam === 1 ? '' : 's'} restante${faltam === 1 ? '' : 's'})</p>
+                            </div>
+                            <div class="fatura-timeline-relief">
+                                <div class="relief-label">Alívio Mensal</div>
+                                <div class="relief-val money">+ ${fmt(i.value)}</div>
+                            </div>
+                        `;
+                        timelineContainer.appendChild(itemDiv);
+                    });
                 }
-
-                tr.innerHTML = `
-                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
-                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
-                    <td class="cell-cartao"><span style="background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(item.cartao || 'Cartão')}</span></td>
-                    <td class="cell-status">${statusBadge}</td>
-                    <td class="cell-parcela" style="font-weight:600;">${escapeHtml(item.parcelaExibida)}</td>
-                    <td class="cell-val" style="font-weight:700; color:var(--danger);">${valorHtml}</td>
-                    <td class="cell-restante" style="font-weight:700; color:${item.isRecorrente ? 'var(--text-muted)' : 'var(--text-main)'};">${restanteTexto}</td>
-                    <td class="cell-actions" style="text-align: center; white-space: nowrap;">${actionBtns}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+            }
         }
-
 
         function renderManageLists() {
             const catContainer = document.getElementById('manageCategoriesList');

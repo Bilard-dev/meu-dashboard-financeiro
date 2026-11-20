@@ -3177,3 +3177,152 @@
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3), 0 8px 24px rgba(0,0,0,0.3) !important;
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(37, 99, 235, 0.08) 100%) !important;
         }
+
+
+/* ==========================================================
+   🧠 ASSISTENTE FINANCEIRO DE INSIGHTS AUTOMÁTICOS
+   ========================================================== */
+.smart-insights-section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.smart-insights-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.smart-insights-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.smart-insights-header-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+.smart-insights-title h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.2px;
+}
+.smart-insights-pill {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--blue);
+    background: rgba(79, 140, 255, 0.12);
+    border: 1px solid rgba(79, 140, 255, 0.25);
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.smart-insights-count {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+}
+.smart-insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+.smart-insight-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--field);
+    border: 1px solid var(--line);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.smart-insight-card:hover {
+    transform: translateY(-1px);
+}
+.smart-insight-card.warning {
+    border-left: 4px solid var(--amber);
+    background: linear-gradient(90deg, rgba(240, 184, 74, 0.08) 0%, var(--field) 100%);
+}
+.smart-insight-card.success {
+    border-left: 4px solid var(--green);
+    background: linear-gradient(90deg, rgba(76, 195, 138, 0.08) 0%, var(--field) 100%);
+}
+.smart-insight-card.info {
+    border-left: 4px solid var(--blue);
+    background: linear-gradient(90deg, rgba(79, 140, 255, 0.08) 0%, var(--field) 100%);
+}
+.smart-insight-card.neutral {
+    border-left: 4px solid var(--muted);
+}
+.smart-insight-icon-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--panel2);
+    flex-shrink: 0;
+    font-size: 18px;
+}
+.smart-insight-content {
+    flex: 1;
+    min-width: 0;
+}
+.smart-insight-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+.smart-insight-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.4px;
+}
+.smart-insight-card.warning .smart-insight-badge {
+    color: var(--amber);
+    background: rgba(240, 184, 74, 0.15);
+}
+.smart-insight-card.success .smart-insight-badge {
+    color: var(--green);
+    background: rgba(76, 195, 138, 0.15);
+}
+.smart-insight-card.info .smart-insight-badge {
+    color: var(--blue);
+    background: rgba(79, 140, 255, 0.15);
+}
+.smart-insight-card.neutral .smart-insight-badge {
+    color: var(--muted);
+    background: rgba(133, 145, 173, 0.15);
+}
+.smart-insight-card-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+.smart-insight-message {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--muted);
+}
+.smart-insight-message strong {
+    color: var(--text);
+    font-weight: 600;
+}

@@ -417,6 +417,143 @@
                 </div>
 
                 <!-- DETALHAMENTO EXPANSÍVEL (FILTROS DETALHADOS E HISTÓRICO TABULAR) -->
+                <details id="anFiltrosAvancadosSection" class="chart-card" open style="margin-bottom: 1.5rem; padding: 1rem 1.25rem;">
+                    <summary style="font-weight: 700; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between;">
+                        <span>🔍 Filtros Avançados & Histórico em Tabela (Opcional)</span>
+                        <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">Clique para expandir ▾</span>
+                    </summary>
+
+                    <div style="margin-top: 1.25rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+                        <div class="form-grid" style="margin-bottom: 1rem;">
+                            <div id="an_custom_date_container" style="display: none; grid-column: span 2; display: flex; gap: 0.75rem; align-items: center;">
+                                <div class="input-group" style="flex:1;">
+                                    <label>Data Inicial</label>
+                                    <input type="date" id="an_data_inicio" class="input-field" onchange="runAnaliseGastos()">
+                                </div>
+                                <div class="input-group" style="flex:1;">
+                                    <label>Data Final</label>
+                                    <input type="date" id="an_data_fim" class="input-field" onchange="runAnaliseGastos()">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Tipo de Transação</label>
+                                <select id="an_tipo" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todos os Tipos</option>
+                                    <option value="DESPESA" selected>Despesas</option>
+                                    <option value="RECEITA">Receitas</option>
+                                    <option value="INVESTIMENTO">💼 Investimentos</option>
+                                    <option value="SAQUE">💵 Saques / Caixa</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Filtrar Categoria</label>
+                                <select id="an_categoria" class="input-field" onchange="onAnaliseCategoryChange()">
+                                    <option value="all">Todas as Categorias</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Filtrar Subcategoria</label>
+                                <select id="an_subcategoria" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todas as Subcategorias</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Filtrar TAG</label>
+                                <select id="an_tag" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todas as TAGs</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Forma de Pagamento</label>
+                                <select id="an_pagamento" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todos os Meios (PIX, Cartão...)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Cartão de Crédito</label>
+                                <select id="an_cartao" class="input-field" onchange="runAnaliseGastos()">
+                                    <option value="all">Todos os Cartões</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Valor Mínimo (R$)</label>
+                                <input type="number" id="an_valor_min" class="input-field" step="0.01" placeholder="Ex: 50.00" oninput="runAnaliseGastos()">
+                            </div>
+                            <div class="input-group">
+                                <label>Valor Máximo (R$)</label>
+                                <input type="number" id="an_valor_max" class="input-field" step="0.01" placeholder="Ex: 1000.00" oninput="runAnaliseGastos()">
+                            </div>
+                            <div class="input-group" style="grid-column: span 2;">
+                                <label>🔍 Busca Textual Rápida</label>
+                                <input type="text" id="an_search" class="input-field" placeholder="Buscar por descrição ou tag..." oninput="runAnaliseGastos()">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-bottom:1rem;">
+                            <button type="button" class="reset-btn" onclick="resetAnaliseFilters()">Limpar Filtros</button>
+                        </div>
+
+                        <!-- CARDS DE TOTAL & MÉDIA DO FILTRO -->
+                        <div class="kpi-container" style="margin-bottom:1.25rem;">
+                            <div class="kpi-card"><div><div class="kpi-title">Total no Filtro</div><div class="kpi-value" id="an-kpi-total">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Média do Filtro</div><div class="kpi-value" id="an-kpi-media">R$ 0,00</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Lançamentos no Filtro</div><div class="kpi-value" id="an-kpi-qtd">0</div></div></div>
+                            <div class="kpi-card"><div><div class="kpi-title">Período</div><div class="kpi-value" id="an-kpi-periodo" style="font-size: 1.15rem; color: var(--text-main);">-</div></div></div>
+                        </div>
+
+                        <!-- MÉDIAS POR MEIO (COMPATIBILIDADE) -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                            <span style="font-weight:600; font-size:0.85rem; color:var(--text-muted);">Calcular médias por:</span>
+                            <select id="an_modo_media" class="reset-btn" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-main); padding:0.4rem 0.75rem; font-size:0.85rem; border-radius:var(--radius-md);" onchange="runAnaliseGastos()">
+                                <option value="mes" selected>📅 Por Mês (R$ / mês)</option>
+                                <option value="operacao">🔢 Por Operação (R$ / lançamento)</option>
+                                <option value="dia">☀️ Por Dia (R$ / dia)</option>
+                            </select>
+                        </div>
+                        <div class="kpi-container" style="margin-bottom:1.25rem;">
+                            <div class="kpi-card" style="border-left: 4px solid var(--success);">
+                                <div><div class="kpi-title" id="an-title-media-receita">Receita Média</div><div class="kpi-value" id="an-kpi-media-receita" style="color:var(--success);">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-receita"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 receitas)</small></div>
+                            </div>
+                            <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+                                <div><div class="kpi-title" id="an-title-media-pix">Gasto PIX Médio</div><div class="kpi-value" id="an-kpi-media-pix" style="color:#8b5cf6;">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-pix"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small></div>
+                            </div>
+                            <div class="kpi-card" style="border-left: 4px solid var(--primary);">
+                                <div><div class="kpi-title" id="an-title-media-cartao">Gasto Cartão Médio</div><div class="kpi-value" id="an-kpi-media-cartao" style="color:var(--primary);">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-cartao"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small></div>
+                            </div>
+                            <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+                                <div><div class="kpi-title" id="an-title-media-dinheiro">Gasto Dinheiro Médio</div><div class="kpi-value" id="an-kpi-media-dinheiro" style="color:var(--warning);">R$ 0,00</div></div>
+                                <div class="kpi-details" id="an-detail-media-dinheiro"><small style="color:var(--text-muted);">Total: R$ 0,00 (0 lançamentos)</small></div>
+                            </div>
+                        </div>
+
+                        <!-- MÉDIAS POR CATEGORIA (COMPATIBILIDADE) -->
+                        <div id="an-category-averages-section" style="margin-bottom: 1.25rem;">
+                            <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-main); font-weight: 600;">🏷️ Detalhamento de Médias por Categoria</h4>
+                            <div id="an-category-averages-cards" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;"></div>
+                        </div>
+
+                        <!-- TABELA DETALHADA -->
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Descrição / TAGs</th>
+                                        <th>Categoria / Sub</th>
+                                        <th>Pagamento / Meio</th>
+                                        <th>Valor</th>
+                                        <th style="text-align:center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analiseTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </details>
                 
             </div>
 
@@ -493,7 +630,6 @@
                 </div>
             </div>
 
-            <!-- ABA: PREVISÃO FINANCEIRA 2.0 -->
             <!-- ABA 3: PREVISÃO FINANCEIRA 2.0 (MODERNIZADA & PRÁTICA) -->
             <div id="tab-previsao" class="tab-content">
                 <div class="chart-card nl-card" style="margin-bottom: 1.5rem; padding: 22px 24px;">
@@ -988,10 +1124,25 @@
                         <div class="nl-seg" id="tipoSeg">
                             <button type="button" data-v="PIX" class="on" onclick="setFormMode('PIX')">PIX</button>
                             <button type="button" data-v="Cartão" onclick="setFormMode('Cartão')">Cartão</button>
+                            <button type="button" data-v="Dinheiro" onclick="setFormMode('Dinheiro')">Dinheiro</button>
                             <button type="button" data-v="Entrada" onclick="setFormMode('Entrada')">Entrada</button>
                         </div>
-                        <select id="i_tipo" style="display:none;"><option value="Despesa" selected>Despesa</option><option value="Receita">Receita</option></select>
-                        <input type="hidden" id="i_pagamento" value="PIX">
+                        <select id="i_tipo" style="display:none;">
+                            <option value="Despesa" selected>Despesa</option>
+                            <option value="Receita">Receita</option>
+                            <option value="Saque">Saque</option>
+                        </select>
+                        <div class="nl-field" id="wrapPagamento" style="margin-bottom: 0.65rem;">
+                            <label for="i_pagamento" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px;">Forma de Pagamento</label>
+                            <select id="i_pagamento" class="input-field" style="width: 100%; height: 38px;" onchange="handlePaymentSelectChange(this.value)">
+                                <option value="PIX" selected>PIX</option>
+                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                <option value="Dinheiro">Dinheiro (Espécie)</option>
+                                <option value="Boleto">Boleto</option>
+                                <option value="Transferência">Transferência</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
 
                         <!-- 2. Grid Valor e Data -->
                         <div class="nl-g2">
@@ -4462,6 +4613,10 @@
         /* ==========================================================
            ETAPA 2: CONTROLADORES DO FORMULÁRIO SEM ATRITO
            ========================================================== */
+        function handlePaymentSelectChange(val) {
+            setFormPayment(val);
+        }
+
         function setFormMode(mode) {
             const form = document.getElementById('insertForm');
             const iTipo = document.getElementById('i_tipo');
@@ -4473,6 +4628,7 @@
             let normalizedMode = mode;
             if (mode === 'Receita' || mode === 'Entrada') normalizedMode = 'Entrada';
             else if (mode === 'Cartão de Crédito' || mode === 'Cartão') normalizedMode = 'Cartão';
+            else if (mode === 'Dinheiro') normalizedMode = 'Dinheiro';
             else normalizedMode = 'PIX';
 
             if (normalizedMode === 'Entrada') {
@@ -4489,10 +4645,17 @@
                 if (parcWrap) parcWrap.style.display = 'block';
                 if (valLabel) valLabel.textContent = 'Valor';
                 if (descInput) descInput.placeholder = 'Ex.: Mercado, Uber, Almoço…';
+            } else if (normalizedMode === 'Dinheiro') {
+                if (form) form.dataset.tipo = 'despesa';
+                if (iTipo) iTipo.value = 'Despesa';
+                if (iPag) iPag.value = 'Dinheiro';
+                if (parcWrap) parcWrap.style.display = 'none';
+                if (valLabel) valLabel.textContent = 'Valor em Dinheiro (Espécie)';
+                if (descInput) descInput.placeholder = 'Ex.: Padaria, Feira, Lanche…';
             } else { // PIX
                 if (form) form.dataset.tipo = 'despesa';
                 if (iTipo) iTipo.value = 'Despesa';
-                if (iPag) iPag.value = 'PIX';
+                if (iPag && !['Boleto', 'Transferência', 'Outro'].includes(iPag.value)) iPag.value = 'PIX';
                 if (parcWrap) parcWrap.style.display = 'none';
                 if (valLabel) valLabel.textContent = 'Valor';
                 if (descInput) descInput.placeholder = 'Ex.: Mercado, Uber, Almoço…';
@@ -4513,6 +4676,8 @@
                 const currentPag = document.getElementById('i_pagamento')?.value;
                 if (currentPag === 'Cartão de Crédito') {
                     setFormMode('Cartão');
+                } else if (currentPag === 'Dinheiro') {
+                    setFormMode('Dinheiro');
                 } else {
                     setFormMode('PIX');
                 }
@@ -4520,8 +4685,14 @@
         }
 
         function setFormPayment(meio) {
+            const iPag = document.getElementById('i_pagamento');
+            if (iPag && meio) {
+                iPag.value = meio;
+            }
             if (meio === 'Cartão de Crédito' || meio === 'Cartão') {
                 setFormMode('Cartão');
+            } else if (meio === 'Dinheiro') {
+                setFormMode('Dinheiro');
             } else {
                 const currentTipo = document.getElementById('i_tipo')?.value;
                 if (currentTipo === 'Receita') {
@@ -5084,6 +5255,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             }
             setFormTipo(item.rawTipo || (item.type === 'RECEITA' ? 'Receita' : item.type === 'INVESTIMENTO' ? 'Investimento' : 'Despesa'));
             setFormPayment(item.pagamento || (item.cartao ? 'Cartão de Crédito' : 'PIX'));
+            if (item.rawTipo === 'Saque' || item.type === 'SAQUE') {
+                document.getElementById('i_tipo').value = 'Saque';
+            }
             document.getElementById('btnSalvar').innerText = "Atualizar Registro";
             document.getElementById('btnCancelarEdicao').style.display = "inline-block";
             document.getElementById('tabNovoBtn').innerText = "✏️ Editando...";
@@ -5249,7 +5423,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 }
             });
 
-            for(let i = -3; i <= 12; i++) {
+            for(let i = -6; i <= 12; i++) {
                 const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 monthKeysSet.add(`${futureDate.getFullYear()}-${futureDate.getMonth()}`);
             }
@@ -5271,7 +5445,16 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             if (currVal && sortedKeys.includes(currVal)) {
                 select.value = currVal;
             } else {
-                select.value = currentYmKey;
+                const cardTransactions = globalData.filter(d => d.type === 'DESPESA' && (d.cartao || d.pagamento === 'Cartão de Crédito'));
+                const cardMonths = cardTransactions.map(d => `${d.year}-${d.month}`);
+                if (cardMonths.length > 0 && !cardMonths.includes(currentYmKey)) {
+                    // Se o mês corrente não possui compras de cartão e existem dados históricos, seleciona o mês com registros
+                    select.value = cardMonths[0];
+                } else if (sortedKeys.includes(currentYmKey)) {
+                    select.value = currentYmKey;
+                } else {
+                    select.value = sortedKeys[0];
+                }
             }
         }
 
@@ -5945,8 +6128,279 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 }
             }
 
-
+            function calcMedia(totalVal, count) {
+                return calculateAverageValue(totalVal, count, modoMedia, numMesesPeriodo, numDiasPeriodo);
             }
+
+            const mediaReceitas = calcMedia(totalReceitas, receitasPeriodo.length);
+            const mediaPix = calcMedia(totalPix, pixCount);
+            const mediaCartao = calcMedia(totalCartao, cartaoCount);
+            const mediaDinheiro = calcMedia(totalDinheiro, dinheiroCount);
+
+            const modoLabels = {
+                mes: 'Média Mensal',
+                operacao: 'Média por Lançamento',
+                dia: 'Média Diária'
+            };
+            const modoSuffix = {
+                mes: '/mês',
+                operacao: '/op',
+                dia: '/dia'
+            };
+            const currentModoLabel = modoLabels[modoMedia] || 'Média';
+            const currentModoSuffix = modoSuffix[modoMedia] || '';
+
+            const subSubtitleEl = document.getElementById('an-medias-subtitle');
+            if (subSubtitleEl) {
+                subSubtitleEl.innerText = `Visão consolidada de médias (${currentModoLabel}) para o período: ${periodoDescTexto} (${numMesesPeriodo} ${numMesesPeriodo === 1 ? 'mês' : 'meses'}).`;
+            }
+
+            const elTitleRec = document.getElementById('an-title-media-receita');
+            if (elTitleRec) elTitleRec.innerText = `Receita Média (${currentModoLabel})`;
+            const elValRec = document.getElementById('an-kpi-media-receita');
+            if (elValRec) elValRec.innerText = `${fmt(mediaReceitas)} ${currentModoSuffix}`;
+            const elDetRec = document.getElementById('an-detail-media-receita');
+            if (elDetRec) elDetRec.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalReceitas)} (${receitasPeriodo.length} ${receitasPeriodo.length === 1 ? 'receita' : 'receitas'})</small>`;
+
+            const pctPix = totalDespesas > 0 ? ((totalPix / totalDespesas) * 100).toFixed(1) : 0;
+            const elTitlePix = document.getElementById('an-title-media-pix');
+            if (elTitlePix) elTitlePix.innerText = `Gasto PIX Médio (${currentModoLabel})`;
+            const elValPix = document.getElementById('an-kpi-media-pix');
+            if (elValPix) elValPix.innerText = `${fmt(mediaPix)} ${currentModoSuffix}`;
+            const elDetPix = document.getElementById('an-detail-media-pix');
+            if (elDetPix) elDetPix.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalPix)} (${pctPix}% dos gastos)</small>`;
+
+            const pctCartao = totalDespesas > 0 ? ((totalCartao / totalDespesas) * 100).toFixed(1) : 0;
+            const elTitleCard = document.getElementById('an-title-media-cartao');
+            if (elTitleCard) elTitleCard.innerText = `Gasto Cartão Médio (${currentModoLabel})`;
+            const elValCard = document.getElementById('an-kpi-media-cartao');
+            if (elValCard) elValCard.innerText = `${fmt(mediaCartao)} ${currentModoSuffix}`;
+            const elDetCard = document.getElementById('an-detail-media-cartao');
+            if (elDetCard) elDetCard.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalCartao)} (${pctCartao}% dos gastos)</small>`;
+
+            const pctDinheiro = totalDespesas > 0 ? ((totalDinheiro / totalDespesas) * 100).toFixed(1) : 0;
+            const elTitleDin = document.getElementById('an-title-media-dinheiro');
+            if (elTitleDin) elTitleDin.innerText = `Gasto Dinheiro/Outros Médio (${currentModoLabel})`;
+            const elValDin = document.getElementById('an-kpi-media-dinheiro');
+            if (elValDin) elValDin.innerText = `${fmt(mediaDinheiro)} ${currentModoSuffix}`;
+            const elDetDin = document.getElementById('an-detail-media-dinheiro');
+            if (elDetDin) elDetDin.innerHTML = `<small style="color:var(--text-muted);">Total: ${fmt(totalDinheiro)} (${pctDinheiro}% dos gastos)</small>`;
+
+            // 3. MÉDIAS DE GASTOS POR CATEGORIA E COMPARATIVO COM O MÊS ATUAL
+            const catAveragesContainer = document.getElementById('an-category-averages-cards');
+            if (catAveragesContainer) {
+                catAveragesContainer.innerHTML = '';
+
+                // Gasto realizado no mês atual (até hoje) para comparativo
+                const mesAtualDespesas = filterCurrentMonthRealized(globalData, {
+                    tipoVal: 'DESPESA',
+                    catVal: 'all',
+                    subVal,
+                    tagVal,
+                    payVal,
+                    cardVal,
+                    minVal,
+                    maxVal,
+                    searchTerm
+                }, now);
+
+                const mesAtualCatMap = {};
+                mesAtualDespesas.forEach(d => {
+                    const cat = d.category || 'Outros';
+                    mesAtualCatMap[cat] = (mesAtualCatMap[cat] || 0) + (Number(d.value) || 0);
+                });
+
+                const catMap = {};
+                despesasPeriodo.forEach(d => {
+                    const cat = d.category || 'Outros';
+                    if (!catMap[cat]) catMap[cat] = { total: 0, count: 0, items: [] };
+                    catMap[cat].total += d.value;
+                    catMap[cat].count += 1;
+                    catMap[cat].items.push(d);
+                });
+
+                // Adiciona também categorias com gastos no mês atual que não tiveram no período histórico
+                Object.keys(mesAtualCatMap).forEach(cat => {
+                    if (!catMap[cat]) {
+                        catMap[cat] = { total: 0, count: 0, items: [] };
+                    }
+                });
+
+                const sortedCatKeys = Object.keys(catMap).sort((a, b) => {
+                    if (catMap[b].total !== catMap[a].total) {
+                        return catMap[b].total - catMap[a].total;
+                    }
+                    return (mesAtualCatMap[b] || 0) - (mesAtualCatMap[a] || 0);
+                });
+
+                if (sortedCatKeys.length === 0) {
+                    catAveragesContainer.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem; grid-column: 1 / -1;">Nenhuma despesa registrada no período para calcular médias de categorias.</div>';
+                } else {
+                    sortedCatKeys.forEach(catName => {
+                        const info = catMap[catName];
+                        const catMedia = calcMedia(info.total, info.count);
+                        const catMediaMensal = calculateAverageValue(info.total, info.count, 'mes', numMesesPeriodo, numDiasPeriodo);
+                        const catPct = totalDespesas > 0 ? ((info.total / totalDespesas) * 100).toFixed(1) : 0;
+                        const gastoMesAtual = mesAtualCatMap[catName] || 0;
+
+                        // Comparação entre a média mensal do período e o gasto realizado no mês atual até hoje
+                        const comp = compareWithCurrentMonth(catMediaMensal, gastoMesAtual);
+
+                        const isSelectedCat = catVal !== 'all' && normalizeCatalogName(catName) === normalizeCatalogName(catVal);
+
+                        const card = document.createElement('div');
+                        card.className = 'kpi-card invest-category-card';
+                        if (isSelectedCat) {
+                            card.style.border = '2px solid var(--primary)';
+                            card.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.2)';
+                        }
+                        card.style.cursor = 'pointer';
+                        card.onclick = () => filterAnaliseCategory(catName);
+                        card.title = `Clique para filtrar a categoria "${catName}"`;
+
+                        let badgeColor = 'var(--text-muted, #64748b)';
+                        let badgeBg = 'rgba(148, 163, 184, 0.15)';
+                        if (comp.status === 'acima') {
+                            badgeColor = 'var(--danger, #ef4444)';
+                            badgeBg = 'rgba(239, 68, 68, 0.12)';
+                        } else if (comp.status === 'abaixo') {
+                            badgeColor = 'var(--success, #10b981)';
+                            badgeBg = 'rgba(16, 185, 129, 0.12)';
+                        } else if (comp.status === 'sem_historico') {
+                            badgeColor = '#2563eb';
+                            badgeBg = 'rgba(37, 99, 235, 0.12)';
+                        }
+
+                        const diffFormatted = comp.diferenca !== 0
+                            ? `${comp.diferenca > 0 ? '+' : ''}${fmt(comp.diferenca)}`
+                            : '';
+
+                        card.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.35rem;">
+                                <div style="font-weight:700; font-size:0.95rem; color:var(--text-main);">${escapeHtml(catName)}</div>
+                                <span style="font-size:0.75rem; background:rgba(239, 68, 68, 0.1); color:var(--danger); padding:2px 6px; border-radius:4px; font-weight:700;">${catPct}%</span>
+                            </div>
+                            <div style="font-size:1.2rem; font-weight:700; color:var(--danger); margin-bottom:0.25rem;">
+                                ${fmt(catMedia)} <small style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">${currentModoSuffix}</small>
+                            </div>
+                            <div class="progress-bar-bg" style="margin-bottom:0.45rem;">
+                                <div class="progress-bar-fill" style="width: ${Math.min(100, catPct)}%; background: var(--danger);"></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.45rem;">
+                                <span>Total: <b>${fmt(info.total)}</b></span>
+                                <span><b>${info.count}</b> ${info.count === 1 ? 'gasto' : 'gastos'}</span>
+                            </div>
+                            <div style="padding-top:0.4rem; border-top:1px dashed var(--border-color, rgba(148,163,184,0.3)); font-size:0.75rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+                                    <span style="color:var(--text-muted);">Mês atual (até hoje):</span>
+                                    <span style="font-weight:700; color:var(--text-main);">${fmt(gastoMesAtual)}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                                    <span style="font-size:0.72rem; font-weight:700; padding:2px 6px; border-radius:4px; color:${badgeColor}; background:${badgeBg};">
+                                        ${comp.textoComparativo}
+                                    </span>
+                                    ${diffFormatted ? `<span style="color:var(--text-muted); font-size:0.7rem;">(${diffFormatted})</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                        catAveragesContainer.appendChild(card);
+                    });
+                }
+            }
+
+            // 4. FILTRA PARA A TABELA DE DETALHES
+            let filtered = baseFiltered;
+
+            if (tipoVal !== 'all') {
+                filtered = filtered.filter(d => d.type === tipoVal);
+            }
+            if (catVal !== 'all') {
+                filtered = filtered.filter(d => normalizeCatalogName(d.category) === normalizeCatalogName(catVal));
+            }
+            if (subVal !== 'all') {
+                filtered = filtered.filter(d => normalizeCatalogName(d.subCat) === normalizeCatalogName(subVal));
+            }
+            if (tagVal !== 'all') {
+                filtered = filtered.filter(d => (d.tags || []).some(t => normalizeCatalogName(t) === normalizeCatalogName(tagVal)));
+            }
+            if (payVal !== 'all') {
+                filtered = filtered.filter(d => d.pagamento === payVal);
+            }
+            if (cardVal !== 'all') {
+                filtered = filtered.filter(d => d.cartao === cardVal);
+            }
+            if (!isNaN(minVal)) {
+                filtered = filtered.filter(d => d.value >= minVal);
+            }
+            if (!isNaN(maxVal)) {
+                filtered = filtered.filter(d => d.value <= maxVal);
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(d => {
+                    const matchDesc = (d.desc || '').toLowerCase().includes(searchTerm);
+                    const matchCat = (d.category || '').toLowerCase().includes(searchTerm);
+                    const matchSub = (d.subCat || '').toLowerCase().includes(searchTerm);
+                    const matchPay = (d.pagamento || '').toLowerCase().includes(searchTerm);
+                    const matchCard = (d.cartao || '').toLowerCase().includes(searchTerm);
+                    const matchTags = (d.tags || []).some(t => t.toLowerCase().includes(searchTerm));
+                    return matchDesc || matchCat || matchSub || matchPay || matchCard || matchTags;
+                });
+            }
+
+            const total = filtered.reduce((a, b) => a + b.value, 0);
+            const qtd = filtered.length;
+            const media = qtd > 0 ? total / qtd : 0;
+
+            const kpiTotalEl = document.getElementById('an-kpi-total');
+            if (kpiTotalEl) {
+                kpiTotalEl.innerText = fmt(total);
+                if (tipoVal === 'RECEITA') kpiTotalEl.style.color = 'var(--success)';
+                else if (tipoVal === 'INVESTIMENTO') kpiTotalEl.style.color = 'var(--invest)';
+                else if (tipoVal === 'SAQUE') kpiTotalEl.style.color = 'var(--warning)';
+                else kpiTotalEl.style.color = 'var(--danger)';
+            }
+
+            const kpiMediaEl = document.getElementById('an-kpi-media');
+            if (kpiMediaEl) kpiMediaEl.innerText = fmt(media);
+
+            const kpiQtdEl = document.getElementById('an-kpi-qtd');
+            if (kpiQtdEl) kpiQtdEl.innerText = qtd;
+
+            const tbody = document.getElementById('analiseTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento encontrado para a combinação de filtros.</td></tr>`;
+                return;
+            }
+
+            filtered.sort((a,b) => b.date - a.date).forEach(item => {
+                const tr = document.createElement('tr');
+                let meioInfo = item.pagamento === 'Cartão de Crédito' ? (escapeHtml(item.cartao) || 'Cartão') : escapeHtml(item.pagamento);
+
+                const typeBadgeColors = {
+                    DESPESA: { bg: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', label: 'Despesa' },
+                    RECEITA: { bg: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', label: 'Receita' },
+                    INVESTIMENTO: { bg: 'rgba(59, 130, 246, 0.1)', color: 'var(--invest)', label: 'Investimento' },
+                    SAQUE: { bg: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)', label: 'Saque' }
+                };
+                const badge = typeBadgeColors[item.type] || typeBadgeColors.DESPESA;
+
+                tr.innerHTML = `
+                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td class="cell-type"><span style="font-size:0.75rem; background:${badge.bg}; color:${badge.color}; padding:2px 8px; border-radius:4px; font-weight:600;">${badge.label}</span></td>
+                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                    <td class="cell-cat">${escapeHtml(item.category)} ${item.subCat ? '<br><small style="color:var(--text-muted);">('+escapeHtml(item.subCat)+')</small>' : ''}</td>
+                    <td class="cell-meio"><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${meioInfo}</span></td>
+                    <td class="cell-val" style="font-weight:700; color:${badge.color};">${fmt(item.value)}</td>
+                    <td class="cell-actions" style="text-align: center; white-space: nowrap;">
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
         function getFinancialExpensesForMonth(selectedYm) {
             return getExpensesByCompetence(selectedYm, globalData);
@@ -5979,7 +6433,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
             const kpiDinheiroVivoEl = document.getElementById('kpi-dinheiro-vivo');
             kpiDinheiroVivoEl.innerText = fmt(saldoDinheiroVivo);
-            kpiDinheiroVivoEl.style.color = saldoDinheiroVivo >= 0 ? 'var(--warning)' : 'var(--danger)';
+            kpiDinheiroVivoEl.style.color = saldoDinheiroVivo >= 0 ? '#f59e0b' : '#ef4444';
 
             const saldoEl = document.getElementById('kpi-saldo');
             saldoEl.innerText = fmt(saldo);
@@ -6170,21 +6624,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     return acc + (isEnt ? t.value : -t.value);
                 }, 0);
 
-                const dayHeaderTr = document.createElement('tr');
-                dayHeaderTr.className = 'day-header';
-                dayHeaderTr.innerHTML = `
-                    <td colspan="4">
-                        <div class="day">
-                            <span>${fmtExtratoDay(dateKey)}</span>
-                            <span class="money ${netDay >= 0 ? 'green' : 'red'}">${netDay < 0 ? '−' : '+'} ${fmt(Math.abs(netDay))}</span>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(dayHeaderTr);
-
-                items.forEach(item => {
+                items.forEach((item, itemIdx) => {
                     const tr = document.createElement('tr');
-                    tr.className = 'tx-row';
+                    tr.className = 'tx-row' + (itemIdx === 0 ? ' is-day-first' : '');
                     tr.dataset.id = item.id;
 
                     const isEntrada = item.type === 'RECEITA';
@@ -6213,21 +6655,29 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                         <button type="button" title="Excluir" onclick="quickDeleteTransaction('${item.id}')">🗑</button>
                     `;
 
+                    const dayBannerHtml = itemIdx === 0 ? `
+                        <div class="day" style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; font-weight:700; color:var(--muted);">${fmtExtratoDay(dateKey)}</span>
+                            <span class="money ${netDay >= 0 ? 'green' : 'red'}" style="font-size:12px; font-weight:700;">${netDay < 0 ? '−' : '+'} ${fmt(Math.abs(netDay))}</span>
+                        </div>
+                    ` : '';
+
                     tr.innerHTML = `
-                        <td class="dot-col">
+                        <td class="dot-col" style="${itemIdx === 0 ? 'vertical-align: top; padding-top: 1.25rem;' : ''}">
                             <div class="dot" style="background:${catColor}22; color:${catColor};">${catAbbr}</div>
                         </td>
                         <td class="desc-col">
+                            ${dayBannerHtml}
                             <div class="desc">${escapeHtml(item.desc || 'Sem descrição')}</div>
                             <div class="meta">
                                 <span>${escapeHtml(item.category || 'Geral')}</span>${subcatText}
                                 <span class="tag">${escapeHtml(paymentLabel)}</span>
                             </div>
                         </td>
-                        <td class="val-col val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}">
+                        <td class="val-col val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}" style="${itemIdx === 0 ? 'vertical-align: top; padding-top: 1.25rem;' : ''}">
                             ${isEntrada ? '+ ' : ''}${fmt(item.value)}
                         </td>
-                        <td class="acts-col">
+                        <td class="acts-col" style="${itemIdx === 0 ? 'vertical-align: top; padding-top: 1.25rem;' : ''}">
                             <div class="acts">
                                 ${actsHtml}
                             </div>
@@ -6278,13 +6728,28 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 return;
             }
 
-            // Realiza a exclusão e oferece feedback imediato
-            const res = await transactionsDelete(id);
+            const userId = currentUser ? currentUser.id : item.user_id;
+            let res;
+            if (item.grupo_parcela_id) {
+                res = await transactionsDeleteByGroup(userId, item.grupo_parcela_id);
+            } else {
+                res = await transactionsDelete(userId, item.id);
+            }
+
             if (res && res.error) {
                 showToast('Erro ao excluir: ' + res.error.message, 'error');
             } else {
+                globalData = globalData.filter(d => d.id !== item.id && (!item.grupo_parcela_id || d.grupo_parcela_id !== item.grupo_parcela_id));
+                globalCreditSettlements = globalCreditSettlements.filter(s => s.transacao_id !== item.id && s.transacao_id !== id);
                 showToast(`Lançamento "${item.desc}" excluído`, 'info');
-                await loadDashboardData();
+                await manualSync();
+                const activeTabEl = document.querySelector('.tab-content.active');
+                const activeTab = activeTabEl ? activeTabEl.id.replace('tab-', '') : 'resumo';
+                if (activeTab === 'parcelas') {
+                    renderParcelasTab();
+                } else if (activeTab === 'previsao') {
+                    renderForecastTab();
+                }
             }
         }
 
@@ -7045,7 +7510,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
         }
 
         /* ==========================================================
-        /* ========================================================== 
            🔮 PREVISÃO FINANCEIRA 2.0 — MOTOR & INTERFACE (MODERNIZADO)
            ========================================================== */
         /* Estado reativo inicializado no bloco global principal (topo do script) */

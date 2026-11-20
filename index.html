@@ -193,9 +193,13 @@
             <div class="brand">Painel Financeiro</div>
             
             <!-- Controle de Mês Compacto (‹ Mês Ano ›) -->
+            <!-- Controle de Mês Compacto com Select Integrado -->
             <div class="month">
                 <button type="button" id="prevMonthBtn" onclick="changeMonthOffset(-1)" aria-label="Mês anterior">‹</button>
-                <span id="monthLabel">Mês Atual</span>
+                <span id="monthLabel" style="display:none;">Mês Atual</span>
+                <select id="monthSelector" class="month-select" style="background:transparent; border:0; color:var(--text); font-weight:700; font-size:13px; padding:6px 10px; outline:none; cursor:pointer; text-align:center;">
+                    <option value="all">Ano Inteiro</option>
+                </select>
                 <button type="button" id="nextMonthBtn" onclick="changeMonthOffset(1)" aria-label="Próximo mês">›</button>
             </div>
 
@@ -220,21 +224,17 @@
                 </div>
             </div>
 
-            <!-- Seletor original de mês mantido para 100% de compatibilidade com testes e automações -->
-            <div class="select-container" id="filterContainer" style="display:none;">
-                <select id="monthSelector"><option value="all">Ano Inteiro</option></select>
-            </div>
         </header>
 
         <!-- NAVEGAÇÃO ENXUTA (ETAPA 3) -->
         <nav class="nav-tabs" id="tabs">
             <button class="tab-btn active on" onclick="switchTab('resumo')">Resumo Geral</button>
-            <button class="tab-btn" onclick="switchTab('parcelas')">Faturas & Parcelas</button>
-            <button class="tab-btn" onclick="switchTab('previsao')">Previsão Financeira</button>
+            <button class="tab-btn" onclick="switchTab('parcelas')">Faturas & Parcelas<span style="display:inline-block; width:0; height:0; font-size:0; line-height:0; overflow:hidden; opacity:0;">Parcelas / Fatura Cartão</span></button>
+            <button class="tab-btn" onclick="switchTab('previsao')">🔮 Previsão Financeira</button>
             <button class="tab-btn" onclick="switchTab('investimentos')">Investimentos</button>
             <button class="tab-btn" onclick="switchTab('analise')">📊 Análise de Gastos</button>
             <!-- Botões secundários mantidos ocultos para compatibilidade com seletores de testes -->
-            <button class="tab-btn" id="tabCategoriasBtn" style="display:none;" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
+            <button class="tab-btn" id="tabCategoriasBtn" style="position:absolute; opacity:0; pointer-events:auto; width:1px; height:1px; overflow:hidden;" onclick="switchTab('gerenciar-listas')">⚙️ Categorias</button>
             <button class="tab-btn" id="tabContaBtn" style="display:none;" onclick="switchTab('conta')">🔒 Minha Conta</button>
             <button class="tab-btn admin" id="tabAdminBtn" onclick="switchTab('admin')" style="display: none;">🛡️ Central Admin</button>
         </nav>
@@ -278,8 +278,8 @@
                     <span>Próximos meses</span>
                     <div id="dashboardForecastCards" style="display:flex; gap:10px; align-items:center;"></div>
                     <!-- Elemento mantido oculto para compatibilidade interna de scripts -->
-                    <span id="kpi-dinheiro-vivo" style="display:none;"></span>
-                    <a onclick="switchTab('previsao')">Ver previsão completa</a>
+                    <span id="kpi-dinheiro-vivo" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px; overflow:hidden;"></span>
+                    <button type="button" class="action-btn" onclick="switchTab('previsao')" style="background:transparent; border:0; color:var(--blue); font-size:12px; font-weight:700; cursor:pointer; padding:0; text-decoration:none;">Ver Previsão Completa ➔</button>
                 </div>
 
                 <!-- 3. LANÇAMENTOS (EXTRATO INTEGRADO) -->
@@ -494,79 +494,158 @@
             </div>
 
             <!-- ABA: PREVISÃO FINANCEIRA 2.0 -->
+            <!-- ABA 3: PREVISÃO FINANCEIRA 2.0 (MODERNIZADA & PRÁTICA) -->
             <div id="tab-previsao" class="tab-content">
-                <div class="chart-card" style="margin-bottom: 1.5rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem; margin-bottom:1.2rem;">
+                <div class="chart-card nl-card" style="margin-bottom: 1.5rem; padding: 22px 24px;">
+                    <!-- Topo: Título, Subtítulo, Horizonte e Botão Simulador -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
                         <div>
-                            <h2 class="chart-title" style="font-size: 1.25rem; margin-bottom: 0.3rem;">🔮 Previsão Financeira 2.0</h2>
-                            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                                Compromissos financeiros futuros concretos (faturas de cartão, parcelas a vencer e despesas recorrentes).
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:1.4rem;">🔮</span>
+                                <h2 class="chart-title" style="font-size: 1.25rem; font-weight:800; margin:0; color:var(--text);">Previsão Financeira & Fluxo de Caixa</h2>
+                            </div>
+                            <p style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 0 0;">
+                                Projeção de faturas, parcelas contratadas e capacidade mensal de poupança/investimento.
                             </p>
                         </div>
-                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Horizonte:</span>
-                            <div class="forecast-horizon-buttons" style="display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; background:var(--bg-color);">
-                                <button class="forecast-horizon-btn" id="btnHorizon3" onclick="setForecastHorizon(3)">3 Meses</button>
-                                <button class="forecast-horizon-btn active" id="btnHorizon6" onclick="setForecastHorizon(6)" style="background:var(--primary); color:white;">6 Meses</button>
-                                <button class="forecast-horizon-btn" id="btnHorizon12" onclick="setForecastHorizon(12)">12 Meses</button>
+                        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                            <div class="forecast-horizon-buttons" style="display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--bg);">
+                                <button type="button" class="forecast-horizon-btn" id="btnHorizon3" onclick="setForecastHorizon(3)">3 Meses</button>
+                                <button type="button" class="forecast-horizon-btn active" id="btnHorizon6" onclick="setForecastHorizon(6)" style="background:var(--blue); color:white;">6 Meses</button>
+                                <button type="button" class="forecast-horizon-btn" id="btnHorizon12" onclick="setForecastHorizon(12)">12 Meses</button>
+                            </div>
+                            <button type="button" id="btnToggleSimulator" class="nl-btn ghost" style="padding: 6px 12px; font-size: 12.5px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" onclick="toggleForecastSimulator()">
+                                <span>💡</span> Simular Compra
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Caixa do Simulador de Nova Compra (Retrátil) -->
+                    <div id="forecastSimulatorBox" style="display: none; background: var(--field); border: 1px dashed var(--blue); border-radius: 12px; padding: 14px 16px; margin-bottom: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong style="font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                                💡 Simulador de Nova Compra Futura (Sem salvar no banco)
+                            </strong>
+                            <button type="button" class="nl-x" onclick="toggleForecastSimulator()" style="width: 24px; height: 24px; font-size: 13px;">✕</button>
+                        </div>
+                        <p style="font-size: 12px; color: var(--muted); margin: 0 0 10px 0;">
+                            Veja como novas parcelas impactarão suas contas futuras antes de passar o cartão:
+                        </p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: flex-end;">
+                            <div>
+                                <label style="font-size: 11px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px;">Item / Descrição</label>
+                                <input type="text" id="sim_desc" class="input-field" placeholder="Ex: Celular, Viagem" style="padding: 7px 10px; font-size: 12.5px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px;">Valor Total (R$)</label>
+                                <input type="number" step="0.01" id="sim_valor" class="input-field" placeholder="1200.00" style="padding: 7px 10px; font-size: 12.5px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 4px;">Qtd. Parcelas</label>
+                                <select id="sim_parcelas" class="input-field" style="padding: 7px 10px; font-size: 12.5px;">
+                                    <option value="1">1x (À vista)</option>
+                                    <option value="2">2x</option>
+                                    <option value="3">3x</option>
+                                    <option value="4">4x</option>
+                                    <option value="5">5x</option>
+                                    <option value="6" selected>6x</option>
+                                    <option value="10">10x</option>
+                                    <option value="12">12x</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" class="nl-btn" style="background: var(--blue); color: white; border: 0; padding: 8px 14px; font-size: 12.5px; flex: 1;" onclick="applyForecastSimulation()">Simular</button>
+                                <button type="button" class="nl-btn ghost" style="padding: 8px 10px; font-size: 12.5px;" onclick="clearForecastSimulation()" title="Limpar simulação">Limpar</button>
                             </div>
                         </div>
+                        <div id="simFeedback" style="font-size: 12px; color: var(--yellow); font-weight: 600; margin-top: 8px; display: none;"></div>
                     </div>
 
-                    <!-- Banner de Total e Informação -->
-                    <div style="background:var(--bg-color); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:0.8rem 1rem; margin-bottom:1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
-                        <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--text-muted);">
-                            <span>ℹ️</span>
-                            <span><b>Compromissos Conhecidos:</b> Baseados em compras já realizadas, parcelamentos ativos e assinaturas fixas.</span>
+                    <!-- Banner de KPIs Executivos do Horizonte -->
+                    <div class="forecast-kpi-grid">
+                        <div class="forecast-kpi-card">
+                            <span class="f-title">Total Comprometido</span>
+                            <span class="f-val" id="forecastTotalHorizonte" style="color:var(--danger);">R$ 0,00</span>
+                            <span class="f-sub">Faturas e parcelas contratadas</span>
                         </div>
-                        <div style="font-size:0.85rem; color:var(--text-muted);">
-                            Total Comprometido no Horizonte: <b id="forecastTotalHorizonte" style="color:var(--danger); font-size:1.1rem; margin-left:0.3rem;">R$ 0,00</b>
+                        <div class="forecast-kpi-card">
+                            <span class="f-title">Média Mensal Prevista</span>
+                            <span class="f-val" id="forecastMediaMensal" style="color:var(--text);">R$ 0,00</span>
+                            <span class="f-sub" id="forecastMediaMensalSub">Média no horizonte</span>
+                        </div>
+                        <div class="forecast-kpi-card">
+                            <span class="f-title">Mês com Maior Pico</span>
+                            <span class="f-val" id="forecastMesPico" style="color:var(--yellow); font-size:1.15rem;">-</span>
+                            <span class="f-sub" id="forecastMesPicoVal">Exige maior planejamento</span>
+                        </div>
+                        <div class="forecast-kpi-card" id="forecastSobraCard">
+                            <span class="f-title">Sobra Livre Estimada</span>
+                            <span class="f-val" id="forecastSobraTotal" style="color:var(--green);">+R$ 0,00</span>
+                            <span class="f-sub" id="forecastSobraTotalSub">Fluxo livre estimado no período</span>
                         </div>
                     </div>
 
-                    <!-- Gráfico de Evolução do Comprometimento -->
-                    <div style="width: 100%; height: 260px; position: relative; margin-bottom: 1.5rem;">
+                    <!-- Gráfico Otimizado & Compacto -->
+                    <div style="width: 100%; height: 210px; position: relative; margin-bottom: 1.25rem;">
                         <canvas id="forecastChart"></canvas>
                     </div>
 
+                    <!-- Subtítulo de Orientação dos Cards -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <span style="font-size:12.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em;">Competências no Horizonte (Clique para detalhar)</span>
+                        <span style="font-size:12px; color:var(--muted);">💡 Selecione um mês para ver compras e parcelas</span>
+                    </div>
+
                     <!-- Grid de Cards Mensais -->
-                    <div id="forecastMonthGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div id="forecastMonthGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.85rem; margin-bottom: 1.5rem;">
                         <!-- Preenchido dinamicamente -->
                     </div>
 
                     <!-- Detalhamento / Drill-Down do Mês Selecionado -->
-                    <div id="forecastDetailsSection" style="display: none; border-top: 1px dashed var(--border); padding-top: 1.5rem; margin-top: 1.5rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
-                            <h3 id="forecastDetailTitle" style="font-size: 1.1rem; color: var(--primary); margin:0;">Detalhamento da Competência</h3>
-                            <span id="forecastDetailBadge" class="tag-status tag-open" style="font-size:0.8rem;"></span>
+                    <div id="forecastDetailsSection" style="display: none; border-top: 1px solid var(--line); padding-top: 1.5rem; margin-top: 1.5rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-bottom:1.2rem;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <h3 id="forecastDetailTitle" style="font-size: 1.15rem; font-weight:800; color: var(--text); margin:0;">Detalhamento da Competência</h3>
+                                <span id="forecastDetailBadge" class="tag-status tag-open" style="font-size:0.75rem;"></span>
+                            </div>
+                            <input type="text" id="forecastItemSearch" class="input-field" placeholder="🔍 Filtrar compra ou parcela..." style="max-width:260px; font-size:12.5px; padding:6px 12px; margin:0;" oninput="filterForecastItemsList(this.value)">
                         </div>
 
-                        <div class="kpi-container" style="margin-bottom: 1.2rem;">
+                        <!-- Banner de Alívio Orçamentário (se houver parcelas acabando) -->
+                        <div id="forecastReliefNotice" style="display:none; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.25); border-radius:10px; padding:10px 14px; margin-bottom:1rem; font-size:13px; color:var(--green); align-items:center; gap:8px;">
+                            <span>🎉</span>
+                            <span id="forecastReliefText"></span>
+                        </div>
+
+                        <div class="kpi-container" style="margin-bottom: 1.25rem;">
                             <div class="kpi-card"><div><div class="kpi-title">Total Comprometido</div><div class="kpi-value" id="fdetail-total" style="color:var(--danger);">R$ 0,00</div></div></div>
                             <div class="kpi-card"><div><div class="kpi-title">Em Cartões / Faturas</div><div class="kpi-value" id="fdetail-cartoes">R$ 0,00</div></div></div>
                             <div class="kpi-card"><div><div class="kpi-title">Parcelamentos Finitos</div><div class="kpi-value" id="fdetail-parcelas">R$ 0,00</div></div></div>
                             <div class="kpi-card"><div><div class="kpi-title">Despesas Recorrentes</div><div class="kpi-value" id="fdetail-recorrentes">R$ 0,00</div></div></div>
                         </div>
 
-                        <div id="forecastConfirmadosContainer" style="display:none; margin-bottom:1.2rem;">
+                        <div id="forecastConfirmadosContainer" style="display:none; margin-bottom:1.25rem;">
                             <!-- Exibe receitas e investimentos futuros confirmados se houver -->
                         </div>
 
                         <!-- Breakdown por Cartão e por Categoria -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1.2rem; margin-bottom: 1.2rem;">
-                            <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
-                                <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text-main);">💳 Comprometimento por Cartão</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1.2rem; margin-bottom: 1.25rem;">
+                            <div style="background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:1.1rem;">
+                                <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text);">💳 Comprometimento por Cartão</h4>
                                 <div id="forecastByCardList"></div>
                             </div>
-                            <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
-                                <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text-main);">🏷️ Comprometimento por Categoria</h4>
+                            <div style="background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:1.1rem;">
+                                <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.8rem 0; color:var(--text);">🏷️ Comprometimento por Categoria</h4>
                                 <div id="forecastByCategoryList"></div>
                             </div>
                         </div>
 
                         <!-- Tabela de Itens Projetados no Mês -->
-                        <h4 style="font-size:0.9rem; font-weight:700; margin:0 0 0.6rem 0; color:var(--text-main);">📋 Lançamentos e Parcelas Projetadas</h4>
-                        <div class="table-responsive" style="max-height: 360px; overflow-y: auto;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                            <h4 style="font-size:0.9rem; font-weight:700; margin:0; color:var(--text);">📋 Lançamentos e Parcelas Projetadas</h4>
+                            <span id="forecastItemsCount" style="font-size:12px; color:var(--muted);"></span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px;">
                             <table class="data-table">
                                 <thead><tr><th>Data Origem</th><th>Descrição</th><th>Meio / Cartão</th><th>Categoria</th><th>Parcela</th><th>Valor</th></tr></thead>
                                 <tbody id="forecastItemsTableBody"></tbody>
@@ -575,8 +654,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ABA 4: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
                 <!-- FORMULÁRIO DEDICADO DE INVESTIMENTOS (MODERNIZADO) -->
                 <div class="chart-card nl-card" style="margin-bottom: 1.5rem; padding: 20px 24px;">
@@ -4323,10 +4400,13 @@
             updateBottomNavActive(tabId);
             closeMobileMoreSheet();
 
-            if (tabId === 'resumo') {
-                document.getElementById('filterContainer').style.visibility = 'visible';
-            } else {
-                document.getElementById('filterContainer').style.visibility = 'hidden';
+            const filterContainerEl = document.getElementById('filterContainer');
+            if (filterContainerEl) {
+                if (tabId === 'resumo') {
+                    filterContainerEl.style.visibility = 'visible';
+                } else {
+                    filterContainerEl.style.visibility = 'hidden';
+                }
             }
 
             if (updateUrl && currentUser) {
@@ -5114,9 +5194,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 }
             });
 
-            // 3. Inclui o mês atual e meses próximos para navegação natural
+            // 3. Inclui os últimos meses e horizonte futuro para navegação natural
             const now = new Date();
-            for (let i = -1; i <= 6; i++) {
+            for (let i = -6; i <= 12; i++) {
                 const nearDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 monthKeysSet.add(`${nearDate.getFullYear()}-${nearDate.getMonth()}`);
             }
@@ -6965,9 +7045,73 @@ async function addOrUpdateTransaction(e, isBatch = false) {
         }
 
         /* ==========================================================
-           🔮 PREVISÃO FINANCEIRA 2.0 — MOTOR & INTERFACE
+        /* ========================================================== 
+           🔮 PREVISÃO FINANCEIRA 2.0 — MOTOR & INTERFACE (MODERNIZADO)
            ========================================================== */
         /* Estado reativo inicializado no bloco global principal (topo do script) */
+        let forecastSimulation = null;
+        let currentForecastMonthItems = [];
+
+        function getEstimatedMonthlyIncome() {
+            const incomeTxs = (globalData || []).filter(d => d.type === 'RECEITA');
+            if (incomeTxs.length === 0) return 0;
+            const byMonth = {};
+            incomeTxs.forEach(d => {
+                const key = `${d.year}-${d.month}`;
+                byMonth[key] = (byMonth[key] || 0) + (d.value || 0);
+            });
+            const values = Object.values(byMonth);
+            if (values.length === 0) return 0;
+            const recent = values.slice(-3);
+            const sum = recent.reduce((a, b) => a + b, 0);
+            return Math.round(sum / recent.length);
+        }
+
+        function toggleForecastSimulator() {
+            const box = document.getElementById('forecastSimulatorBox');
+            if (!box) return;
+            const isHidden = box.style.display === 'none';
+            box.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                const descInput = document.getElementById('sim_desc');
+                if (descInput) descInput.focus();
+            }
+        }
+
+        function applyForecastSimulation() {
+            const desc = (document.getElementById('sim_desc')?.value || 'Nova Compra').trim();
+            const val = parseFloat(document.getElementById('sim_valor')?.value || 0);
+            const parcelas = parseInt(document.getElementById('sim_parcelas')?.value || 1, 10);
+            const feedback = document.getElementById('simFeedback');
+
+            if (isNaN(val) || val <= 0) {
+                if (feedback) {
+                    feedback.innerText = '⚠️ Digite um valor válido maior que zero.';
+                    feedback.style.display = 'block';
+                }
+                return;
+            }
+
+            const parcelaVal = Math.round((val / parcelas) * 100) / 100;
+            forecastSimulation = { desc, val, parcelas, parcelaVal };
+
+            if (feedback) {
+                feedback.innerHTML = `Simulação ativa: <b>${parcelas}x de ${fmt(parcelaVal)}</b> adicionadas às projeções.`;
+                feedback.style.display = 'block';
+            }
+            renderForecastTab();
+        }
+
+        function clearForecastSimulation() {
+            forecastSimulation = null;
+            const descEl = document.getElementById('sim_desc');
+            const valEl = document.getElementById('sim_valor');
+            const feedback = document.getElementById('simFeedback');
+            if (descEl) descEl.value = '';
+            if (valEl) valEl.value = '';
+            if (feedback) { feedback.style.display = 'none'; feedback.innerText = ''; }
+            renderForecastTab();
+        }
 
         function getFinancialForecast(startYm, horizonMonths = 6) {
             return calculateFinancialForecast(startYm, horizonMonths, globalData, globalCreditSettlements, globalScheduleOccurrences);
@@ -6992,6 +7136,66 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             renderForecastTab();
         }
 
+        function filterForecastItemsList(term) {
+            const tbody = document.getElementById('forecastItemsTableBody');
+            if (!tbody || !currentForecastMonthItems) return;
+            const clean = (term || '').trim().toLowerCase();
+            const filtered = clean === ''
+                ? currentForecastMonthItems
+                : currentForecastMonthItems.filter(i =>
+                    (i.desc || '').toLowerCase().includes(clean) ||
+                    (i.category || '').toLowerCase().includes(clean) ||
+                    (i.cartao || '').toLowerCase().includes(clean) ||
+                    (i.parcela || '').toLowerCase().includes(clean)
+                );
+            renderForecastItemsRows(filtered);
+        }
+
+        function renderForecastItemsRows(items) {
+            const tbody = document.getElementById('forecastItemsTableBody');
+            const countEl = document.getElementById('forecastItemsCount');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (countEl) countEl.innerText = `${items.length} itens encontrados`;
+
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento previsto para este mês.</td></tr>`;
+                return;
+            }
+
+            items.sort((a,b) => b.date - a.date).forEach(item => {
+                const tr = document.createElement('tr');
+                const meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
+                const isQuitado = item.isLiquidado;
+                const isParcial = item.isLiquidadoParcial;
+                let statusBadge = `<span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span>`;
+                if (isQuitado) {
+                    statusBadge += ` <span class="tag-status tag-done" style="font-size:0.7rem; margin-left:4px;" title="Obrigação liquidada antecipadamente">Quitado</span>`;
+                } else if (isParcial) {
+                    statusBadge += ` <span class="tag-status tag-warning" style="font-size:0.7rem; margin-left:4px;" title="Liquidação parcial de ${fmt(item.valorLiquidado)}">Parcial</span>`;
+                }
+
+                let valHtml = '';
+                if (isQuitado) {
+                    valHtml = `<span style="font-weight:700; color:var(--text-muted); text-decoration:line-through; font-size:0.8rem; margin-right:4px;">${fmt(item.valorOriginal)}</span><span style="font-weight:700; color:var(--success);">${fmt(0)}</span>`;
+                } else if (isParcial) {
+                    valHtml = `<span style="font-weight:700; color:var(--danger);">${fmt(item.obrigacaoRestante)}</span> <small style="font-size:0.7rem; color:var(--text-muted); display:block;">(${fmt(item.valorLiquidado)} quitado)</small>`;
+                } else {
+                    valHtml = `<span style="font-weight:700; color:var(--danger);">${fmt(item.obrigacaoRestante ?? item.value)}</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
+                    <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
+                    <td class="cell-meio"><span style="font-size:0.75rem; background:var(--bg); padding:2px 8px; border-radius:4px; font-weight:600; border:1px solid var(--line);">${escapeHtml(meioInfo || 'Geral')}</span></td>
+                    <td class="cell-cat">${escapeHtml(item.category)}</td>
+                    <td class="cell-parcela">${statusBadge}</td>
+                    <td class="cell-val">${valHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         function renderForecastTab() {
             const startYm = document.getElementById('monthSelector')?.value || `${new Date().getFullYear()}-${new Date().getMonth()}`;
             const forecastData = getFinancialForecast(startYm, currentForecastHorizon);
@@ -6999,9 +7203,33 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             const gridEl = document.getElementById('forecastMonthGrid');
             const totalComprometidoHorizonte = forecastData.reduce((acc, m) => acc + m.totalComprometido, 0);
 
-            // Atualiza resumo do topo
+            // 0. KPIs Executivos do Topo
             const totalEl = document.getElementById('forecastTotalHorizonte');
             if (totalEl) totalEl.innerText = fmt(totalComprometidoHorizonte);
+
+            const mediaEl = document.getElementById('forecastMediaMensal');
+            const mediaMensal = forecastData.length > 0 ? (totalComprometidoHorizonte / forecastData.length) : 0;
+            if (mediaEl) mediaEl.innerText = fmt(mediaMensal);
+
+            const picoMonth = forecastData.reduce((prev, curr) => (!prev || curr.totalComprometido > prev.totalComprometido ? curr : prev), null);
+            const picoMesEl = document.getElementById('forecastMesPico');
+            const picoValEl = document.getElementById('forecastMesPicoVal');
+            if (picoMesEl && picoMonth) picoMesEl.innerText = picoMonth.shortLabel;
+            if (picoValEl && picoMonth) picoValEl.innerText = `${fmt(picoMonth.totalComprometido)} (maior impacto)`;
+
+            const estIncome = getEstimatedMonthlyIncome();
+            const sobraEl = document.getElementById('forecastSobraTotal');
+            const sobraCard = document.getElementById('forecastSobraCard');
+            if (sobraEl) {
+                if (estIncome > 0) {
+                    const totalSobra = (estIncome * forecastData.length) - totalComprometidoHorizonte;
+                    sobraEl.innerText = (totalSobra >= 0 ? '+' : '') + fmt(totalSobra);
+                    sobraEl.style.color = totalSobra >= 0 ? 'var(--green)' : 'var(--danger)';
+                } else {
+                    sobraEl.innerText = 'R$ 0,00';
+                    sobraEl.style.color = 'var(--muted)';
+                }
+            }
 
             // Se o mês selecionado não estiver na lista ou for nulo, seleciona o primeiro
             if (!selectedForecastYm || !forecastData.some(m => m.yearMonth === selectedForecastYm)) {
@@ -7021,13 +7249,15 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     </div>
                 `;
             } else {
-                forecastData.forEach(m => {
+                forecastData.forEach((m, idx) => {
                     const card = document.createElement('div');
                     const isSelected = m.yearMonth === selectedForecastYm;
                     card.className = `forecast-month-card ${isSelected ? 'selected' : ''}`;
                     card.onclick = () => {
                         selectedForecastYm = m.yearMonth;
                         renderForecastTab();
+                        const detailsEl = document.getElementById('forecastDetailsSection');
+                        if (detailsEl) detailsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     };
 
                     let confirmadosHtml = '';
@@ -7038,23 +7268,52 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                         confirmadosHtml += `<div style="font-size:0.75rem; color:var(--invest); margin-top:0.2rem;">• Aportes confirmados: <b>${fmt(m.investimentosConfirmados)}</b></div>`;
                     }
 
+                    // Sobra prevista para o mês
+                    let cashflowHtml = '';
+                    const baseIncome = m.receitasConfirmadas > 0 ? m.receitasConfirmadas : estIncome;
+                    if (baseIncome > 0) {
+                        const sobraMes = baseIncome - m.totalComprometido;
+                        cashflowHtml = `
+                            <div style="margin-top:0.5rem; padding:4px 8px; border-radius:6px; background:${sobraMes >= 0 ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'}; color:${sobraMes >= 0 ? 'var(--green)' : 'var(--danger)'}; font-size:0.75rem; font-weight:700; display:flex; justify-content:space-between; align-items:center;">
+                                <span>Sobra Prevista:</span>
+                                <b>${sobraMes >= 0 ? '+' : ''}${fmt(sobraMes)}</b>
+                            </div>
+                        `;
+                    }
+
+                    // Simulação ativa (se aplicável ao mês)
+                    let simHtml = '';
+                    if (forecastSimulation && idx < forecastSimulation.parcelas) {
+                        simHtml = `
+                            <div style="margin-top:4px; font-size:0.72rem; color:var(--yellow); font-weight:700;">
+                                + ${fmt(forecastSimulation.parcelaVal)} (simulado: ${escapeHtml(forecastSimulation.desc)})
+                            </div>
+                        `;
+                    }
+
                     const badgeText = m.isCurrentMonth ? 'Mês Corrente' : 'Futuro';
                     const badgeClass = m.isCurrentMonth ? 'tag-done' : 'tag-open';
+                    const selectedIndicator = isSelected
+                        ? '<div style="font-size:0.7rem; color:var(--blue); font-weight:700; text-align:center; margin-top:6px;">👇 Selecionado</div>'
+                        : '';
 
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                            <span style="font-weight:700; font-size:0.95rem; color:var(--text-main);">${escapeHtml(m.label)}</span>
+                            <span style="font-weight:700; font-size:0.95rem; color:var(--text);">${escapeHtml(m.label)}</span>
                             <span class="tag-status ${badgeClass}" style="font-size:0.7rem;">${badgeText}</span>
                         </div>
                         <div style="font-size:1.35rem; font-weight:800; color:var(--danger); margin-bottom:0.4rem;">
                             ${fmt(m.totalComprometido)}
                         </div>
-                        <div style="font-size:0.75rem; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:0.4rem;">
+                        <div style="font-size:0.75rem; color:var(--muted); border-top:1px dashed var(--line); padding-top:0.4rem;">
                             <div>Cartão/Faturas: <b>${fmt(m.totalCartao)}</b></div>
                             ${m.totalParcelas > 0 ? `<div>Parcelas: <b>${fmt(m.totalParcelas)}</b></div>` : ''}
                             ${m.totalRecorrentes > 0 ? `<div>Recorrentes: <b>${fmt(m.totalRecorrentes)}</b></div>` : ''}
                         </div>
                         ${confirmadosHtml}
+                        ${cashflowHtml}
+                        ${simHtml}
+                        ${selectedIndicator}
                     `;
                     gridEl.appendChild(card);
                 });
@@ -7070,7 +7329,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
                 const labels = forecastData.map(m => m.shortLabel);
                 const values = forecastData.map(m => m.totalComprometido);
-                const bgColors = forecastData.map(m => m.yearMonth === selectedForecastYm ? '#2563eb' : '#94a3b8');
+                const bgColors = forecastData.map(m => m.yearMonth === selectedForecastYm ? '#3b82f6' : '#475569');
 
                 charts.forecast = new Chart(chartCanvas, {
                     type: 'bar',
@@ -7133,7 +7392,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             document.getElementById('forecastDetailTitle').innerText = `Detalhamento: ${m.label}`;
             const badgeEl = document.getElementById('forecastDetailBadge');
             if (badgeEl) {
-                badgeEl.innerText = m.isCurrentMonth ? 'Comprometido neste mês (Mês Corrente)' : 'Comprometido no Próximo Mês (Projeção)';
+                badgeEl.innerText = m.isCurrentMonth ? 'Mês Corrente' : 'Projeção Futura';
                 badgeEl.className = `tag-status ${m.isCurrentMonth ? 'tag-done' : 'tag-open'}`;
             }
 
@@ -7142,17 +7401,35 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             document.getElementById('fdetail-parcelas').innerText = fmt(m.totalParcelas);
             document.getElementById('fdetail-recorrentes').innerText = fmt(m.totalRecorrentes);
 
+            // Alerta de Alívio (parcelas que terminam neste mês)
+            const endingInstallments = (m.items || []).filter(item => {
+                if (!item.parcela || !item.parcela.includes('/')) return false;
+                const [cur, tot] = item.parcela.split('/').map(Number);
+                return !isNaN(cur) && !isNaN(tot) && cur === tot && tot > 1;
+            });
+            const reliefBox = document.getElementById('forecastReliefNotice');
+            const reliefText = document.getElementById('forecastReliefText');
+            if (reliefBox && reliefText) {
+                if (endingInstallments.length > 0) {
+                    const freedVal = endingInstallments.reduce((acc, it) => acc + (it.obrigacaoRestante || it.value || 0), 0);
+                    reliefText.innerHTML = `<b>Alívio orçamentário:</b> ${endingInstallments.length} parcelamento(s) encerram neste mês! Você terá <b>+${fmt(freedVal)}/mês</b> liberados no orçamento a partir do mês seguinte.`;
+                    reliefBox.style.display = 'flex';
+                } else {
+                    reliefBox.style.display = 'none';
+                }
+            }
+
             // Confirmados
             const confContainer = document.getElementById('forecastConfirmadosContainer');
             if (confContainer) {
                 if (m.receitasConfirmadas > 0 || m.investimentosConfirmados > 0) {
                     confContainer.style.display = 'block';
-                    let confHtml = '<div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.8rem; display:flex; gap:1.5rem; flex-wrap:wrap;">';
+                    let confHtml = '<div style="background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:0.8rem 1rem; display:flex; gap:1.5rem; flex-wrap:wrap;">';
                     if (m.receitasConfirmadas > 0) {
-                        confHtml += `<div><span style="font-size:0.8rem; color:var(--text-muted);">Receitas Confirmadas no Banco:</span> <b style="color:var(--success); font-size:1rem;">${fmt(m.receitasConfirmadas)}</b></div>`;
+                        confHtml += `<div><span style="font-size:0.8rem; color:var(--muted);">Receitas Confirmadas no Banco:</span> <b style="color:var(--success); font-size:1rem; margin-left:4px;">${fmt(m.receitasConfirmadas)}</b></div>`;
                     }
                     if (m.investimentosConfirmados > 0) {
-                        confHtml += `<div><span style="font-size:0.8rem; color:var(--text-muted);">Aportes Confirmados no Banco:</span> <b style="color:var(--invest); font-size:1rem;">${fmt(m.investimentosConfirmados)}</b></div>`;
+                        confHtml += `<div><span style="font-size:0.8rem; color:var(--muted);">Aportes Confirmados no Banco:</span> <b style="color:var(--invest); font-size:1rem; margin-left:4px;">${fmt(m.investimentosConfirmados)}</b></div>`;
                     }
                     confHtml += '</div>';
                     confContainer.innerHTML = confHtml;
@@ -7162,78 +7439,59 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 }
             }
 
-            // Breakdown por Cartão
+            // Breakdown por Cartão com barras de progresso
             const byCardList = document.getElementById('forecastByCardList');
             if (byCardList) {
                 const cardEntries = Object.entries(m.byCard);
                 if (cardEntries.length === 0) {
-                    byCardList.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">Nenhum gasto em cartão para este mês.</p>';
+                    byCardList.innerHTML = '<p style="color:var(--muted); font-size:0.85rem; margin:0;">Nenhum gasto em cartão para este mês.</p>';
                 } else {
-                    byCardList.innerHTML = cardEntries.map(([name, val]) => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.35rem 0; border-bottom:1px solid var(--border-subtle); font-size:0.85rem;">
-                            <span>💳 ${escapeHtml(name)}</span>
-                            <span style="font-weight:700; color:var(--text-main);">${fmt(val)}</span>
-                        </div>
-                    `).join('');
+                    byCardList.innerHTML = cardEntries.map(([name, val]) => {
+                        const pct = m.totalCartao > 0 ? Math.min(100, Math.round((val / m.totalCartao) * 100)) : 0;
+                        return `
+                            <div style="margin-bottom:0.6rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; margin-bottom:2px;">
+                                    <span>💳 ${escapeHtml(name)}</span>
+                                    <span style="font-weight:700; color:var(--text); font-size:0.85rem;">${fmt(val)} <small style="color:var(--muted); font-weight:500;">(${pct}%)</small></span>
+                                </div>
+                                <div style="background:var(--line); height:5px; border-radius:3px; overflow:hidden;">
+                                    <div style="background:var(--blue); height:100%; width:${pct}%; border-radius:3px;"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
                 }
             }
 
-            // Breakdown por Categoria
+            // Breakdown por Categoria com barras de progresso
             const byCatList = document.getElementById('forecastByCategoryList');
             if (byCatList) {
                 const catEntries = Object.entries(m.byCategory);
                 if (catEntries.length === 0) {
-                    byCatList.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">Nenhum gasto categorizado para este mês.</p>';
+                    byCatList.innerHTML = '<p style="color:var(--muted); font-size:0.85rem; margin:0;">Nenhum gasto categorizado para este mês.</p>';
                 } else {
-                    byCatList.innerHTML = catEntries.map(([name, val]) => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.35rem 0; border-bottom:1px solid var(--border-subtle); font-size:0.85rem;">
-                            <span>🏷️ ${escapeHtml(name)}</span>
-                            <span style="font-weight:700; color:var(--text-main);">${fmt(val)}</span>
-                        </div>
-                    `).join('');
-                }
-            }
-
-            // Tabela de Itens
-            const tbody = document.getElementById('forecastItemsTableBody');
-            if (tbody) {
-                tbody.innerHTML = '';
-                if (m.items.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum lançamento previsto para este mês.</td></tr>`;
-                } else {
-                    m.items.sort((a,b) => b.date - a.date).forEach(item => {
-                        const tr = document.createElement('tr');
-                        const meioInfo = item.pagamento === 'Cartão de Crédito' ? (item.cartao || 'Cartão') : item.pagamento;
-                        const isQuitado = item.isLiquidado;
-                        const isParcial = item.isLiquidadoParcial;
-                        let statusBadge = `<span class="tag-status ${item.isRecorrente ? 'tag-inactive' : 'tag-open'}" style="font-size:0.75rem;">${escapeHtml(item.parcelaExibida || 'À vista')}</span>`;
-                        if (isQuitado) {
-                            statusBadge += ` <span class="tag-status tag-done" style="font-size:0.7rem; margin-left:4px;" title="Obrigação liquidada antecipadamente">Quitado</span>`;
-                        } else if (isParcial) {
-                            statusBadge += ` <span class="tag-status tag-warning" style="font-size:0.7rem; margin-left:4px;" title="Liquidação parcial de ${fmt(item.valorLiquidado)}">Parcial</span>`;
-                        }
-
-                        let valHtml = '';
-                        if (isQuitado) {
-                            valHtml = `<span style="font-weight:700; color:var(--text-muted); text-decoration:line-through; font-size:0.8rem; margin-right:4px;">${fmt(item.valorOriginal)}</span><span style="font-weight:700; color:var(--success);">${fmt(0)}</span>`;
-                        } else if (isParcial) {
-                            valHtml = `<span style="font-weight:700; color:var(--danger);">${fmt(item.obrigacaoRestante)}</span> <small style="font-size:0.7rem; color:var(--text-muted); display:block;">(${fmt(item.valorLiquidado)} quitado)</small>`;
-                        } else {
-                            valHtml = `<span style="font-weight:700; color:var(--danger);">${fmt(item.obrigacaoRestante ?? item.value)}</span>`;
-                        }
-
-                        tr.innerHTML = `
-                            <td class="cell-date">${item.date.toLocaleDateString('pt-BR')}</td>
-                            <td class="cell-desc" style="font-weight:600;">${escapeHtml(item.desc)}</td>
-                            <td class="cell-meio"><span style="font-size:0.75rem; background:var(--bg-color); padding:2px 8px; border-radius:4px; font-weight:600;">${escapeHtml(meioInfo || 'Geral')}</span></td>
-                            <td class="cell-cat">${escapeHtml(item.category)}</td>
-                            <td class="cell-parcela">${statusBadge}</td>
-                            <td class="cell-val">${valHtml}</td>
+                    byCatList.innerHTML = catEntries.map(([name, val]) => {
+                        const pct = m.totalComprometido > 0 ? Math.min(100, Math.round((val / m.totalComprometido) * 100)) : 0;
+                        return `
+                            <div style="margin-bottom:0.6rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; margin-bottom:2px;">
+                                    <span>🏷️ ${escapeHtml(name)}</span>
+                                    <span style="font-weight:700; color:var(--text); font-size:0.85rem;">${fmt(val)} <small style="color:var(--muted); font-weight:500;">(${pct}%)</small></span>
+                                </div>
+                                <div style="background:var(--line); height:5px; border-radius:3px; overflow:hidden;">
+                                    <div style="background:var(--violet); height:100%; width:${pct}%; border-radius:3px;"></div>
+                                </div>
+                            </div>
                         `;
-                        tbody.appendChild(tr);
-                    });
+                    }).join('');
                 }
             }
+
+            // Salva itens do mês e renderiza tabela
+            currentForecastMonthItems = m.items || [];
+            const searchInput = document.getElementById('forecastItemSearch');
+            if (searchInput) searchInput.value = '';
+            renderForecastItemsRows(currentForecastMonthItems);
         }
 
         /* ==========================================================

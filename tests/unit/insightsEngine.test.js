@@ -209,4 +209,105 @@ describe('insightsEngine — Motor Puro de Insights Financeiros Automáticos', (
         assert.ok(savingsInsight.message.includes('R$ ****,**'), 'Deve exibir máscara de privacidade');
     });
 
+    it('9. Deve calcular Projeção de Fechamento do Mês (Burn Rate) saudável quando dentro da média', () => {
+        // Mês analisado: 2026-10 (Novembro, 30 dias). Data de referência: dia 10.
+        // Gasto acumulado nos 10 dias: R$ 950,00 -> Ritmo: R$ 95,00/dia -> Projeção: R$ 2.850,00
+        // Histórico dos 3 meses anteriores: média R$ 3.100,00
+        const refDate = new Date(2026, 10, 10);
+        const txs = [
+            // Mês -1 (Outubro): 3.100
+            { id: 'h1', type: 'DESPESA', year: 2026, month: 9, value: 3100.00 },
+            // Mês -2 (Setembro): 3.100
+            { id: 'h2', type: 'DESPESA', year: 2026, month: 8, value: 3100.00 },
+            // Mês -3 (Agosto): 3.100
+            { id: 'h3', type: 'DESPESA', year: 2026, month: 7, value: 3100.00 },
+            // Mês atual: 950 acumulados até dia 10
+            { id: 'c1', type: 'DESPESA', rawDate: '2026-11-05', year: 2026, month: 10, value: 500.00 },
+            { id: 'c2', type: 'DESPESA', rawDate: '2026-11-09', year: 2026, month: 10, value: 450.00 }
+        ];
+
+        const insights = generateSmartInsights(txs, '2026-10', { currentDate: refDate });
+        const burnInsight = insights.find(i => i.id === 'insight-burn-rate');
+
+        assert.ok(burnInsight, 'Deveria gerar o insight de burn rate');
+        assert.equal(burnInsight.type, 'success');
+        assert.ok(burnInsight.message.includes('95,00/dia'), 'Deveria identificar ritmo de R$ 95,00/dia');
+        assert.ok(burnInsight.message.includes('2.850,00'), 'Deveria projetar fechamento em R$ 2.850,00');
+        assert.ok(burnInsight.message.includes('3.100,00'), 'Deveria comparar com média usual de R$ 3.100,00');
+    });
+
+    it('10. Deve emitir alerta de Burn Rate acelerado quando projeção supera média em mais de 15%', () => {
+        // Mês atual: dia 10, gasto R$ 1.500,00 -> Ritmo: R$ 150,00/dia -> Projeção: R$ 4.500,00
+        // Histórico anterior: média R$ 2.000,00
+        const refDate = new Date(2026, 10, 10);
+        const txs = [
+            { id: 'h1', type: 'DESPESA', year: 2026, month: 9, value: 2000.00 },
+            { id: 'c1', type: 'DESPESA', rawDate: '2026-11-08', year: 2026, month: 10, value: 1500.00 }
+        ];
+
+        const insights = generateSmartInsights(txs, '2026-10', { currentDate: refDate });
+        const burnInsight = insights.find(i => i.id === 'insight-burn-rate');
+
+        assert.ok(burnInsight);
+        assert.equal(burnInsight.type, 'warning');
+        assert.equal(burnInsight.icon, '🔥');
+        assert.ok(burnInsight.message.includes('superando sua média'));
+        assert.ok(burnInsight.message.includes('150,00/dia'));
+        assert.ok(burnInsight.message.includes('4.500,00'));
+    });
+
+    it('11. Deve monitorar Tetos de Gastos por Categoria (Budgeting) com faixas semânticas', () => {
+        // Teto Alimentação = 800, Lazer = 300
+        // No mês: Alimentação gastou 736 (92% - Crítico), Lazer gastou 135 (45% - OK)
+        const txs = [
+            { id: 't1', type: 'DESPESA', year: 2026, month: 10, value: 736.00, category: 'Alimentação' },
+            { id: 't2', type: 'DESPESA', year: 2026, month: 10, value: 135.00, category: 'Lazer' }
+        ];
+
+        const budgets = {
+            'Alimentação': 800,
+            'Lazer': 300
+        };
+
+        const insights = generateSmartInsights(txs, '2026-10', { categoryBudgets: budgets });
+
+        const foodBudgetInsight = insights.find(i => i.id === 'insight-budget-alert-Alimentação');
+        assert.ok(foodBudgetInsight, 'Deveria alertar teto crítico de Alimentação');
+        assert.equal(foodBudgetInsight.type, 'warning');
+        assert.equal(foodBudgetInsight.icon, '🚨');
+        assert.ok(foodBudgetInsight.message.includes('92%') || foodBudgetInsight.title.includes('92%'));
+        assert.ok(foodBudgetInsight.budgetProgress);
+        assert.equal(foodBudgetInsight.budgetProgress.pct, 92);
+        assert.equal(foodBudgetInsight.budgetProgress.status, 'danger');
+
+        const leisureBudgetInsight = insights.find(i => i.id === 'insight-budget-ok-Lazer');
+        assert.ok(leisureBudgetInsight, 'Deveria indicar teto sob controle para Lazer');
+        assert.equal(leisureBudgetInsight.budgetProgress.pct, 45);
+        assert.equal(leisureBudgetInsight.budgetProgress.status, 'ok');
+    });
+
+    it('12. Deve detectar cobranças recorrentes e assinaturas ativas', () => {
+        const txs = [
+            // Netflix presente em 3 meses
+            { id: 'r1', type: 'DESPESA', rawDate: '2026-08-10', descricao: 'Netflix', valor: 55.90, categoria: 'Lazer' },
+            { id: 'r2', type: 'DESPESA', rawDate: '2026-09-10', descricao: 'Netflix', valor: 55.90, categoria: 'Lazer' },
+            { id: 'r3', type: 'DESPESA', rawDate: '2026-10-10', descricao: 'Netflix', valor: 55.90, categoria: 'Lazer' },
+            // Spotify marcado como RECORRENTE
+            { id: 'r4', type: 'DESPESA', rawDate: '2026-10-05', descricao: 'Spotify Premium', valor: 34.90, parcela: 'RECORRENTE', categoria: 'Lazer' },
+            // Compra comum não recorrente
+            { id: 'c1', type: 'DESPESA', rawDate: '2026-10-12', descricao: 'Almoço Avulso', valor: 45.00, categoria: 'Alimentação' }
+        ];
+
+        const insights = generateSmartInsights(txs, '2026-10');
+        const recurringInsight = insights.find(i => i.id === 'insight-recurring-subscriptions');
+
+        assert.ok(recurringInsight, 'Deveria gerar o insight de detector de recorrências');
+        assert.equal(recurringInsight.type, 'info');
+        assert.equal(recurringInsight.icon, '🔁');
+        assert.ok(recurringInsight.message.includes('2 cobranças recorrentes'));
+        assert.ok(recurringInsight.message.includes('90,80')); // 55.90 + 34.90 = 90.80
+        assert.ok(Array.isArray(recurringInsight.recurringItems));
+        assert.equal(recurringInsight.recurringItems.length, 2);
+    });
+
 });

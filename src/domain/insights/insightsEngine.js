@@ -320,6 +320,211 @@ export function generateSmartInsights(transactions, selectedYm, options = {}) {
         });
     }
 
+    // ==========================================================
+    // 5. INSIGHT: PROJEÇÃO DE FECHAMENTO DO MÊS (BURN RATE)
+    // ==========================================================
+    const isCurrentCalendarMonth = (targetYear === refDate.getFullYear() && targetMonth === refDate.getMonth());
+    if (isCurrentCalendarMonth && totalDespesasAtual > 0) {
+        const totalDaysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+        const currentDay = Math.min(refDate.getDate(), totalDaysInMonth);
+
+        // Requer pelo menos 2 dias de histórico no mês
+        if (currentDay >= 2) {
+            const dailyRate = totalDespesasAtual / currentDay;
+            const projectedTotal = Math.round(dailyRate * totalDaysInMonth);
+
+            // Média de despesas dos últimos 3 meses
+            const past3MonthsDespesas = past3Keys.map(k => {
+                return transactions
+                    .filter(t => getTxType(t) === 'DESPESA' && getTxYm(t) === k)
+                    .reduce((sum, t) => sum + (Number(t.valor || t.value) || 0), 0);
+            }).filter(v => v > 0);
+
+            const mediaPastTotal = past3MonthsDespesas.length > 0
+                ? past3MonthsDespesas.reduce((a, b) => a + b, 0) / past3MonthsDespesas.length
+                : 0;
+
+            if (mediaPastTotal > 0) {
+                if (projectedTotal > mediaPastTotal * 1.15) {
+                    insights.push({
+                        id: 'insight-burn-rate',
+                        type: 'warning',
+                        icon: '🔥',
+                        title: 'Alerta de Ritmo de Gastos (Burn Rate)',
+                        message: `No ritmo atual de ${formatCurrency(dailyRate, isPrivacy)}/dia, sua despesa fechará o mês em ${formatCurrency(projectedTotal, isPrivacy)} (superando sua média usual de ${formatCurrency(mediaPastTotal, isPrivacy)}).`,
+                        badge: 'Ritmo Acelerado',
+                        priority: 2
+                    });
+                } else {
+                    insights.push({
+                        id: 'insight-burn-rate',
+                        type: 'success',
+                        icon: '🎯',
+                        title: 'Ritmo de Gastos Saudável',
+                        message: `No ritmo atual de ${formatCurrency(dailyRate, isPrivacy)}/dia, sua despesa fechará o mês em ${formatCurrency(projectedTotal, isPrivacy)} (dentro da sua média usual de ${formatCurrency(mediaPastTotal, isPrivacy)}).`,
+                        badge: 'Ritmo sob Controle',
+                        priority: 3
+                    });
+                }
+            } else {
+                insights.push({
+                    id: 'insight-burn-rate',
+                    type: 'info',
+                    icon: '📊',
+                    title: 'Projeção de Gastos do Mês',
+                    message: `No ritmo atual de ${formatCurrency(dailyRate, isPrivacy)}/dia, sua despesa fechará o mês em aproximadamente ${formatCurrency(projectedTotal, isPrivacy)}.`,
+                    badge: 'Projeção Mensal',
+                    priority: 3
+                });
+            }
+        }
+    }
+
+    // ==========================================================
+    // 6. INSIGHT: TETOS DE GASTOS POR CATEGORIA (BUDGETING)
+    // ==========================================================
+    const categoryBudgets = options.categoryBudgets || {};
+    if (categoryBudgets && typeof categoryBudgets === 'object') {
+        Object.entries(categoryBudgets).forEach(([cat, rawLimit]) => {
+            const limit = Number(rawLimit) || 0;
+            if (limit <= 0) return;
+
+            const normTargetCat = cat.trim().toLowerCase();
+            let gastoAtual = 0;
+            Object.entries(currentCatMap).forEach(([c, val]) => {
+                if (c.trim().toLowerCase() === normTargetCat) {
+                    gastoAtual += val;
+                }
+            });
+
+            const pctConsumido = (gastoAtual / limit) * 100;
+            const pctArredondado = Math.round(pctConsumido);
+
+            if (pctConsumido >= 90) {
+                insights.push({
+                    id: `insight-budget-alert-${cat}`,
+                    type: 'warning',
+                    icon: '🚨',
+                    title: `Teto de ${cat} quase atingido (${pctArredondado}%)`,
+                    message: `Você já utilizou ${formatCurrency(gastoAtual, isPrivacy)} do teto de ${formatCurrency(limit, isPrivacy)} definido para ${cat}.`,
+                    badge: 'Teto Crítico',
+                    priority: 1,
+                    budgetProgress: {
+                        category: cat,
+                        current: gastoAtual,
+                        limit,
+                        pct: Math.min(100, pctArredondado),
+                        status: 'danger'
+                    }
+                });
+            } else if (pctConsumido >= 75) {
+                insights.push({
+                    id: `insight-budget-warning-${cat}`,
+                    type: 'warning',
+                    icon: '⚠️',
+                    title: `Atenção ao Teto de ${cat} (${pctArredondado}%)`,
+                    message: `Você utilizou ${formatCurrency(gastoAtual, isPrivacy)} do teto de ${formatCurrency(limit, isPrivacy)} previsto para o mês.`,
+                    badge: 'Atenção ao Teto',
+                    priority: 2,
+                    budgetProgress: {
+                        category: cat,
+                        current: gastoAtual,
+                        limit,
+                        pct: pctArredondado,
+                        status: 'warning'
+                    }
+                });
+            } else if (pctConsumido > 0) {
+                insights.push({
+                    id: `insight-budget-ok-${cat}`,
+                    type: 'info',
+                    icon: '🟢',
+                    title: `Teto de ${cat} sob controle (${pctArredondado}%)`,
+                    message: `Consumo de ${formatCurrency(gastoAtual, isPrivacy)} de um teto de ${formatCurrency(limit, isPrivacy)} para o mês.`,
+                    badge: 'Teto sob Controle',
+                    priority: 5,
+                    budgetProgress: {
+                        category: cat,
+                        current: gastoAtual,
+                        limit,
+                        pct: pctArredondado,
+                        status: 'ok'
+                    }
+                });
+            }
+        });
+    }
+
+    // ==========================================================
+    // 7. INSIGHT: DETECTOR DE RECORRÊNCIAS & ASSINATURAS
+    // ==========================================================
+    const allExpenses = transactions.filter(t => getTxType(t) === 'DESPESA');
+    const recurringMap = new Map();
+
+    allExpenses.forEach(t => {
+        const rawDesc = (t.desc || t.descricao || '').replace(/\[.*?\]/g, '').trim();
+        if (!rawDesc || rawDesc.length < 3) return;
+
+        const normDesc = rawDesc.toLowerCase().replace(/\s+/g, ' ');
+        const ym = getTxYm(t);
+        const val = Number(t.valor || t.value) || 0;
+        if (val <= 0) return;
+
+        const isExplicitRec = (t.parcela === 'RECORRENTE' || t.tipo === 'assinatura_cartao' || t.faturaDestino === 'RECORRENTE');
+
+        if (!recurringMap.has(normDesc)) {
+            recurringMap.set(normDesc, {
+                name: rawDesc,
+                category: (t.categoria || t.category || 'Geral').trim(),
+                months: new Set(ym ? [ym] : []),
+                values: [val],
+                lastVal: val,
+                isExplicitRec
+            });
+        } else {
+            const entry = recurringMap.get(normDesc);
+            if (ym) entry.months.add(ym);
+            entry.values.push(val);
+            entry.lastVal = val;
+            if (isExplicitRec) entry.isExplicitRec = true;
+        }
+    });
+
+    const activeRecurrings = [];
+    recurringMap.forEach((entry) => {
+        const minVal = Math.min(...entry.values);
+        const maxVal = Math.max(...entry.values);
+        const diffVal = maxVal - minVal;
+
+        const isLikelySubscription = entry.isExplicitRec || (entry.months.size >= 2 && diffVal <= 6 && minVal >= 8);
+
+        if (isLikelySubscription) {
+            activeRecurrings.push({
+                name: entry.name,
+                category: entry.category,
+                value: entry.lastVal
+            });
+        }
+    });
+
+    if (activeRecurrings.length > 0) {
+        activeRecurrings.sort((a, b) => b.value - a.value);
+
+        const totalMonthlyRecurring = activeRecurrings.reduce((acc, r) => acc + r.value, 0);
+        const sampleNames = activeRecurrings.slice(0, 3).map(r => r.name).join(', ');
+
+        insights.push({
+            id: 'insight-recurring-subscriptions',
+            type: 'info',
+            icon: '🔁',
+            title: 'Detector de Recorrências & Assinaturas',
+            message: `Detectamos ${activeRecurrings.length} cobrança${activeRecurrings.length === 1 ? '' : 's'} recorrente${activeRecurrings.length === 1 ? '' : 's'} ativa${activeRecurrings.length === 1 ? '' : 's'} totalizando ${formatCurrency(totalMonthlyRecurring, isPrivacy)}/mês (${sampleNames}${activeRecurrings.length > 3 ? '...' : ''}). Revise se ainda utiliza todos os serviços.`,
+            badge: 'Cobranças Automáticas',
+            priority: 4,
+            recurringItems: activeRecurrings
+        });
+    }
+
     // Se nenhum insight de alerta ou economia foi ativado, adiciona um insight de equilíbrio
     if (insights.length === 0) {
         insights.push({

@@ -279,7 +279,10 @@
                             <h3>Assistente de Insights</h3>
                             <span class="smart-insights-pill">Inteligência Financeira</span>
                         </div>
-                        <span id="smartInsightsCount" class="smart-insights-count"></span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="smartInsightsCount" class="smart-insights-count"></span>
+                            <button type="button" class="smart-insights-config-btn" onclick="openBudgetModal()" title="Configurar Tetos de Gastos">🎯 Definir Tetos</button>
+                        </div>
                     </div>
                     <div id="smartInsightsContainer" class="smart-insights-grid"></div>
                 </div>
@@ -1649,6 +1652,26 @@
                         <span>🚪</span> Sair da Conta
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIGURAÇÃO DE TETOS DE GASTOS (BUDGETING) -->
+    <div id="budgetConfigModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
+        <div class="chart-card" style="max-width:440px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--line); padding-bottom:8px;">
+                <h3 id="budgetModalTitle" style="margin:0; font-size:1.05rem; color:var(--text); display:flex; align-items:center; gap:6px;">
+                    <span>🎯</span> Tetos de Gastos por Categoria
+                </h3>
+                <button type="button" class="reset-btn" aria-label="Fechar" onclick="closeBudgetModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem; cursor:pointer;">✕</button>
+            </div>
+            <p style="font-size:12px; color:var(--muted); margin:0 0 14px 0;">
+                Defina o valor máximo mensal que você planeja gastar em cada categoria. O assistente avisará quando o consumo atingir 75% e 90%.
+            </p>
+            <div id="budgetModalList" style="max-height:280px; overflow-y:auto; margin-bottom:16px;"></div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="btn-secondary" onclick="closeBudgetModal()" style="padding:6px 14px; font-size:12.5px; width:auto;">Cancelar</button>
+                <button type="button" class="btn-primary" onclick="saveBudgetModalSettings()" style="padding:6px 16px; font-size:12.5px; width:auto;">Salvar Tetos</button>
             </div>
         </div>
     </div>
@@ -6928,6 +6951,70 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             });
         }
 
+        function getCategoryBudgets() {
+            try {
+                const stored = localStorage.getItem('user_category_budgets');
+                if (stored) return JSON.parse(stored);
+            } catch (_) {}
+            return {
+                'Alimentação': 800,
+                'Lazer': 300
+            };
+        }
+
+        function openBudgetModal() {
+            const modal = document.getElementById('budgetConfigModal');
+            const listEl = document.getElementById('budgetModalList');
+            if (!modal || !listEl) return;
+
+            const budgets = getCategoryBudgets();
+            const systemCats = (Array.isArray(globalCategorias) && globalCategorias.length > 0)
+                ? globalCategorias.map(c => c.nome)
+                : ['Alimentação', 'Lazer', 'Transporte', 'Moradia', 'Saúde', 'Educação', 'Outros'];
+
+            const allCats = [...new Set([...Object.keys(budgets), ...systemCats])].filter(Boolean).sort();
+
+            listEl.innerHTML = allCats.map(cat => {
+                const curVal = budgets[cat] || '';
+                return `
+                    <div class="budget-modal-item">
+                        <span class="budget-modal-cat-name">${escapeHtml(cat)}</span>
+                        <div class="budget-modal-input-wrap">
+                            <span>R$</span>
+                            <input type="number" step="10" min="0" class="budget-modal-input" data-cat="${escapeHtml(cat)}" value="${curVal}" placeholder="Sem limite">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        function closeBudgetModal() {
+            const modal = document.getElementById('budgetConfigModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function saveBudgetModalSettings() {
+            const inputs = document.querySelectorAll('#budgetModalList .budget-modal-input');
+            const newBudgets = {};
+            inputs.forEach(input => {
+                const cat = input.dataset.cat;
+                const val = parseFloat(input.value);
+                if (cat && !isNaN(val) && val > 0) {
+                    newBudgets[cat] = val;
+                }
+            });
+
+            try {
+                localStorage.setItem('user_category_budgets', JSON.stringify(newBudgets));
+            } catch (_) {}
+
+            closeBudgetModal();
+            showToast('Tetos de gastos atualizados com sucesso!', 'success');
+            renderSmartInsights(document.getElementById('monthSelector')?.value || 'all');
+        }
+
         function renderSmartInsights(selectedYm) {
             const container = document.getElementById('smartInsightsContainer');
             const section = document.getElementById('smartInsightsSection');
@@ -6935,8 +7022,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             if (!container) return;
 
             const isPrivacy = typeof getPrivacyMode === 'function' ? getPrivacyMode() : false;
+            const categoryBudgets = getCategoryBudgets();
             const insights = (typeof generateSmartInsights === 'function' && Array.isArray(globalData))
-                ? generateSmartInsights(globalData, selectedYm, { isPrivacy })
+                ? generateSmartInsights(globalData, selectedYm, { isPrivacy, categoryBudgets })
                 : [];
 
             if (countEl) {
@@ -6955,20 +7043,55 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
             const esc = typeof escapeHtml === 'function' ? escapeHtml : (s) => String(s || '');
 
-            container.innerHTML = insights.map(item => `
-                <div class="smart-insight-card ${esc(item.type || 'info')}" data-id="${esc(item.id)}">
-                    <div class="smart-insight-icon-col">
-                        <span class="smart-insight-icon">${item.icon || '💡'}</span>
-                    </div>
-                    <div class="smart-insight-content">
-                        <div class="smart-insight-top">
-                            <span class="smart-insight-badge">${esc(item.badge || 'Insight')}</span>
-                            <h4 class="smart-insight-card-title">${esc(item.title || '')}</h4>
+            container.innerHTML = insights.map(item => {
+                let progressHtml = '';
+                if (item.budgetProgress) {
+                    const bp = item.budgetProgress;
+                    const fillClass = bp.status === 'danger' ? 'danger' : (bp.status === 'warning' ? 'warning' : 'ok');
+                    progressHtml = `
+                        <div class="smart-insight-budget-wrap">
+                            <div class="smart-insight-progress-bar">
+                                <div class="smart-insight-progress-fill ${fillClass}" style="width: ${bp.pct}%;"></div>
+                            </div>
+                            <div class="smart-insight-budget-labels">
+                                <span class="budget-pct-tag ${fillClass}">${bp.status === 'danger' ? '🔴' : (bp.status === 'warning' ? '🟡' : '🟢')} ${bp.pct}% consumido</span>
+                                <span class="budget-vals">${isPrivacy ? 'R$ ****,** / R$ ****,**' : (fmt(bp.current) + ' de ' + fmt(bp.limit))}</span>
+                            </div>
                         </div>
-                        <p class="smart-insight-message">${esc(item.message || '')}</p>
+                    `;
+                }
+
+                let recurringHtml = '';
+                if (Array.isArray(item.recurringItems) && item.recurringItems.length > 0) {
+                    recurringHtml = `
+                        <div class="smart-insight-recurrings-chips">
+                            ${item.recurringItems.slice(0, 4).map(r => `
+                                <span class="smart-insight-chip">
+                                    <span class="chip-name">${esc(r.name)}</span>
+                                    <span class="chip-val money">${isPrivacy ? 'R$ ****,**' : fmt(r.value)}</span>
+                                </span>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="smart-insight-card ${esc(item.type || 'info')}" data-id="${esc(item.id)}">
+                        <div class="smart-insight-icon-col">
+                            <span class="smart-insight-icon">${item.icon || '💡'}</span>
+                        </div>
+                        <div class="smart-insight-content">
+                            <div class="smart-insight-top">
+                                <span class="smart-insight-badge">${esc(item.badge || 'Insight')}</span>
+                                <h4 class="smart-insight-card-title">${esc(item.title || '')}</h4>
+                            </div>
+                            <p class="smart-insight-message">${esc(item.message || '')}</p>
+                            ${progressHtml}
+                            ${recurringHtml}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function renderPieChart(despesasArr, selectedYm) {
@@ -9594,6 +9717,10 @@ async function addOrUpdateTransaction(e, isBatch = false) {
         window.getAdminDeleteExpectedText = () => adminDeleteExpectedText;
         window.getIsAdminDeleteSubmitting = () => isAdminDeleteSubmitting;
         window.clearFinancialMemory = clearFinancialMemory;
+        window.openBudgetModal = openBudgetModal;
+        window.closeBudgetModal = closeBudgetModal;
+        window.saveBudgetModalSettings = saveBudgetModalSettings;
+        window.getCategoryBudgets = getCategoryBudgets;
     </script>
     <!-- PWA SERVICE WORKER REGISTRATION -->
     <script>

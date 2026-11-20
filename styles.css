@@ -2855,6 +2855,32 @@
             .nl-field { margin-top: 8px; }
         }
 
+        /* Grid responsivo moderno para formulário de aportes de investimentos */
+        .invest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px 14px;
+        }
+        .invest-col-2 {
+            grid-column: span 2;
+        }
+        @media (max-width: 860px) {
+            .invest-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .invest-col-2 {
+                grid-column: span 2;
+            }
+        }
+        @media (max-width: 580px) {
+            .invest-grid {
+                grid-template-columns: 1fr;
+            }
+            .invest-col-2 {
+                grid-column: span 1;
+            }
+        }
+
         /* ==========================================================
            ETAPA 3: NAVEGAÇÃO E HEADER ENXUTOS (REFERÊNCIA MODERNA)
            ========================================================== */

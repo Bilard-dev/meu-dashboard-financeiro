@@ -203,7 +203,7 @@
             <button type="button" class="icon-btn" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">👁️</button>
 
             <!-- Botão de Destaque Novo Registro -->
-            <button type="button" class="btn new" id="tabNovoBtn" onclick="switchTab('novo')">+ Novo registro</button>
+            <button type="button" class="btn new" id="tabNovoBtn" onclick="switchTab('novo')">➕ Novo Registro</button>
 
             <!-- Menu Dropdown da Conta e Configurações -->
             <div class="menu" id="headerMenu">
@@ -578,59 +578,87 @@
 
             <!-- ABA 4: INVESTIMENTOS -->
             <div id="tab-investimentos" class="tab-content">
-                <!-- FORMULÁRIO DEDICADO DE INVESTIMENTOS -->
-                <div class="chart-card" style="margin-bottom:1.5rem;">
-                    <h2 class="chart-title" id="investFormTitle" style="font-size: 1.25rem;">💼 Lançar Novo Aporte / Investimento</h2>
-                    <form id="investForm" onsubmit="addOrUpdateInvestment(event)">
+                <!-- FORMULÁRIO DEDICADO DE INVESTIMENTOS (MODERNIZADO) -->
+                <div class="chart-card nl-card" style="margin-bottom: 1.5rem; padding: 20px 24px;">
+                    <div class="nl-header">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.3rem;">💼</span>
+                            <h2 class="chart-title" id="investFormTitle" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text);">Lançar Novo Aporte / Investimento</h2>
+                        </div>
+                        <button type="button" class="nl-x" id="btnFecharInvestEdit" style="display: none;" onclick="cancelInvestEdit()" title="Cancelar edição" aria-label="Cancelar edição">✕</button>
+                    </div>
+
+                    <form id="investForm" class="nl-form" data-tipo="Investimento" onsubmit="addOrUpdateInvestment(event)">
                         <input type="hidden" id="edit_inv_id" value="">
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label for="inv_data">1. Data do Aporte *</label>
+
+                        <div class="invest-grid">
+                            <!-- 1. Valor com badge R$ e tipografia de destaque -->
+                            <div class="nl-field">
+                                <label for="inv_valor">Valor do Aporte *</label>
+                                <div class="nl-money">
+                                    <span>R$</span>
+                                    <input type="number" step="0.01" id="inv_valor" class="input-field nl-amount" placeholder="0,00" required>
+                                </div>
+                            </div>
+
+                            <!-- 2. Data com atalhos Hoje / Ontem -->
+                            <div class="nl-field">
+                                <div class="nl-lrow">
+                                    <label for="inv_data">Data do Aporte *</label>
+                                    <span class="nl-mini">
+                                        <button type="button" onclick="setInvestQuickDate(0)">Hoje</button>
+                                        <button type="button" onclick="setInvestQuickDate(-1)">Ontem</button>
+                                    </span>
+                                </div>
                                 <input type="date" id="inv_data" class="input-field" required>
                             </div>
 
-                            <div class="input-group" style="grid-column: span 2;">
-                                <label for="inv_descricao">2. Descrição / Nome do Ativo *</label>
-                                <input type="text" id="inv_descricao" class="input-field" placeholder="Ex: Tesouro Selic 2029, CDB Banco Inter, PETR4, HGLG11" required>
-                            </div>
-
-                            <div class="input-group">
-                                <label for="inv_valor">3. Valor do Aporte (R$) *</label>
-                                <input type="number" id="inv_valor" step="0.01" class="input-field" placeholder="Ex: 500.00" required>
-                            </div>
-
-                            <div class="input-group">
-                                <label for="inv_custo">4. Classe de Rendimento *</label>
+                            <!-- 3. Classe de Rendimento -->
+                            <div class="nl-field">
+                                <label for="inv_custo">Classe de Rendimento *</label>
                                 <select id="inv_custo" class="input-field" required>
-                                    <option value="Renda Fixa" selected>Renda Fixa</option>
-                                    <option value="Renda Variável">Renda Variável</option>
-                                    <option value="Outros">Outros</option>
+                                    <option value="Renda Fixa" selected>🏦 Renda Fixa</option>
+                                    <option value="Renda Variável">📈 Renda Variável</option>
+                                    <option value="Outros">🪙 Outros</option>
                                 </select>
                             </div>
 
-                            <div class="input-group">
-                                <label for="inv_categoria">5. Categoria de Investimento</label>
+                            <!-- 4. Descrição / Ativo (2 colunas) -->
+                            <div class="nl-field invest-col-2">
+                                <label for="inv_descricao">Descrição / Nome do Ativo *</label>
+                                <input type="text" id="inv_descricao" class="input-field" placeholder="Ex: Tesouro Selic 2029, CDB Banco Inter, PETR4, HGLG11" required>
+                            </div>
+
+                            <!-- 5. Categoria -->
+                            <div class="nl-field">
+                                <label for="inv_categoria">Categoria de Investimento</label>
                                 <select id="inv_categoria" class="input-field" onchange="onCategoryChange('inv_categoria', 'inv_subcategoria'); handleDynamicSelect(this, 'Categoria')">
                                     <option value="">-- Selecione --</option>
                                 </select>
                             </div>
 
-                            <div class="input-group">
-                                <label for="inv_subcategoria">6. Subcategoria / Ativo</label>
+                            <!-- 6. Subcategoria -->
+                            <div class="nl-field">
+                                <label for="inv_subcategoria">Subcategoria / Ativo</label>
                                 <select id="inv_subcategoria" class="input-field" onchange="handleDynamicSelect(this, 'Subcategoria')">
                                     <option value="">-- Selecione a Categoria Primeiro --</option>
                                 </select>
                             </div>
 
-                            <div class="input-group">
+                            <!-- 7. TAGs (2 colunas) -->
+                            <div class="nl-field invest-col-2">
                                 <label for="inv_tags">🏷️ TAGs (Opcional - Separe por vírgulas)</label>
                                 <input type="text" id="inv_tags" class="input-field" placeholder="Ex: Aporte Mensal, Dividendos, Reserva">
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 0.75rem; margin-top: 1rem; align-items: center;">
-                            <button type="submit" id="btnSalvarInvest" class="btn-primary" style="width: auto; padding: 0.6rem 1.5rem; background: var(--invest); border-color: var(--invest);">Salvar Aporte</button>
-                            <button type="button" id="btnCancelarInvestEdit" class="reset-btn" style="display: none; padding: 0.6rem 1.2rem;" onclick="cancelInvestEdit()">Cancelar</button>
+                        <!-- Rodapé integrado -->
+                        <div class="nl-mf">
+                            <span class="nl-kbd">Dica: pressione <kbd style="background: var(--field); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); font-size: 11px;">Ctrl</kbd> + <kbd style="background: var(--field); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); font-size: 11px;">Enter</kbd> para salvar rápido</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button type="button" id="btnCancelarInvestEdit" class="nl-btn ghost" style="display: none;" onclick="cancelInvestEdit()">Cancelar</button>
+                                <button type="submit" id="btnSalvarInvest" class="nl-btn" style="background: var(--violet); color: #fff; border: 0; padding: 10px 22px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: filter 0.15s ease;">Salvar Aporte</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -885,7 +913,7 @@
                             <button type="button" data-v="Cartão" onclick="setFormMode('Cartão')">Cartão</button>
                             <button type="button" data-v="Entrada" onclick="setFormMode('Entrada')">Entrada</button>
                         </div>
-                        <input type="hidden" id="i_tipo" value="Despesa">
+                        <select id="i_tipo" style="display:none;"><option value="Despesa" selected>Despesa</option><option value="Receita">Receita</option></select>
                         <input type="hidden" id="i_pagamento" value="PIX">
 
                         <!-- 2. Grid Valor e Data -->
@@ -4730,6 +4758,30 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             }
         }
 
+        
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const investForm = document.getElementById('investForm');
+            if (investForm) {
+                investForm.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        addOrUpdateInvestment(e);
+                    }
+                });
+            }
+        });
+
+        function setInvestQuickDate(offset) {
+            const d = new Date();
+            d.setDate(d.getDate() + offset);
+            const dateInput = document.getElementById('inv_data');
+            if (dateInput) {
+                dateInput.value = formatLocalDateInput(d);
+                dateInput.dispatchEvent(new Event('change'));
+            }
+        }
+
         async function addOrUpdateInvestment(e) {
             if (e) e.preventDefault();
             const btn = document.getElementById('btnSalvarInvest');
@@ -4797,6 +4849,8 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
             const cancelBtn = document.getElementById('btnCancelarInvestEdit');
             if (cancelBtn) cancelBtn.style.display = 'none';
+            const closeBtn = document.getElementById('btnFecharInvestEdit');
+            if (closeBtn) closeBtn.style.display = 'none';
         }
 
         function editTransaction(id) {

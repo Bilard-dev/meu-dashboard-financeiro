@@ -222,7 +222,6 @@ export function filterCurrentMonthRealized(transactions = [], activeFilters = {}
         if (tagVal !== 'all' && !(d.tags || []).some(t => normalizeCatalogName(t) === normalizeCatalogName(tagVal))) return false;
         if (payVal !== 'all' && d.pagamento !== payVal) return false;
         if (cardVal !== 'all' && d.cartao !== cardVal) return false;
-        if (custoVal !== 'all' && d.custo !== custoVal) return false;
         if (minVal !== undefined && !isNaN(minVal) && d.value < minVal) return false;
         if (maxVal !== undefined && !isNaN(maxVal) && d.value > maxVal) return false;
 

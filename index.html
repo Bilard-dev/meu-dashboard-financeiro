@@ -3430,16 +3430,6 @@
                             </select>
                         </div>
                         <div class="input-group">
-                            <label>Tipo de Custo / Rendimento</label>
-                            <select id="an_custo" class="input-field" onchange="runAnaliseGastos()">
-                                <option value="all">Todos os Custos</option>
-                                <option value="Fixo">Fixo</option>
-                                <option value="Variável">Variável</option>
-                                <option value="Renda Fixa">Renda Fixa</option>
-                                <option value="Renda Variável">Renda Variável</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
                             <label>Valor Mínimo (R$)</label>
                             <input type="number" id="an_valor_min" class="input-field" step="0.01" placeholder="Ex: 50.00" oninput="runAnaliseGastos()">
                         </div>
@@ -8367,7 +8357,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
             document.getElementById('i_valor').value = item.value;
             document.getElementById('i_pagamento').value = item.pagamento || 'PIX';
-            document.getElementById('i_custo').value = item.custo;
+            const elCusto = document.getElementById('i_custo'); if (elCusto) elCusto.value = item.custo || 'Variável';
 
             updateDynamicFaturaDropdown(item.faturaDestino || 'ATUAL');
 
@@ -9021,7 +9011,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             setVal('an_tag', 'all');
             setVal('an_pagamento', 'all');
             setVal('an_cartao', 'all');
-            setVal('an_custo', 'all');
             setVal('an_valor_min', '');
             setVal('an_valor_max', '');
             setVal('an_search', '');
@@ -9048,7 +9037,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             const tagVal = document.getElementById('an_tag')?.value || 'all';
             const payVal = document.getElementById('an_pagamento')?.value || 'all';
             const cardVal = document.getElementById('an_cartao')?.value || 'all';
-            const custoVal = document.getElementById('an_custo')?.value || 'all';
             const minVal = parseFloat(document.getElementById('an_valor_min')?.value);
             const maxVal = parseFloat(document.getElementById('an_valor_max')?.value);
             const searchTerm = (document.getElementById('an_search')?.value || '').trim().toLowerCase();
@@ -9209,7 +9197,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     tagVal,
                     payVal,
                     cardVal,
-                    custoVal,
                     minVal,
                     maxVal,
                     searchTerm
@@ -9339,9 +9326,6 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             }
             if (cardVal !== 'all') {
                 filtered = filtered.filter(d => d.cartao === cardVal);
-            }
-            if (custoVal !== 'all') {
-                filtered = filtered.filter(d => d.custo === custoVal);
             }
             if (!isNaN(minVal)) {
                 filtered = filtered.filter(d => d.value >= minVal);

@@ -6925,8 +6925,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             const MONTH_ABBR = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
             next3Months.forEach(m => {
-                const parts = m.yearMonth.split('-');
-                const monthIndex = (parseInt(parts[1], 10) - 1 + 12) % 12;
+                const monthIndex = typeof m.month === 'number' ? m.month : parseInt(m.yearMonth.split('-')[1], 10);
                 const abbr = MONTH_ABBR[monthIndex] || m.label.slice(0, 3);
 
                 const chip = document.createElement('div');

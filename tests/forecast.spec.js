@@ -525,4 +525,42 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
 
         console.log(`Performance medida no navegador (523 txs): 3M=${perfTimes.h3.toFixed(2)}ms, 6M=${perfTimes.h6.toFixed(2)}ms, 12M=${perfTimes.h12.toFixed(2)}ms`);
     });
+
+    test('19. Widget Próximos Meses no Resumo Geral exibe meses subsequentes corretos (não repete o mês atual)', async ({ page }) => {
+        await setupAuthenticatedApp(page, {
+            transactions: [
+                {
+                    id: 'tx-dez',
+                    user_id: mockUser.id,
+                    data: '2026-12-10',
+                    descricao: 'Compra Dezembro',
+                    categoria: 'Geral',
+                    valor: 150.00,
+                    tipo: 'DESPESA',
+                    pagamento: 'PIX'
+                }
+            ]
+        });
+
+        // Simula seleção de Novembro/2026 no seletor de mês
+        await page.evaluate(() => {
+            const sel = document.getElementById('monthSelector');
+            if (sel) {
+                sel.value = '2026-10'; // Novembro/2026
+                sel.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // O widget Próximos meses deve exibir Dez, Jan, Fev (e NÃO Nov)
+        const chips = page.locator('#dashboardForecastCards .chip-up');
+        await expect(chips).toHaveCount(3);
+        const textFirstChip = await chips.nth(0).innerText();
+        const textSecondChip = await chips.nth(1).innerText();
+        const textThirdChip = await chips.nth(2).innerText();
+
+        expect(textFirstChip).toMatch(/^Dez/i);
+        expect(textSecondChip).toMatch(/^Jan/i);
+        expect(textThirdChip).toMatch(/^Fev/i);
+        expect(textFirstChip).not.toMatch(/^Nov/i);
+    });
 });

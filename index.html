@@ -1489,53 +1489,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE LIQUIDAÇÃO ANTECIPADA DO CRÉDITO (FASE 3.5) -->
-    <div id="creditSettlementModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="creditSettlementModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
-        <div class="chart-card" style="max-width:480px; width:92%; max-height:90vh; overflow-y:auto; margin:auto; position:relative;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.6rem;">
-                <h3 id="creditSettlementModalTitle" style="margin:0; font-size:1.15rem; color:var(--primary);">⚡ Quitar Compra do Cartão (PIX)</h3>
-                <button type="button" class="reset-btn" aria-label="Fechar quitação de cartão" onclick="closeCreditSettlementModal()" style="font-size:1.1rem; padding:0.2rem 0.6rem;">✕</button>
-            </div>
-            <p style="font-size:0.875rem; color:var(--text-muted); margin-bottom:1.2rem; line-height:1.4;">
-                Registre a quitação antecipada desta obrigação paga via PIX. A compra original permanecerá salva e a fatura será baixada sem duplicar a despesa.
-            </p>
-
-            <form id="creditSettlementForm" onsubmit="submitCreditSettlement(event)">
-                <input type="hidden" id="settleTransacaoId" value="">
-                <input type="hidden" id="settleGrupoParcelaId" value="">
-                <input type="hidden" id="settleParcelaNumero" value="1">
-                <input type="hidden" id="settleValorOriginal" value="0">
-
-                <div style="background:var(--bg-color); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.9rem; margin-bottom:1.2rem;">
-                    <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.2rem;">Item Selecionado:</div>
-                    <div id="settleItemDesc" style="font-weight:600; font-size:1rem; color:var(--text-main); margin-bottom:0.4rem;">—</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span id="settleItemParcela" style="font-size:0.85rem; background:var(--primary-light); color:var(--primary); padding:2px 8px; border-radius:var(--radius-sm); font-weight:600;">Parcela 1/1</span>
-                        <span id="settleItemValor" style="font-size:1.1rem; font-weight:700; color:var(--danger);">R$ 0,00</span>
-                    </div>
-                </div>
-
-                <div class="input-group" style="margin-bottom:1rem;">
-                    <label for="settleDataLiquidacao">Data do Pagamento / PIX *</label>
-                    <input type="date" id="settleDataLiquidacao" class="input-field" required>
-                </div>
-
-                <div class="input-group" style="margin-bottom:1.5rem;">
-                    <label for="settleFormaLiquidacao">Forma de Liquidação *</label>
-                    <select id="settleFormaLiquidacao" class="input-field" required>
-                        <option value="PIX" selected>PIX</option>
-                        <option value="Transferência Bancária">Transferência Bancária</option>
-                        <option value="Saldo em Conta">Saldo em Conta</option>
-                    </select>
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:0.6rem;">
-                    <button type="button" class="btn-secondary" onclick="closeCreditSettlementModal()" style="width:auto; padding:0.6rem 1.2rem;">Cancelar</button>
-                    <button type="submit" class="btn-primary" id="btnConfirmSettlement" style="width:auto; padding:0.6rem 1.5rem; background:var(--success);">Confirmar Quitação</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    
 
     <!-- BACKDROP & TELA DE LANÇAMENTO RÁPIDO MOBILE / BOLSO -->
     
@@ -2590,21 +2544,12 @@
             document.getElementById('dashboard').style.display = 'none';
 
             try {
-                const [txsRes, settlementsRes, schedulesRes, occsRes] = await Promise.all([
-                    transactionsFetch(),
-                    currentUser ? fetchCreditSettlements(currentUser.id) : Promise.resolve({ data: [], error: null }),
-                ]);
-
+                                const txsRes = await transactionsFetch();
                 if (txsRes.error) throw txsRes.error;
 
                 rawSupabaseData = txsRes.data || [];
-                if (settlementsRes.error?.isTableMissing) {
-                    window.creditSettlementAvailable = false;
-                    console.warn('[Dashboard] Módulo de Liquidação Antecipada desativado: tabela public.liquidacoes_credito pendente no Supabase.');
-                } else {
-                    window.creditSettlementAvailable = true;
-                }
-                globalCreditSettlements = settlementsRes.data || [];
+                globalCreditSettlements = [];
+                window.creditSettlementAvailable = true;
                 globalSchedules = [];
                 globalScheduleOccurrences = [];
                 filterDataByActiveProfile();
@@ -6129,19 +6074,11 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
                     const subcatText = item.subCat ? ` <span style="color:var(--muted); font-size:12px;">(${escapeHtml(item.subCat)})</span>` : '';
 
-                    let actsHtml = '';
-                    if (item.isSettlementEvent) {
-                        actsHtml = `
-                            <button type="button" title="Ver Faturas" onclick="switchTab('parcelas')">💳</button>
-                            <button type="button" title="Desfazer Quitação" onclick="revertCreditSettlement('${item.transacao_id}', ${item.parcela ? parseInt(item.parcela.split('/')[0]) || 1 : 1})">↩</button>
-                        `;
-                    } else {
-                        actsHtml = `
-                            <button type="button" title="Editar" onclick="editTransaction('${item.id}')">✎</button>
-                            <button type="button" title="Duplicar" onclick="duplicateTransaction('${item.id}')">⧉</button>
-                            <button type="button" title="Excluir" onclick="quickDeleteTransaction('${item.id}')">🗑</button>
-                        `;
-                    }
+                    const actsHtml = `
+                        <button type="button" title="Editar" onclick="editTransaction('${item.id}')">✎</button>
+                        <button type="button" title="Duplicar" onclick="duplicateTransaction('${item.id}')">⧉</button>
+                        <button type="button" title="Excluir" onclick="quickDeleteTransaction('${item.id}')">🗑</button>
+                    `;
 
                     tr.innerHTML = `
                         <td class="dot-col">
@@ -6428,38 +6365,13 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                         <button class="action-icon-btn" title="Cancelar esta Ocorrência" onclick="cancelScheduleOccurrenceDirect(${ocorrenciaIdParam})">❌</button>
                     `;
                     tr.style.background = 'rgba(245, 158, 11, 0.05)';
-                } else if (isLiquidado) {
-                    const forma = item.liquidacao?.forma_liquidacao || 'PIX';
-                    const dataLiq = item.liquidacao?.data_liquidacao ? item.liquidacao.data_liquidacao.split('-').reverse().join('/') : '';
-                    statusBadge = `<span class="tag-status tag-done" title="Liquidada em ${escapeHtml(dataLiq)} via ${escapeHtml(forma)}">⚡ Quitada (${escapeHtml(forma)})</span>`;
-                    valorHtml = `<span style="text-decoration: line-through; opacity: 0.65;">${fmt(item.value)}</span>`;
-                    const grupoIdParam = item.grupo_parcela_id ? `'${item.grupo_parcela_id}'` : "''";
-                    actionBtns = `
-                        <button class="action-icon-btn settle-revert-btn" title="Reverter Quitação" onclick="revertCreditSettlement('${item.id}', ${item.parcelaNoMes}, ${grupoIdParam})">↩️</button>
-                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
-                    `;
                 } else {
                     statusBadge = `<span class="tag-status tag-open">📅 Fatura ${monthNamesBR[targetMonth]}/${targetYear}</span>`;
                     valorHtml = `${fmt(item.value)}`;
-                    if (item.isRecorrente) {
-                        actionBtns = `
-                            <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                            <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
-                        `;
-                    } else {
-                        const safeDescEsc = escapeHtml(item.desc || '').replace(/'/g, "\\'");
-                        const grupoIdParam = item.grupo_parcela_id ? `'${item.grupo_parcela_id}'` : "''";
-                        actionBtns = `
-                            <button class="action-icon-btn settle-btn" title="Quitar com PIX (Liquidação Antecipada)" onclick="openCreditSettlementModal('${item.id}', ${grupoIdParam}, ${item.parcelaNoMes}, ${item.value}, '${safeDescEsc}')">⚡</button>
-                            <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
-                            <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
-                        `;
-                    }
-                }
-
-                if (isLiquidado) {
-                    tr.style.background = 'var(--success-light)';
+                    actionBtns = `
+                        <button class="action-icon-btn" title="Editar" onclick="editTransaction('${item.id}')">✏️</button>
+                        <button class="action-icon-btn" title="Excluir" onclick="deleteTransaction('${item.id}')">🗑️</button>
+                    `;
                 }
 
                 tr.innerHTML = `
@@ -6479,131 +6391,10 @@ async function addOrUpdateTransaction(e, isBatch = false) {
         /* ==========================================================
            14. MODAIS E AÇÕES DE LIQUIDAÇÃO ANTECIPADA (FASE 3.5)
            ========================================================== */
-        function openCreditSettlementModal(transacaoId, grupoParcelaId, parcelaNumero, valor, desc) {
-            if (window.creditSettlementAvailable === false) {
-                showToast('Recurso indisponível: a migration do banco de dados (public.liquidacoes_credito) ainda não foi aplicada no Supabase.', 'error');
-                return;
-            }
-
-            const modal = document.getElementById('creditSettlementModal');
-            if (!modal) return;
-
-            document.getElementById('settleTransacaoId').value = transacaoId || '';
-            document.getElementById('settleGrupoParcelaId').value = grupoParcelaId || '';
-            document.getElementById('settleParcelaNumero').value = parcelaNumero || 1;
-            document.getElementById('settleValorOriginal').value = valor || 0;
-            document.getElementById('settleItemDesc').innerText = desc || 'Lançamento no Cartão';
-            document.getElementById('settleItemParcela').innerText = parcelaNumero > 1 ? `Parcela ${parcelaNumero}` : 'À vista / Parcela 1';
-            document.getElementById('settleItemValor').innerText = fmt(valor || 0);
-            document.getElementById('settleDataLiquidacao').value = formatLocalDateInput(new Date());
-            document.getElementById('settleFormaLiquidacao').value = 'PIX';
-
-            modal.style.display = 'flex';
-        }
-
-        function closeCreditSettlementModal() {
-            const modal = document.getElementById('creditSettlementModal');
-            if (modal) modal.style.display = 'none';
-        }
-
-        async function submitCreditSettlement(e) {
-            if (e) e.preventDefault();
-            if (!currentUser) return;
-
-            const transacaoId = document.getElementById('settleTransacaoId').value;
-            const grupoParcelaId = document.getElementById('settleGrupoParcelaId').value || null;
-            const parcelaNumero = parseInt(document.getElementById('settleParcelaNumero').value, 10) || 1;
-            const valor = parseFloat(document.getElementById('settleValorOriginal').value) || 0;
-            const dataLiq = document.getElementById('settleDataLiquidacao').value || formatLocalDateInput(new Date());
-            const formaLiq = document.getElementById('settleFormaLiquidacao').value || 'PIX';
-
-            const payload = {
-                user_id: currentUser.id,
-                transacao_id: transacaoId,
-                grupo_parcela_id: grupoParcelaId,
-                parcela_numero: parcelaNumero,
-                valor: valor,
-                data_liquidacao: dataLiq,
-                forma_liquidacao: formaLiq,
-                status: 'ATIVA'
-            };
-
-            const valRes = validateSettlementPayload(payload, { value: valor, total: 999, isRecorrente: false });
-            if (!valRes.valid) {
-                showToast(valRes.error || 'Dados de quitação inválidos.', 'error');
-                return;
-            }
-
-            const btn = document.getElementById('btnConfirmSettlement');
-            if (btn) btn.disabled = true;
-
-            try {
-                const { data, error } = await insertCreditSettlement(payload);
-                if (error) {
-                    console.error('Erro ao registrar quitação:', error);
-                    showToast('Não foi possível registrar a quitação: ' + (error.message || 'Erro desconhecido.'), 'error');
-                    return;
-                }
-
-                const createdItem = (Array.isArray(data) && data[0]) ? data[0] : payload;
-                globalCreditSettlements = globalCreditSettlements.filter(s => {
-                    const sNum = Number(s.parcela_numero) || 1;
-                    if (sNum !== parcelaNumero) return true;
-                    if (grupoParcelaId && s.grupo_parcela_id && s.grupo_parcela_id === grupoParcelaId) return false;
-                    if (transacaoId && s.transacao_id && s.transacao_id === transacaoId) return false;
-                    return true;
-                });
-                globalCreditSettlements.push(createdItem);
-
-                closeCreditSettlementModal();
-                showToast('Quitação registrada com sucesso via PIX!', 'success');
-                setupMonthSelector();
-                renderParcelasTab();
-                updateDashboard(document.getElementById('monthSelector')?.value);
-                try { if (typeof renderForecastTab === 'function') renderForecastTab(); } catch (fErr) { console.warn('Erro ao atualizar previsão após quitação:', fErr); }
-            } catch (err) {
-                console.error('Exceção ao quitar crédito:', err);
-                showToast('Erro ao registrar quitação: ' + err.message, 'error');
-            } finally {
-                if (btn) btn.disabled = false;
-            }
-        }
-
-        async function revertCreditSettlement(transacaoId, parcelaNumero = 1, grupoParcelaId = null) {
-            if (!currentUser || (!transacaoId && !grupoParcelaId)) return;
-
-            if (!confirm('Deseja reverter a quitação desta obrigação? Ela voltará a constar como pendente na fatura.')) {
-                return;
-            }
-
-            try {
-                const { error } = await cancelCreditSettlement(currentUser.id, transacaoId, parcelaNumero);
-                if (error) {
-                    console.error('Erro ao reverter quitação:', error);
-                    showToast('Não foi possível reverter a quitação: ' + (error.message || 'Erro desconhecido.'), 'error');
-                    return;
-                }
-
-                globalCreditSettlements = globalCreditSettlements.map(s => {
-                    const sNum = Number(s.parcela_numero) || 1;
-                    const matchTx = (transacaoId && s.transacao_id === transacaoId);
-                    const matchGroup = (grupoParcelaId && s.grupo_parcela_id === grupoParcelaId);
-                    if ((matchTx || matchGroup) && sNum === Number(parcelaNumero)) {
-                        return { ...s, status: 'CANCELADA', cancelled_at: new Date().toISOString() };
-                    }
-                    return s;
-                });
-
-                showToast('Quitação revertida com sucesso!', 'success');
-                setupMonthSelector();
-                renderParcelasTab();
-                updateDashboard(document.getElementById('monthSelector')?.value);
-                try { if (typeof renderForecastTab === 'function') renderForecastTab(); } catch (fErr) { console.warn('Erro ao atualizar previsão após reversão:', fErr); }
-            } catch (err) {
-                console.error('Exceção ao reverter quitação:', err);
-                showToast('Erro ao reverter quitação: ' + err.message, 'error');
-            }
-        }
+        function openCreditSettlementModal() {}
+        function closeCreditSettlementModal() {}
+        async function submitCreditSettlement() {}
+        async function revertCreditSettlement() {}
 
         function renderManageLists() {
             const catContainer = document.getElementById('manageCategoriesList');

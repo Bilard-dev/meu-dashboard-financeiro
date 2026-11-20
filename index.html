@@ -6,7 +6,7 @@
     <title>Dashboard Financeiro Pessoal</title>
 
     <!-- PWA & Mobile Meta Tags -->
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#0d1220">
     <meta name="description" content="Gestão Patrimonial & Controladoria Financeira Pessoal">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,7 +28,7 @@
 
     <style>
         :root {
-            /* Paleta Sóbria e Moderna (Protótipo) */
+            /* Paleta Sóbria, Moderna e Escura (Etapa 4) */
             --bg: #0d1220;
             --panel: #141b2e;
             --panel2: #1a2338;
@@ -41,9 +41,8 @@
             --violet: #9d8cff;
             --blue: #4f8cff;
             --amber: #f0b84a;
-            --radius: 14px;
 
-            /* Mapeamento padrão do sistema */
+            /* Mapeamento Canônico do Design System */
             --bg-color: var(--bg);
             --card-bg: var(--panel);
             --card-header-bg: var(--panel2);
@@ -51,43 +50,29 @@
             --text-muted: var(--muted);
             --primary: var(--blue);
             --primary-hover: #3b74db;
+            --primary-light: rgba(79, 140, 255, 0.12);
+            --primary-border: var(--line);
             --success: var(--green);
+            --success-btn: var(--green);
+            --success-hover: #3eb37c;
+            --success-light: rgba(76, 195, 138, 0.12);
             --danger: var(--red);
+            --danger-hover: #dc5c59;
+            --danger-light: rgba(239, 111, 108, 0.12);
             --warning: var(--amber);
+            --warning-light: rgba(240, 184, 74, 0.12);
             --invest: var(--violet);
+            --invest-light: rgba(157, 140, 255, 0.12);
             --border: var(--line);
             --border-subtle: var(--line);
             --input-bg: var(--field);
-            --table-hover: #ffffff06;
-            --card-bg: #ffffff;
-            --card-header-bg: #f8fafc;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --primary-light: #eff6ff;
-            --primary-border: #bfdbfe;
-            --success: #10b981;
-            --success-btn: #059669;
-            --success-hover: #047857;
-            --success-light: #ecfdf5;
-            --danger: #ef4444;
-            --danger-hover: #dc2626;
-            --danger-light: #fef2f2;
-            --warning: #f59e0b;
-            --warning-light: #fffbeb;
-            --invest: #8b5cf6;
-            --invest-light: #f5f3ff;
-            --border: #e2e8f0;
-            --border-subtle: #f1f5f9;
-            --input-bg: #ffffff;
-            --table-hover: #f8fafc;
-            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            --table-hover: rgba(255, 255, 255, 0.03);
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.45);
             --radius-xs: 4px;
-            --radius-sm: 6px;
+            --radius-sm: 8px;
             --radius-md: 10px;
             --radius-lg: 14px;
             --radius-xl: 18px;
@@ -97,42 +82,51 @@
         }
 
         body.dark-theme {
-            --bg-color: #0b1120;
-            --card-bg: #151f32;
-            --card-header-bg: #0f172a;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --primary-light: #1e293b;
-            --primary-border: #1e3a8a;
-            --success: #10b981;
-            --success-btn: #059669;
-            --success-hover: #047857;
-            --success-light: #064e3b;
-            --danger: #f87171;
-            --danger-hover: #ef4444;
-            --danger-light: #450a0a;
-            --warning: #fbbf24;
-            --warning-light: #451a03;
-            --invest: #a78bfa;
-            --invest-light: #2e1065;
-            --border: #1e293b;
-            --border-subtle: #172554;
-            --input-bg: #1e293b;
-            --table-hover: #1e293b;
-            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+            --bg-color: var(--bg);
+            --card-bg: var(--panel);
+            --card-header-bg: var(--panel2);
+            --text-main: var(--text);
+            --text-muted: var(--muted);
+            --primary: var(--blue);
+            --primary-hover: #3b74db;
+            --primary-light: rgba(79, 140, 255, 0.12);
+            --primary-border: var(--line);
+            --success: var(--green);
+            --success-btn: var(--green);
+            --danger: var(--red);
+            --warning: var(--amber);
+            --invest: var(--violet);
+            --border: var(--line);
+            --border-subtle: var(--line);
+            --input-bg: var(--field);
+            --table-hover: rgba(255, 255, 255, 0.03);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: var(--line) transparent;
             -webkit-font-smoothing: antialiased;
+        }
+
+        
+        /* Barra de rolagem discreta e elegante em todo o app (Etapa 4) */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--line);
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--muted);
         }
 
         *:focus-visible {

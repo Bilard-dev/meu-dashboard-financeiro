@@ -432,7 +432,8 @@ test.describe('Fase 4.5-B5 — Fechamento Final da Autorização Admin e Governa
         await expect(tabAdminBtn).toBeVisible();
 
         // Navega para Minha Conta e verifica card de acesso
-        await page.click('button:has-text("Minha Conta")');
+        await page.click('#menuBtn');
+        await page.click('#headerMenuList button:has-text("Minha Conta")');
         const adminAccountCard = page.locator('#adminAccountCard');
         await expect(adminAccountCard).toBeVisible();
     });

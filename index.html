@@ -2130,6 +2130,8 @@
                 if (isAdmin) {
                     const tabAdminBtn = document.getElementById('tabAdminBtn');
                     if (tabAdminBtn) tabAdminBtn.style.display = 'inline-flex';
+                    const menuAdminBtn = document.getElementById('menuAdminBtn');
+                    if (menuAdminBtn) menuAdminBtn.style.display = 'block';
 
                     const adminAccountCard = document.getElementById('adminAccountCard');
                     if (adminAccountCard) adminAccountCard.style.display = 'block';
@@ -2149,6 +2151,8 @@
                 // Configurações para usuário não-admin
                 const tabAdminBtn = document.getElementById('tabAdminBtn');
                 if (tabAdminBtn) tabAdminBtn.style.display = 'none';
+                const menuAdminBtn = document.getElementById('menuAdminBtn');
+                if (menuAdminBtn) menuAdminBtn.style.display = 'none';
 
                 const adminAccountCard = document.getElementById('adminAccountCard');
                 if (adminAccountCard) adminAccountCard.style.display = 'none';
@@ -2211,6 +2215,8 @@
 
                 const tabAdminBtn = document.getElementById('tabAdminBtn');
                 if (tabAdminBtn) tabAdminBtn.style.display = 'none';
+                const menuAdminBtn = document.getElementById('menuAdminBtn');
+                if (menuAdminBtn) menuAdminBtn.style.display = 'none';
                 const adminAccountCard = document.getElementById('adminAccountCard');
                 if (adminAccountCard) adminAccountCard.style.display = 'none';
                 const mobileMoreAdminBtn = document.getElementById('mobileMoreAdminBtn');

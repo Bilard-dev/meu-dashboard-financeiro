@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard Financeiro Pessoal</title>
 
     <!-- PWA & Mobile Meta Tags -->
@@ -192,28 +192,39 @@
         <header>
             <div class="brand">Painel Financeiro</div>
             
-            <!-- Controle de Mês Compacto (‹ Mês Ano ›) -->
             <!-- Controle de Mês Compacto com Select Integrado -->
             <div class="month">
-                <button type="button" id="prevMonthBtn" onclick="changeMonthOffset(-1)" aria-label="Mês anterior">‹</button>
-                <span id="monthLabel" style="display:none;">Mês Atual</span>
+                <button type="button" id="prevMonthBtn" onclick="changeMonthOffset(-1)" aria-label="Mês anterior">
+                    <span class="desktop-arrow">‹</span>
+                    <svg class="mobile-arrow" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+                </button>
+                <span id="monthLabel" class="ml" style="display:none;">Mês Atual</span>
                 <select id="monthSelector" class="month-select" style="background:transparent; border:0; color:var(--text); font-weight:700; font-size:13px; padding:6px 10px; outline:none; cursor:pointer; text-align:center;">
                     <option value="all">Ano Inteiro</option>
                 </select>
-                <button type="button" id="nextMonthBtn" onclick="changeMonthOffset(1)" aria-label="Próximo mês">›</button>
+                <button type="button" id="nextMonthBtn" onclick="changeMonthOffset(1)" aria-label="Próximo mês">
+                    <span class="desktop-arrow">›</span>
+                    <svg class="mobile-arrow" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
             </div>
 
             <!-- Ações Rápidas do Header -->
             <div class="header-actions">
                 <!-- Botão Privacidade (Modo Ocultar Valores) -->
-                <button type="button" class="icon-btn" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">👁️</button>
+                <button type="button" class="icon-btn ib" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">
+                    <span class="ib-emoji">👁️</span>
+                    <svg class="ib-svg" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
 
                 <!-- Botão de Destaque Novo Registro (Visível em Desktop, FAB no Mobile) -->
                 <button type="button" class="btn new" id="tabNovoBtn" onclick="switchTab('novo')">➕ Novo Registro</button>
 
                 <!-- Menu Dropdown da Conta e Configurações -->
                 <div class="menu" id="headerMenu">
-                    <button type="button" class="icon-btn" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">☰</button>
+                    <button type="button" class="icon-btn ib" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">
+                        <span class="ib-emoji">☰</span>
+                        <svg class="ib-svg" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                    </button>
                     <div class="menu-list" id="headerMenuList">
                         <button type="button" onclick="switchTab('novo'); closeHeaderMenu();">➕ Novo lançamento</button>
                         <button type="button" id="menuPrivacyBtn" onclick="togglePrivacy(); closeHeaderMenu();">👁️ <span id="menuPrivacyText">Ocultar valores</span></button>
@@ -257,20 +268,26 @@
                         <div class="bar"><i id="sobraProgressFill" style="width: 0%;"></i></div>
                         <div class="sub" id="kpi-saldo-detalhes">Você gastou <b>0.0%</b> da receita</div>
                     </div>
-                    <div class="card">
-                        <div class="label">Receitas</div>
+                    <div class="card kpi-card-rec">
+                        <div class="kpi-left">
+                            <div class="label">Receitas</div>
+                            <div class="sub" id="kpi-receitas-detalhes">0 entradas</div>
+                        </div>
                         <div class="big green money" id="kpi-receitas">R$ 0,00</div>
-                        <div class="sub" id="kpi-receitas-detalhes">0 entradas</div>
                     </div>
-                    <div class="card">
-                        <div class="label">Despesas</div>
+                    <div class="card kpi-card-desp">
+                        <div class="kpi-left">
+                            <div class="label">Despesas</div>
+                            <div class="sub" id="kpi-despesas-detalhes">Cartão <b class="money">R$ 0,00</b><br>PIX <b class="money">R$ 0,00</b></div>
+                        </div>
                         <div class="big red money" id="kpi-despesas">R$ 0,00</div>
-                        <div class="sub" id="kpi-despesas-detalhes">Cartão <b class="money">R$ 0,00</b><br>PIX <b class="money">R$ 0,00</b></div>
                     </div>
-                    <div class="card">
-                        <div class="label">Aportes</div>
+                    <div class="card kpi-card-apo" id="kpi-investimentos-card">
+                        <div class="kpi-left">
+                            <div class="label">Aportes</div>
+                            <div class="sub" id="kpi-investimentos-detalhes">Nenhum aporte neste mês</div>
+                        </div>
                         <div class="big violet money" id="kpi-investimentos">R$ 0,00</div>
-                        <div class="sub" id="kpi-investimentos-detalhes">Nenhum aporte neste mês</div>
                     </div>
                 </section>
 
@@ -278,23 +295,24 @@
 
                 <!-- 2. PRÓXIMOS MESES (FAIXA COMPACTA SEM DINHEIRO VIVO) -->
                 <div class="upcoming" id="dashboardForecastWidget">
-                    <div class="upcoming-header-row">
-                        <span>Próximos meses</span>
-                        <button type="button" class="action-btn" onclick="switchTab('previsao')" style="background:transparent; border:0; color:var(--blue); font-size:12px; font-weight:700; cursor:pointer; padding:0; text-decoration:none;">Ver Previsão Completa ➔</button>
+                    <div class="upcoming-header-row uph">
+                        <h2>Próximos meses</h2>
+                        <a id="prev2" onclick="switchTab('previsao')" class="forecast-link">Ver previsão ›</a>
                     </div>
-                    <div id="dashboardForecastCards" style="display:flex; gap:10px; align-items:center;"></div>
+                    <div id="dashboardForecastCards" class="strip"></div>
                     <!-- Elemento mantido oculto para compatibilidade interna de scripts -->
                     <span id="kpi-dinheiro-vivo" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px; overflow:hidden;"></span>
                 </div>
 
                 <!-- 3. LANÇAMENTOS (EXTRATO INTEGRADO) -->
-                <div class="tools">
+                <div class="tools hh">
                     <h2>Lançamentos</h2>
                     <div class="chips" id="extratoChips">
                         <button type="button" class="chip on" data-f="ALL" onclick="setExtratoFilter('ALL', this)">Todos</button>
                         <button type="button" class="chip" data-f="CARTAO" onclick="setExtratoFilter('CARTAO', this)">Cartão</button>
                         <button type="button" class="chip" data-f="PIX" onclick="setExtratoFilter('PIX', this)">PIX</button>
                         <button type="button" class="chip" data-f="RECEITA" onclick="setExtratoFilter('RECEITA', this)">Entradas</button>
+                        <button type="button" class="chip" data-f="INVESTIMENTO" onclick="setExtratoFilter('INVESTIMENTO', this)">Aportes</button>
                     </div>
                     <select id="typeFilterSelector" style="display:none;" onchange="applyExtratoFilters()">
                         <option value="ALL">Todos os Tipos</option>
@@ -304,7 +322,10 @@
                         <option value="PIX">PIX</option>
                         <option value="INVESTIMENTO">Investimentos</option>
                     </select>
-                    <input type="text" id="searchInput" class="search" placeholder="Buscar descrição ou tag…" oninput="applyExtratoFilters()">
+                    <label class="search search-wrap">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <input type="text" id="searchInput" placeholder="Buscar descrição ou tag…" oninput="applyExtratoFilters()">
+                    </label>
                 </div>
 
                 <div class="list">
@@ -1552,24 +1573,24 @@
         </div>
 
         <!-- BOTTOM NAVIGATION MOBILE (<= 768px) -->
-        <nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Navegação Principal Mobile">
-            <button type="button" class="bottom-nav-item active" id="bnav-resumo" onclick="switchTab('resumo')" aria-label="Início" aria-current="page">
-                <span class="bnav-icon" aria-hidden="true">🏠</span>
+        <nav id="mobileBottomNav" class="mobile-bottom-nav tabbar" aria-label="Navegação Principal Mobile">
+            <button type="button" class="bottom-nav-item tab active on" id="bnav-resumo" onclick="switchTab('resumo')" aria-label="Início" aria-current="page" data-n="Início">
+                <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>
                 <span class="bnav-label">Início</span>
             </button>
-            <button type="button" class="bottom-nav-item" id="bnav-parcelas" onclick="switchTab('parcelas')" aria-label="Faturas / Parcelas / Cartão">
-                <span class="bnav-icon" aria-hidden="true">💳</span>
+            <button type="button" class="bottom-nav-item tab" id="bnav-parcelas" onclick="switchTab('parcelas')" aria-label="Faturas" data-n="Faturas">
+                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>
                 <span class="bnav-label">Faturas</span>
             </button>
-            <button type="button" class="bottom-nav-fab" id="bnav-fab" onclick="switchTab('novo')" aria-label="Novo lançamento">
-                <span class="bnav-fab-icon" aria-hidden="true">➕</span>
+            <button type="button" class="bottom-nav-fab fab" id="bnav-fab" onclick="switchTab('novo')" aria-label="Novo registro">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
             </button>
-            <button type="button" class="bottom-nav-item" id="bnav-investimentos" onclick="switchTab('investimentos')" aria-label="Investimentos">
-                <span class="bnav-icon" aria-hidden="true">💼</span>
+            <button type="button" class="bottom-nav-item tab" id="bnav-investimentos" onclick="switchTab('investimentos')" aria-label="Investimentos" data-n="Investimentos">
+                <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
                 <span class="bnav-label">Investimentos</span>
             </button>
-            <button type="button" class="bottom-nav-item" id="bnav-mais" onclick="toggleMobileMoreSheet()" aria-label="Mais opções e menus" aria-haspopup="dialog" aria-expanded="false">
-                <span class="bnav-icon" aria-hidden="true">☰</span>
+            <button type="button" class="bottom-nav-item tab" id="bnav-mais" onclick="openMobileMoreSheet()" aria-label="Mais" data-n="Mais">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <span class="bnav-label">Mais</span>
             </button>
         </nav>
@@ -1653,6 +1674,10 @@
             </div>
         </div>
     </div>
+
+    <!-- UNIVERSAL MOBILE BOTTOM SHEET & TOAST (REFERÊNCIA MOBILE) -->
+    <div class="sbg" id="sbg" onclick="handleMobileSheetBackdropClick(event)"><div class="sheet" id="sheet"></div></div>
+    <div class="toast" id="toast"><span id="tt"></span><button type="button" id="undo">Desfazer</button></div>
 
     <!-- MODAL DE CONFIGURAÇÃO DE TETOS DE GASTOS (BUDGETING) -->
     <div id="budgetConfigModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;">
@@ -4579,56 +4604,63 @@
         window.addEventListener('hashchange', handleHashChange);
 
         function updateBottomNavActive(tabId) {
-            const bnavItems = document.querySelectorAll('.bottom-nav-item');
-            bnavItems.forEach(item => {
-                item.classList.remove('active');
-                item.removeAttribute('aria-current');
+            document.querySelectorAll('.bottom-nav-item, .tab').forEach(i => {
+                i.classList.remove('active', 'on');
+                i.removeAttribute('aria-current');
             });
 
             if (tabId === 'resumo') {
                 const item = document.getElementById('bnav-resumo');
-                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+                if (item) { item.classList.add('active', 'on'); item.setAttribute('aria-current', 'page'); }
             } else if (tabId === 'parcelas') {
                 const item = document.getElementById('bnav-parcelas');
-                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+                if (item) { item.classList.add('active', 'on'); item.setAttribute('aria-current', 'page'); }
             } else if (tabId === 'investimentos') {
                 const item = document.getElementById('bnav-investimentos');
-                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
-            } else {
-                // Rotas secundárias no menu "Mais" (analise, previsao, metas, gerenciar-listas, conta, novo)
+                if (item) { item.classList.add('active', 'on'); item.setAttribute('aria-current', 'page'); }
+            } else if (tabId !== 'novo') {
                 const item = document.getElementById('bnav-mais');
-                if (item) { item.classList.add('active'); item.setAttribute('aria-current', 'page'); }
+                if (item) { item.classList.add('active', 'on'); item.setAttribute('aria-current', 'page'); }
             }
         }
 
         function openMobileMoreSheet() {
-            const sheet = document.getElementById('mobileMoreSheet');
-            const overlay = document.getElementById('mobileMoreSheetOverlay');
-            const maisBtn = document.getElementById('bnav-mais');
-            if (sheet && overlay) {
-                overlay.style.display = 'block';
-                sheet.style.display = 'block';
-                if (maisBtn) maisBtn.setAttribute('aria-expanded', 'true');
-                document.addEventListener('keydown', handleMoreSheetKeydown);
-            }
+            const svgChevron = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;margin-left:auto;color:var(--muted);stroke:currentColor;fill:none;stroke-width:2;"><path d="M9 6l6 6-6 6"/></svg>';
+            const html = `
+                <div class="sh"><b>Mais Opções</b><span>Navegação e configurações</span></div>
+                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('analise');">
+                    <span>Análise de Gastos</span>${svgChevron}
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('previsao');">
+                    <span>Previsão Financeira</span>${svgChevron}
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('gerenciar-listas');">
+                    <span>Categorias</span>${svgChevron}
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('conta');">
+                    <span>Minha Conta</span>${svgChevron}
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('admin');">
+                    <span>Central Admin</span>${svgChevron}
+                </button>
+            `;
+            openMobileSheet(html);
         }
 
         function closeMobileMoreSheet() {
+            closeMobileSheet();
             const sheet = document.getElementById('mobileMoreSheet');
             const overlay = document.getElementById('mobileMoreSheetOverlay');
+            if (sheet) sheet.style.display = 'none';
+            if (overlay) overlay.style.display = 'none';
             const maisBtn = document.getElementById('bnav-mais');
-            if (sheet && overlay) {
-                overlay.style.display = 'none';
-                sheet.style.display = 'none';
-                if (maisBtn) maisBtn.setAttribute('aria-expanded', 'false');
-                document.removeEventListener('keydown', handleMoreSheetKeydown);
-            }
+            if (maisBtn) maisBtn.setAttribute('aria-expanded', 'false');
         }
 
         function toggleMobileMoreSheet() {
-            const sheet = document.getElementById('mobileMoreSheet');
-            if (sheet && sheet.style.display === 'block') {
-                closeMobileMoreSheet();
+            const sbg = document.getElementById('sbg');
+            if (sbg && sbg.classList.contains('open')) {
+                closeMobileSheet();
             } else {
                 openMobileMoreSheet();
             }
@@ -4964,9 +4996,57 @@
         /* ==========================================================
            ETAPA 3: NAVEGAÇÃO, MÊS COMPACTO E MENU DROPDOWN
            ========================================================== */
+        const MONTH_NAMES_FULL_BR = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        function openMobileSheet(html) {
+            const sbg = document.getElementById('sbg');
+            const sheetEl = document.getElementById('sheet');
+            if (!sbg || !sheetEl) return;
+            sheetEl.innerHTML = '<div class="grip"></div>' + html;
+            sbg.classList.add('open');
+        }
+
+        function closeMobileSheet() {
+            const sbg = document.getElementById('sbg');
+            if (sbg) sbg.classList.remove('open');
+        }
+
+        function handleMobileSheetBackdropClick(e) {
+            if (e.target && e.target.id === 'sbg') {
+                closeMobileSheet();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeMobileSheet();
+            }
+        });
+
+        function openMobileMenuSheet() {
+            const svgChevron = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;margin-left:auto;color:var(--muted);stroke:currentColor;fill:none;stroke-width:2;"><path d="M9 6l6 6-6 6"/></svg>';
+            const html = `
+                <div class="sh"><b>Painel Financeiro</b><span>Ações rápidas da conta</span></div>
+                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('novo');">
+                    <span>➕ Lançador celular</span>${svgChevron}
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); manualSync();">
+                    <span>🔄 Sincronizar</span>${svgChevron}
+                </button>
+                <button type="button" class="act del" onclick="closeMobileSheet(); logout();">
+                    <span>🚪 Sair</span>${svgChevron}
+                </button>
+            `;
+            openMobileSheet(html);
+        }
+
         function toggleHeaderMenu() {
-            const menu = document.getElementById('headerMenu');
-            if (menu) menu.classList.toggle('open');
+            if (window.innerWidth <= 768) {
+                openMobileMenuSheet();
+            } else {
+                const menu = document.getElementById('headerMenu');
+                if (menu) menu.classList.toggle('open');
+            }
         }
 
         function closeHeaderMenu() {
@@ -4988,7 +5068,18 @@
 
             const selectedOpt = sel.options[sel.selectedIndex];
             if (selectedOpt) {
-                label.textContent = selectedOpt.textContent || selectedOpt.value;
+                if (selectedOpt.value && selectedOpt.value.includes('-')) {
+                    const [y, m] = selectedOpt.value.split('-').map(Number);
+                    if (MONTH_NAMES_FULL_BR[m]) {
+                        label.textContent = `${MONTH_NAMES_FULL_BR[m]} ${y}`;
+                    } else {
+                        label.textContent = selectedOpt.textContent || selectedOpt.value;
+                    }
+                } else if (selectedOpt.value === 'all') {
+                    label.textContent = 'Todo o Histórico';
+                } else {
+                    label.textContent = selectedOpt.textContent || selectedOpt.value;
+                }
             }
         }
 
@@ -4996,7 +5087,7 @@
             const sel = document.getElementById('monthSelector');
             if (!sel || sel.options.length === 0) return;
 
-            let newIdx = sel.selectedIndex - delta; // Em listas cronológicas descendentes, anterior = +1, próximo = -1
+            let newIdx = sel.selectedIndex + delta;
             if (newIdx < 0) newIdx = 0;
             if (newIdx >= sel.options.length) newIdx = sel.options.length - 1;
 
@@ -5537,11 +5628,12 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 return (y1 * 12 + m1) - (y2 * 12 + m2);
             });
 
+            const mList = window.monthNamesBR || window.MONTH_NAMES_BR || MONTH_NAMES_FULL_BR;
             sortedKeys.forEach(ym => {
                 const [y, m] = ym.split('-').map(Number);
                 const opt = document.createElement('option');
                 opt.value = ym;
-                opt.textContent = `${monthNamesBR[m].substring(0, 3)} ${y}`;
+                opt.textContent = `${(mList && mList[m] ? mList[m].substring(0, 3) : m)} ${y}`;
                 select.appendChild(opt);
             });
 
@@ -6647,6 +6739,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             return dateStr;
         }
 
+        const fmt = (val) => (typeof window.fmt === 'function' ? window.fmt(val) : (Number(val) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        const escapeHtml = (str) => (typeof window.escapeHtml === 'function' ? window.escapeHtml(str) : String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])));
+
         function getCatColor(cat) {
             return CATS_COLORS[cat] || '#8591ad';
         }
@@ -6671,6 +6766,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
             let typeFilter = 'ALL';
             if (currentExtratoChipFilter === 'RECEITA') typeFilter = 'RECEITA';
+            else if (currentExtratoChipFilter === 'INVESTIMENTO') typeFilter = 'INVESTIMENTO';
 
             let filtered = buildFinancialEvents(globalData, globalCreditSettlements, {
                 selectedYm,
@@ -6715,7 +6811,8 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 const label = meio === 'Cartão de Crédito' ? 'Cartão' : escapeHtml(meio);
                 return `${label} <b class="money">${fmt(val)}</b>`;
             });
-            container.innerHTML = lines.join('<br>');
+            const sep = window.innerWidth <= 768 ? ' · ' : '<br>';
+            container.innerHTML = lines.join(sep);
         }
 
         function renderInvestimentosDetalhes(investArr, totalInvest, totalReceitas) {
@@ -6801,6 +6898,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     const tr = document.createElement('tr');
                     tr.className = 'tx-row';
                     tr.dataset.id = item.id;
+                    tr.onclick = (e) => handleTxRowClick(item, dateKey, e);
 
                     const isEntrada = item.type === 'RECEITA';
                     const isAporte = item.type === 'INVESTIMENTO';
@@ -6840,7 +6938,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                             </div>
                         </td>
                         <td class="val-col val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}">
-                            ${isEntrada ? '+ ' : ''}${fmt(item.value)}
+                            ${isEntrada ? '+ ' : ''}${fmt(item.value != null ? item.value : (item.valor || 0))}
                         </td>
                         <td class="acts-col">
                             <div class="acts">
@@ -6918,6 +7016,99 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             }
         }
 
+        let lastDeletedTransactionBackup = null;
+        let mobileToastTimer = null;
+
+        function handleTxRowClick(item, dateKey, e) {
+            if (window.innerWidth > 768) return;
+            if (e && e.target && e.target.closest('button')) return;
+
+            const dateFormatted = fmtExtratoDay(dateKey);
+            const valFormatted = fmt(item.value != null ? item.value : (item.valor || 0));
+
+            const html = `
+                <div class="sh">
+                    <b>${escapeHtml(item.desc || item.descricao || 'Sem descrição')}</b>
+                    <span>${dateFormatted} · ${valFormatted}</span>
+                </div>
+                <button type="button" class="act" onclick="closeMobileSheet(); editTransaction('${item.id}');">
+                    <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>
+                    Editar
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); duplicateTransaction('${item.id}');">
+                    <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></svg>
+                    Duplicar
+                </button>
+                <button type="button" class="act del" onclick="closeMobileSheet(); handleMobileDeleteTransaction('${item.id}');">
+                    <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+                    Excluir
+                </button>
+            `;
+            openMobileSheet(html);
+        }
+
+        async function handleMobileDeleteTransaction(id) {
+            const item = globalData.find(d => d.id === id || String(d.id) === String(id));
+            if (!item) return;
+
+            const payload = {
+                user_id: currentUser ? currentUser.id : item.user_id,
+                tipo: item.type === 'RECEITA' ? 'Receita' : item.type === 'INVESTIMENTO' ? 'Investimento' : 'Despesa',
+                data: item.rawDate || formatLocalDateInput(),
+                descricao: item.desc,
+                valor: item.value,
+                pagamento: item.pagamento || 'PIX',
+                cartao: item.cartao || '',
+                fatura_destino: item.faturaDestino || 'ATUAL',
+                parcela: item.parcela || 'À vista',
+                categoria: item.category || 'Outros',
+                subcategoria: item.subCat || '',
+                custo: item.custo || 'Variável'
+            };
+
+            lastDeletedTransactionBackup = { item, payload };
+            showMobileToast('Lançamento excluído', true);
+            try {
+                await quickDeleteTransaction(id);
+            } catch (err) {
+                console.warn('Erro na sincronização da exclusão:', err);
+            }
+        }
+
+        function showMobileToast(message, allowUndo = false) {
+            const toastEl = document.getElementById('toast');
+            const ttEl = document.getElementById('tt');
+            const undoBtn = document.getElementById('undo');
+            if (!toastEl || !ttEl || !undoBtn) return;
+
+            ttEl.textContent = message;
+            undoBtn.style.display = allowUndo ? '' : 'none';
+            toastEl.classList.add('show');
+
+            clearTimeout(mobileToastTimer);
+            mobileToastTimer = setTimeout(() => {
+                toastEl.classList.remove('show');
+                lastDeletedTransactionBackup = null;
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const undoBtn = document.getElementById('undo');
+            if (undoBtn) {
+                undoBtn.onclick = async () => {
+                    if (lastDeletedTransactionBackup && lastDeletedTransactionBackup.payload) {
+                        const p = lastDeletedTransactionBackup.payload;
+                        lastDeletedTransactionBackup = null;
+                        const toastEl = document.getElementById('toast');
+                        if (toastEl) toastEl.classList.remove('show');
+                        await transactionsInsert([p]);
+                        await loadDashboardData();
+                        showMobileToast('Ação desfeita com sucesso!', false);
+                    }
+                };
+            }
+        });
+
         function updateDashboardForecastWidget(selectedYm) {
             const container = document.getElementById('dashboardForecastCards');
             if (!container) return;
@@ -6939,7 +7130,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                 const abbr = MONTH_ABBR[monthIndex] || m.label.slice(0, 3);
 
                 const chip = document.createElement('div');
-                chip.className = 'chip-up';
+                chip.className = 'chip-up cm';
                 chip.style.cursor = 'pointer';
                 chip.title = `Ver previsão de ${m.label}`;
                 chip.onclick = () => {
@@ -6951,7 +7142,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     ? `<b class="money">${fmt(m.totalComprometido)}</b>` 
                     : `<b class="money" style="color:var(--muted); font-weight:600;">R$ 0,00</b>`;
 
-                chip.innerHTML = `${escapeHtml(abbr)} ${valHtml}`;
+                chip.innerHTML = `<span>${escapeHtml(abbr)}</span> ${valHtml}`;
                 container.appendChild(chip);
             });
         }

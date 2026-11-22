@@ -203,24 +203,27 @@
                 <button type="button" id="nextMonthBtn" onclick="changeMonthOffset(1)" aria-label="Próximo mês">›</button>
             </div>
 
-            <!-- Botão Privacidade (Modo Ocultar Valores) -->
-            <button type="button" class="icon-btn" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">👁️</button>
+            <!-- Ações Rápidas do Header -->
+            <div class="header-actions">
+                <!-- Botão Privacidade (Modo Ocultar Valores) -->
+                <button type="button" class="icon-btn" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">👁️</button>
 
-            <!-- Botão de Destaque Novo Registro -->
-            <button type="button" class="btn new" id="tabNovoBtn" onclick="switchTab('novo')">➕ Novo Registro</button>
+                <!-- Botão de Destaque Novo Registro (Visível em Desktop, FAB no Mobile) -->
+                <button type="button" class="btn new" id="tabNovoBtn" onclick="switchTab('novo')">➕ Novo Registro</button>
 
-            <!-- Menu Dropdown da Conta e Configurações -->
-            <div class="menu" id="headerMenu">
-                <button type="button" class="icon-btn" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">☰</button>
-                <div class="menu-list" id="headerMenuList">
-                    <button type="button" onclick="switchTab('novo'); closeHeaderMenu();">➕ Novo lançamento</button>
-                    <button type="button" id="menuPrivacyBtn" onclick="togglePrivacy(); closeHeaderMenu();">👁️ <span id="menuPrivacyText">Ocultar valores</span></button>
-                    <button type="button" onclick="manualSync(); closeHeaderMenu();" id="syncBtn">🔄 Sincronizar dados</button>
-                    <button type="button" onclick="switchTab('gerenciar-listas'); closeHeaderMenu();">⚙️ Gerenciar Categorias</button>
-                    <button type="button" onclick="switchTab('conta'); closeHeaderMenu();">🔒 Minha Conta & Tema</button>
-                    <button type="button" id="menuAdminBtn" style="display:none;" onclick="switchTab('admin'); closeHeaderMenu();">🛡️ Central Admin</button>
-                    <hr>
-                    <button type="button" class="danger" onclick="logout()">🚪 Sair</button>
+                <!-- Menu Dropdown da Conta e Configurações -->
+                <div class="menu" id="headerMenu">
+                    <button type="button" class="icon-btn" id="menuBtn" onclick="toggleHeaderMenu()" aria-label="Menu da conta">☰</button>
+                    <div class="menu-list" id="headerMenuList">
+                        <button type="button" onclick="switchTab('novo'); closeHeaderMenu();">➕ Novo lançamento</button>
+                        <button type="button" id="menuPrivacyBtn" onclick="togglePrivacy(); closeHeaderMenu();">👁️ <span id="menuPrivacyText">Ocultar valores</span></button>
+                        <button type="button" onclick="manualSync(); closeHeaderMenu();" id="syncBtn">🔄 Sincronizar dados</button>
+                        <button type="button" onclick="switchTab('gerenciar-listas'); closeHeaderMenu();">⚙️ Gerenciar Categorias</button>
+                        <button type="button" onclick="switchTab('conta'); closeHeaderMenu();">🔒 Minha Conta & Tema</button>
+                        <button type="button" id="menuAdminBtn" style="display:none;" onclick="switchTab('admin'); closeHeaderMenu();">🛡️ Central Admin</button>
+                        <hr>
+                        <button type="button" class="danger" onclick="logout()">🚪 Sair</button>
+                    </div>
                 </div>
             </div>
 
@@ -275,11 +278,13 @@
 
                 <!-- 2. PRÓXIMOS MESES (FAIXA COMPACTA SEM DINHEIRO VIVO) -->
                 <div class="upcoming" id="dashboardForecastWidget">
-                    <span>Próximos meses</span>
+                    <div class="upcoming-header-row">
+                        <span>Próximos meses</span>
+                        <button type="button" class="action-btn" onclick="switchTab('previsao')" style="background:transparent; border:0; color:var(--blue); font-size:12px; font-weight:700; cursor:pointer; padding:0; text-decoration:none;">Ver Previsão Completa ➔</button>
+                    </div>
                     <div id="dashboardForecastCards" style="display:flex; gap:10px; align-items:center;"></div>
                     <!-- Elemento mantido oculto para compatibilidade interna de scripts -->
                     <span id="kpi-dinheiro-vivo" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px; overflow:hidden;"></span>
-                    <button type="button" class="action-btn" onclick="switchTab('previsao')" style="background:transparent; border:0; color:var(--blue); font-size:12px; font-weight:700; cursor:pointer; padding:0; text-decoration:none;">Ver Previsão Completa ➔</button>
                 </div>
 
                 <!-- 3. LANÇAMENTOS (EXTRATO INTEGRADO) -->
@@ -6779,9 +6784,22 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     return acc + (isEnt ? t.value : -t.value);
                 }, 0);
 
-                items.forEach((item, itemIdx) => {
+                // Cabeçalho dedicado do dia (ocupa a largura inteira, sem sobrepor a descrição)
+                const dayTr = document.createElement('tr');
+                dayTr.className = 'day-header-row';
+                dayTr.innerHTML = `
+                    <td colspan="4" class="day-header-cell">
+                        <div class="day-banner">
+                            <span class="day-label">${fmtExtratoDay(dateKey)}</span>
+                            <span class="day-net money ${netDay >= 0 ? 'green' : 'red'}">${netDay < 0 ? '−' : '+'} ${fmt(Math.abs(netDay))}</span>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(dayTr);
+
+                items.forEach((item) => {
                     const tr = document.createElement('tr');
-                    tr.className = 'tx-row' + (itemIdx === 0 ? ' is-day-first' : '');
+                    tr.className = 'tx-row';
                     tr.dataset.id = item.id;
 
                     const isEntrada = item.type === 'RECEITA';
@@ -6802,7 +6820,7 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                         paymentLabel = paymentLabel.toUpperCase();
                     }
 
-                    const subcatText = item.subCat ? ` <span style="color:var(--muted); font-size:12px;">(${escapeHtml(item.subCat)})</span>` : '';
+                    const subcatText = item.subCat ? ` <span style="color:var(--muted); font-size:11.5px;">(${escapeHtml(item.subCat)})</span>` : '';
 
                     const actsHtml = `
                         <button type="button" title="Editar" onclick="editTransaction('${item.id}')">✎</button>
@@ -6810,29 +6828,21 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                         <button type="button" title="Excluir" onclick="quickDeleteTransaction('${item.id}')">🗑</button>
                     `;
 
-                    const dayBannerHtml = itemIdx === 0 ? `
-                        <div class="day" style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:12px; font-weight:700; color:var(--muted);">${fmtExtratoDay(dateKey)}</span>
-                            <span class="money ${netDay >= 0 ? 'green' : 'red'}" style="font-size:12px; font-weight:700;">${netDay < 0 ? '−' : '+'} ${fmt(Math.abs(netDay))}</span>
-                        </div>
-                    ` : '';
-
                     tr.innerHTML = `
-                        <td class="dot-col" style="${itemIdx === 0 ? 'vertical-align: top; padding-top: 1.25rem;' : ''}">
+                        <td class="dot-col">
                             <div class="dot" style="background:${catColor}22; color:${catColor};">${catAbbr}</div>
                         </td>
                         <td class="desc-col">
-                            ${dayBannerHtml}
                             <div class="desc">${escapeHtml(item.desc || 'Sem descrição')}</div>
                             <div class="meta">
                                 <span>${escapeHtml(item.category || 'Geral')}</span>${subcatText}
                                 <span class="tag">${escapeHtml(paymentLabel)}</span>
                             </div>
                         </td>
-                        <td class="val-col val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}" style="${itemIdx === 0 ? 'vertical-align: top; padding-top: 1.25rem;' : ''}">
+                        <td class="val-col val money ${isEntrada ? 'green' : isAporte ? 'violet' : 'red'}">
                             ${isEntrada ? '+ ' : ''}${fmt(item.value)}
                         </td>
-                        <td class="acts-col" style="${itemIdx === 0 ? 'vertical-align: top; padding-top: 1.25rem;' : ''}">
+                        <td class="acts-col">
                             <div class="acts">
                                 ${actsHtml}
                             </div>

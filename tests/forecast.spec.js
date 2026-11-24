@@ -421,11 +421,17 @@ test.describe('Previsão Financeira 2.0 — Motor & Interface', () => {
         await page.getByRole('button', { name: /Minha Conta/i }).click();
         await expect(page.locator('#tab-conta')).toBeVisible();
 
+        const initialIsDark = await page.locator('body').evaluate(b => b.classList.contains('dark-theme'));
         await page.click('#themeToggleBtn');
-        await expect(page.locator('body')).toHaveClass(/dark-theme/);
-
-        await page.click('#themeToggleBtn');
-        await expect(page.locator('body')).not.toHaveClass(/dark-theme/);
+        if (initialIsDark) {
+            await expect(page.locator('body')).toHaveClass(/light-theme/);
+            await page.click('#themeToggleBtn');
+            await expect(page.locator('body')).toHaveClass(/dark-theme/);
+        } else {
+            await expect(page.locator('body')).toHaveClass(/dark-theme/);
+            await page.click('#themeToggleBtn');
+            await expect(page.locator('body')).not.toHaveClass(/dark-theme/);
+        }
     });
 
     test('17. Virada de ano com horizonte 12 meses projeta corretamente competências do ano seguinte', async ({ page }) => {

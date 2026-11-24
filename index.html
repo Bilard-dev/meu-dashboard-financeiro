@@ -209,7 +209,7 @@
             </div>
 
             <!-- Ações Rápidas do Header -->
-            <div class="header-actions">
+            <div class="header-actions header-controls">
                 <!-- Botão Privacidade (Modo Ocultar Valores) -->
                 <button type="button" class="icon-btn ib" id="privacyToggleBtn" onclick="togglePrivacy()" title="Modo Privacidade (Ocultar/Exibir Valores)" aria-label="Ocultar valores">
                     <span class="ib-emoji">👁️</span>
@@ -298,7 +298,10 @@
                 <div class="upcoming" id="dashboardForecastWidget">
                     <div class="upcoming-header-row uph">
                         <h2>Próximos meses</h2>
-                        <a id="prev2" onclick="switchTab('previsao')" class="forecast-link">Ver previsão ›</a>
+                        <button type="button" id="prev2" onclick="switchTab('previsao')" class="forecast-link">
+                            <span class="forecast-link-desk">Ver Previsão Completa ›</span>
+                            <span class="forecast-link-mob">Ver previsão ›</span>
+                        </button>
                     </div>
                     <div id="dashboardForecastCards" class="strip"></div>
                     <!-- Elemento mantido oculto para compatibilidade interna de scripts -->
@@ -324,7 +327,7 @@
                         <option value="INVESTIMENTO">Investimentos</option>
                     </select>
                     <label class="search search-wrap">
-                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" fill="none"/><path d="M20 20l-3.5-3.5"/></svg>
                         <input type="text" id="searchInput" placeholder="Buscar descrição ou tag…" oninput="applyExtratoFilters()">
                     </label>
                 </div>
@@ -1626,7 +1629,7 @@
 
         <!-- BOTTOM SHEET / PAINEL MOBILE: MAIS OPÇÕES -->
         <div id="mobileMoreSheetOverlay" class="mobile-more-overlay" onclick="closeMobileMoreSheet()" style="display: none;" aria-hidden="true"></div>
-        <div id="mobileMoreSheet" class="mobile-more-sheet" role="dialog" aria-modal="true" aria-label="Menu de Funções Secundárias" style="display: none;">
+        <div id="mobileMoreSheetLegacy" class="mobile-more-sheet" role="dialog" aria-modal="true" aria-label="Menu de Funções Secundárias" style="display: none;">
             <div class="mobile-more-handle-bar" aria-hidden="true"><div class="mobile-more-handle"></div></div>
             <div class="mobile-more-header">
                 <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
@@ -4814,22 +4817,24 @@
         function openMobileMoreSheet() {
             const svgChevron = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;margin-left:auto;color:var(--muted);stroke:currentColor;fill:none;stroke-width:2;"><path d="M9 6l6 6-6 6"/></svg>';
             const html = `
-                <div class="sh"><b>Mais Opções</b><span>Navegação e configurações</span></div>
-                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('analise');">
-                    <span>Análise de Gastos</span>${svgChevron}
-                </button>
-                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('previsao');">
-                    <span>Previsão Financeira</span>${svgChevron}
-                </button>
-                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('gerenciar-listas');">
-                    <span>Categorias</span>${svgChevron}
-                </button>
-                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('conta');">
-                    <span>Minha Conta</span>${svgChevron}
-                </button>
-                <button type="button" class="act" onclick="closeMobileSheet(); switchTab('admin');">
-                    <span>Central Admin</span>${svgChevron}
-                </button>
+                <div id="mobileMoreSheet" class="mobile-more-sheet-inner">
+                    <div class="sh"><b>Mais Opções</b><span>Navegação e configurações</span></div>
+                    <button type="button" class="act" onclick="closeMobileSheet(); switchTab('analise');">
+                        <span>Análise de Gastos</span>${svgChevron}
+                    </button>
+                    <button type="button" class="act" onclick="closeMobileSheet(); switchTab('previsao');">
+                        <span>Previsão Financeira</span>${svgChevron}
+                    </button>
+                    <button type="button" class="act" onclick="closeMobileSheet(); switchTab('gerenciar-listas');">
+                        <span>Categorias</span>${svgChevron}
+                    </button>
+                    <button type="button" class="act" onclick="closeMobileSheet(); switchTab('conta');">
+                        <span>Minha Conta</span>${svgChevron}
+                    </button>
+                    <button type="button" class="act" onclick="closeMobileSheet(); switchTab('admin');">
+                        <span>Central Admin</span>${svgChevron}
+                    </button>
+                </div>
             `;
             openMobileSheet(html);
         }

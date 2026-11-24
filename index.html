@@ -28,7 +28,7 @@
 
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="dark-theme">
     <!-- CONTAINER DE NOTIFICAÇÕES TOAST -->
     <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
@@ -228,6 +228,7 @@
                     <div class="menu-list" id="headerMenuList">
                         <button type="button" onclick="switchTab('novo'); closeHeaderMenu();">➕ Novo lançamento</button>
                         <button type="button" id="menuPrivacyBtn" onclick="togglePrivacy(); closeHeaderMenu();">👁️ <span id="menuPrivacyText">Ocultar valores</span></button>
+                        <button type="button" id="menuThemeBtn" onclick="toggleTheme(); closeHeaderMenu();">☀️ <span id="menuThemeText">Modo Claro</span></button>
                         <button type="button" onclick="manualSync(); closeHeaderMenu();" id="syncBtn">🔄 Sincronizar dados</button>
                         <button type="button" onclick="switchTab('gerenciar-listas'); closeHeaderMenu();">⚙️ Gerenciar Categorias</button>
                         <button type="button" onclick="switchTab('conta'); closeHeaderMenu();">🔒 Minha Conta & Tema</button>
@@ -2485,26 +2486,60 @@
             return false;
         }
 
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const themeBtn = document.getElementById('themeToggleBtn');
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-theme');
-                if (themeBtn) themeBtn.innerHTML = '☀️ <span id="themeBtnText">Modo Claro</span>';
-            } else {
-                if (themeBtn) themeBtn.innerHTML = '🌙 <span id="themeBtnText">Modo Escuro</span>';
+        function updateThemeMeta(isDark) {
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) {
+                meta.setAttribute('content', isDark ? '#0d1220' : '#f4f6fa');
             }
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
+        function updateThemeUI() {
             const isDark = document.body.classList.contains('dark-theme');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
             const themeBtn = document.getElementById('themeToggleBtn');
             if (themeBtn) {
                 themeBtn.innerHTML = isDark
                     ? '☀️ <span id="themeBtnText">Modo Claro</span>'
                     : '🌙 <span id="themeBtnText">Modo Escuro</span>';
+            }
+            const menuThemeBtn = document.getElementById('menuThemeBtn');
+            if (menuThemeBtn) {
+                menuThemeBtn.innerHTML = isDark
+                    ? '☀️ <span id="menuThemeText">Modo Claro</span>'
+                    : '🌙 <span id="menuThemeText">Modo Escuro</span>';
+            }
+            updateThemeMeta(isDark);
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.remove('dark-theme');
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('dark-theme');
+            }
+            updateThemeUI();
+        }
+
+        function toggleTheme() {
+            const isCurrentlyDark = document.body.classList.contains('dark-theme') || !document.body.classList.contains('light-theme');
+            if (isCurrentlyDark) {
+                document.body.classList.remove('dark-theme');
+                document.body.classList.add('light-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateThemeUI();
+
+            try {
+                if (typeof renderInvestStats === 'function') renderInvestStats();
+                if (typeof renderCategoryAverages === 'function') renderCategoryAverages();
+            } catch (e) {
+                console.warn('[Theme] Erro ao re-renderizar gráficos:', e);
             }
         }
 
@@ -5025,10 +5060,16 @@
 
         function openMobileMenuSheet() {
             const svgChevron = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;margin-left:auto;color:var(--muted);stroke:currentColor;fill:none;stroke-width:2;"><path d="M9 6l6 6-6 6"/></svg>';
+            const isDark = document.body.classList.contains('dark-theme') || !document.body.classList.contains('light-theme');
+            const themeIcon = isDark ? '☀️' : '🌙';
+            const themeLabel = isDark ? 'Modo Claro' : 'Modo Escuro';
             const html = `
                 <div class="sh"><b>Painel Financeiro</b><span>Ações rápidas da conta</span></div>
                 <button type="button" class="act" onclick="closeMobileSheet(); switchTab('novo');">
                     <span>➕ Lançador celular</span>${svgChevron}
+                </button>
+                <button type="button" class="act" onclick="closeMobileSheet(); toggleTheme();">
+                    <span>${themeIcon} ${themeLabel}</span>${svgChevron}
                 </button>
                 <button type="button" class="act" onclick="closeMobileSheet(); manualSync();">
                     <span>🔄 Sincronizar</span>${svgChevron}

@@ -1284,14 +1284,28 @@
                             <option value="Outro">Outro</option>
                         </select>
 
+                        <!-- Seletor de Opção de Valor para Compras Parceladas (Largura Total) -->
+                        <div id="parcModeToggleGroup" style="display: none; margin-top: 6px; margin-bottom: 8px;">
+                            <div style="font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px;">Informar valor parcelado como:</div>
+                            <div class="parc-mode-chips">
+                                <button type="button" class="parc-mode-chip on" id="chipModoParcela" onclick="setParcelaInputMode('parcela')">
+                                    <span>💵 Valor da Parcela</span>
+                                </button>
+                                <button type="button" class="parc-mode-chip" id="chipModoTotal" onclick="setParcelaInputMode('total')">
+                                    <span>🏷️ Valor Total da Compra</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- 2. Grid Valor e Data -->
                         <div class="nl-g2">
                             <div class="nl-field" id="fValor">
                                 <label id="i_valor_label" for="i_valor">Valor</label>
                                 <div class="nl-money">
                                     <span>R$</span>
-                                    <input type="number" step="0.01" id="i_valor" class="input-field nl-amount" placeholder="0,00" autocomplete="off" required>
+                                    <input type="number" step="0.01" id="i_valor" class="input-field nl-amount" placeholder="0,00" autocomplete="off" required oninput="handleValorInputCalc()">
                                 </div>
+                                <div id="parcelaCalcPreview" class="parc-calc-badge" style="display: none;"></div>
                             </div>
                             <div class="nl-field">
                                 <div class="nl-lrow">
@@ -1342,7 +1356,21 @@
                                     <option value="RECORRENTE">🔄 Recorrente / Assinatura</option>
                                     <option value="CUSTOM">🔢 Outro...</option>
                                 </select>
-                                <input type="text" id="i_parcela_custom" class="input-field" placeholder="Ex: 8/11" style="display: none; margin-top: 0.4rem;">
+                                <input type="text" id="i_parcela_custom" class="input-field" placeholder="Ex: 8/11 ou 18" style="display: none; margin-top: 0.4rem;" oninput="updateParcelaCalculation()">
+
+                                <!-- Opção de Cálculo do Valor em Compras Parceladas -->
+                                <div id="parcModeSectionInParcWrap" style="display: none; margin-top: 8px;">
+                                    <div style="font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px;">Informar valor como:</div>
+                                    <div class="parc-mode-chips">
+                                        <button type="button" class="parc-mode-chip on" id="chipModoParcelaBottom" onclick="setParcelaInputMode('parcela')">
+                                            <span>💵 Valor da Parcela</span>
+                                        </button>
+                                        <button type="button" class="parc-mode-chip" id="chipModoTotalBottom" onclick="setParcelaInputMode('total')">
+                                            <span>🏷️ Valor Total da Compra</span>
+                                        </button>
+                                    </div>
+                                    <div id="parcCalcSummaryBottom" class="parc-calc-badge" style="display: none;"></div>
+                                </div>
                                 
                                 <div style="display:flex; gap:8px; margin-top:6px;">
                                     <select id="i_cartao" class="input-field" style="flex:1;" onchange="handleDynamicSelect(this, 'Cartão')">
@@ -3141,6 +3169,128 @@
             });
         }
 
+
+        // === MODO DE VALOR PARA COMPRAS PARCELADAS (Fase 4.5) ===
+        let parcelaInputMode = 'parcela'; // 'parcela' = Valor da Parcela | 'total' = Valor Total da Compra
+
+        function getNumParcelasFromForm() {
+            const isCard = document.getElementById('i_pagamento')?.value === 'Cartão de Crédito';
+            if (!isCard) return 1;
+
+            const pSel = document.getElementById('i_parcela_select')?.value;
+            if (!pSel || pSel === 'À vista' || pSel === 'RECORRENTE') return 1;
+
+            let pStr = pSel;
+            if (pSel === 'CUSTOM') {
+                pStr = (document.getElementById('i_parcela_custom')?.value || '').trim();
+            }
+
+            if (!pStr) return 1;
+
+            if (pStr.includes('/')) {
+                const parts = pStr.split('/');
+                const total = parseInt(parts[1], 10);
+                return (!isNaN(total) && total > 1) ? total : 1;
+            }
+
+            const num = parseInt(pStr, 10);
+            return (!isNaN(num) && num > 1) ? num : 1;
+        }
+
+        function setParcelaInputMode(mode) {
+            if (parcelaInputMode === mode) return;
+
+            const numParcelas = getNumParcelasFromForm();
+            const valInput = document.getElementById('i_valor');
+            const valRaw = valInput ? valInput.value : '';
+            const valNum = parseFloat(valRaw);
+
+            if (valRaw && !isNaN(valNum) && valNum > 0 && numParcelas > 1) {
+                if (mode === 'total') {
+                    // Estava em parcela, convertendo para total: total = parcela * numParcelas
+                    valInput.value = (Math.round((valNum * numParcelas) * 100) / 100).toFixed(2);
+                } else {
+                    // Estava em total, convertendo para parcela: parcela = total / numParcelas
+                    valInput.value = (Math.round((valNum / numParcelas) * 100) / 100).toFixed(2);
+                }
+            }
+
+            parcelaInputMode = mode;
+            updateParcelaCalculation();
+        }
+
+        function handleValorInputCalc() {
+            updateParcelaCalculation();
+        }
+
+        function updateParcelaCalculation() {
+            const isCard = document.getElementById('i_pagamento')?.value === 'Cartão de Crédito';
+            const numParcelas = getNumParcelasFromForm();
+            const isParcelado = isCard && numParcelas > 1;
+
+            const toggleGroup = document.getElementById('parcModeToggleGroup');
+            const bottomToggleGroup = document.getElementById('parcModeSectionInParcWrap');
+            const previewBadge = document.getElementById('parcelaCalcPreview');
+            const bottomPreviewBadge = document.getElementById('parcCalcSummaryBottom');
+            const valorLabel = document.getElementById('i_valor_label');
+
+            if (!isParcelado) {
+                if (toggleGroup) toggleGroup.style.display = 'none';
+                if (bottomToggleGroup) bottomToggleGroup.style.display = 'none';
+                if (previewBadge) previewBadge.style.display = 'none';
+                if (bottomPreviewBadge) bottomPreviewBadge.style.display = 'none';
+                return;
+            }
+
+            // Exibe os seletores de modo
+            if (toggleGroup) toggleGroup.style.display = 'block';
+            if (bottomToggleGroup) bottomToggleGroup.style.display = 'block';
+
+            // Atualiza estados dos botões
+            const isTotal = (parcelaInputMode === 'total');
+            document.getElementById('chipModoParcela')?.classList.toggle('on', !isTotal);
+            document.getElementById('chipModoTotal')?.classList.toggle('on', isTotal);
+            document.getElementById('chipModoParcelaBottom')?.classList.toggle('on', !isTotal);
+            document.getElementById('chipModoTotalBottom')?.classList.toggle('on', isTotal);
+
+            // Atualiza o texto do label
+            if (valorLabel) {
+                valorLabel.textContent = isTotal ? 'Valor Total da Compra' : 'Valor da Parcela';
+            }
+
+            // Realiza cálculo dinâmico do valor
+            const valRaw = document.getElementById('i_valor')?.value;
+            const valNum = parseFloat(valRaw);
+
+            if (!valRaw || isNaN(valNum) || valNum <= 0) {
+                if (previewBadge) previewBadge.style.display = 'none';
+                if (bottomPreviewBadge) bottomPreviewBadge.style.display = 'none';
+                return;
+            }
+
+            let summaryHtml = '';
+            if (isTotal) {
+                const valParc = Math.round((valNum / numParcelas) * 100) / 100;
+                const formattedTotal = valNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const formattedParc = valParc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                summaryHtml = '💳 <span>Total <b>R$ ' + formattedTotal + '</b> ÷ ' + numParcelas + 'x = <b>R$ ' + formattedParc + '</b> por parcela</span>';
+            } else {
+                const totalCalc = Math.round((valNum * numParcelas) * 100) / 100;
+                const formattedParc = valNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const formattedTotal = totalCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                summaryHtml = '💳 <span><b>' + numParcelas + 'x</b> de <b>R$ ' + formattedParc + '</b> = Total: <b>R$ ' + formattedTotal + '</b></span>';
+            }
+
+            if (previewBadge) {
+                previewBadge.innerHTML = summaryHtml;
+                previewBadge.style.display = 'flex';
+            }
+            if (bottomPreviewBadge) {
+                bottomPreviewBadge.innerHTML = summaryHtml;
+                bottomPreviewBadge.style.display = 'flex';
+            }
+        }
+
         function updateFormCardLabels() {
             const isCard = document.getElementById('i_pagamento')?.value === 'Cartão de Crédito';
             const pSel = document.getElementById('i_parcela_select')?.value;
@@ -3180,6 +3330,7 @@
                 el.style.display = isCard ? 'block' : 'none';
             });
             updateFormCardLabels();
+            updateParcelaCalculation();
         }
 
         function handleParcelaSelectChange(selectEl, customInputId) {
@@ -3192,6 +3343,7 @@
                 customInput.value = '';
             }
             updateFormCardLabels();
+            updateParcelaCalculation();
         }
 
         function getFrequencySortedOptions(arrayValues) {
@@ -4861,6 +5013,8 @@
                 if (parcWrap) parcWrap.style.display = 'none';
                 if (valLabel) valLabel.textContent = 'Valor da Entrada';
                 if (descInput) descInput.placeholder = 'Ex.: Salário, Rendimentos, Freelance…';
+                parcelaInputMode = 'parcela';
+                updateParcelaCalculation();
             } else if (normalizedMode === 'Cartão') {
                 if (form) form.dataset.tipo = 'despesa';
                 if (iTipo) iTipo.value = 'Despesa';
@@ -4868,6 +5022,7 @@
                 if (parcWrap) parcWrap.style.display = 'block';
                 if (valLabel) valLabel.textContent = 'Valor';
                 if (descInput) descInput.placeholder = 'Ex.: Mercado, Uber, Almoço…';
+                updateParcelaCalculation();
             } else if (normalizedMode === 'Dinheiro') {
                 if (form) form.dataset.tipo = 'despesa';
                 if (iTipo) iTipo.value = 'Despesa';
@@ -5198,7 +5353,11 @@ async function addOrUpdateTransaction(e, isBatch = false) {
                     if (pSel === 'RECORRENTE') {
                         valorParcelaFinal = 'RECORRENTE';
                     } else if (pSel === 'CUSTOM') {
-                        valorParcelaFinal = document.getElementById('i_parcela_custom').value.trim();
+                        let cVal = document.getElementById('i_parcela_custom').value.trim();
+                        if (/^\d+$/.test(cVal)) {
+                            cVal = '1/' + cVal;
+                        }
+                        valorParcelaFinal = cVal;
                     } else if (pSel !== 'À vista') {
                         valorParcelaFinal = pSel;
                     }
@@ -5218,13 +5377,20 @@ async function addOrUpdateTransaction(e, isBatch = false) {
 
                 const descWithTags = buildDescWithTags(document.getElementById('i_descricao').value, document.getElementById('i_tags').value);
 
+                // Se o usuário informou o Valor Total da Compra para um parcelamento, calculamos o valor por parcela
+                const numParcelasFinal = getNumParcelasFromForm();
+                let valorFinalParaSalvar = valorNum;
+                if (isCard && parcelaInputMode === 'total' && numParcelasFinal > 1) {
+                    valorFinalParaSalvar = Math.round((valorNum / numParcelasFinal) * 100) / 100;
+                }
+
                 const payload = {
                     user_id: currentUser.id,
                     grupo_parcela_id: grupoParcelaId,
                     tipo: tipo,
                     data: document.getElementById('i_data').value,
                     descricao: descWithTags,
-                    valor: parseFloat(document.getElementById('i_valor').value),
+                    valor: valorFinalParaSalvar,
                     pagamento: pagamento,
                     cartao: isCard ? document.getElementById('i_cartao').value : '',
                     fatura_destino: isCard ? document.getElementById('i_fatura_destino').value : 'ATUAL',
@@ -5480,7 +5646,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             }
 
             populateFormDropdowns();
+            parcelaInputMode = 'parcela';
             togglePaymentFields();
+            updateParcelaCalculation();
 
             // Preservação de valores históricos não catalogados ou inativos
             const catSelect = document.getElementById('i_categoria');
@@ -5566,7 +5734,9 @@ async function addOrUpdateTransaction(e, isBatch = false) {
             setFormTipo('Despesa');
             document.getElementById('i_parcela_select').value = 'À vista';
             document.getElementById('i_parcela_custom').style.display = 'none';
+            parcelaInputMode = 'parcela';
             togglePaymentFields();
+            updateParcelaCalculation();
         }
 
         async function deleteTransaction(id) {
